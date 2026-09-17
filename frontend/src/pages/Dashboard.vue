@@ -54,10 +54,9 @@ const recentConversations = computed(() => aiStore.conversations.slice(0, 3))
     
     <!-- Floating Background Glow Orbs Powered 100% by Selected Theme -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
-      <div class="glow-orb w-[38rem] h-[38rem] -top-20 -right-20 bg-brand-500/30 dark:bg-brand-500/25 animate-floatSlow transition-colors duration-500 blur-[90px]"></div>
-      <div class="glow-orb w-[42rem] h-[42rem] top-1/3 -left-40 bg-brand-600/25 dark:bg-brand-600/20 animate-pulseGlow transition-colors duration-500 blur-[100px]" style="animation-delay: -3s"></div>
-      <div class="glow-orb w-[34rem] h-[34rem] bottom-10 right-1/4 bg-brand-400/25 dark:bg-brand-400/20 animate-floatSlow transition-colors duration-500 blur-[85px]" style="animation-delay: -6s"></div>
-      <div class="glow-orb w-[26rem] h-[26rem] -bottom-10 left-1/3 bg-brand-300/20 dark:bg-brand-400/15 animate-pulseGlow transition-colors duration-500 blur-[75px]" style="animation-delay: -9s"></div>
+      <div class="glow-orb w-[32rem] h-[32rem] -top-24 -right-24 bg-brand-500/25 dark:bg-brand-500/20 animate-floatSlow transition-colors duration-500"></div>
+      <div class="glow-orb w-[36rem] h-[36rem] top-1/4 -left-36 bg-brand-600/20 dark:bg-brand-600/15 animate-pulseGlow transition-colors duration-500" style="animation-delay: -3s"></div>
+      <div class="glow-orb w-[30rem] h-[30rem] bottom-10 right-1/4 bg-brand-400/20 dark:bg-brand-400/15 animate-floatSlow transition-colors duration-500" style="animation-delay: -6s"></div>
     </div>
 
     <div class="relative z-10">
