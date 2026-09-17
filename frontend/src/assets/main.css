@@ -74,25 +74,45 @@ html.dark ::-webkit-scrollbar-thumb { background: rgb(var(--brand-700) / 0.4); }
 
 /* ── Keyframes ── */
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(14px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(18px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 @keyframes floatY {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-5px); }
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%       { transform: translateY(-8px) rotate(1deg); }
+}
+@keyframes floatSlow {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(25px, -30px) scale(1.08); }
+  66% { transform: translate(-20px, 20px) scale(0.94); }
 }
 @keyframes checkPop {
   0%   { transform: scale(0.5); opacity: 0; }
-  60%  { transform: scale(1.2); }
+  60%  { transform: scale(1.25); }
   100% { transform: scale(1);   opacity: 1; }
 }
 @keyframes gradientShift {
-  0%, 100% { background-position: 0% 50%; }
-  50%       { background-position: 100% 50%; }
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 @keyframes softPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgb(var(--brand-500) / 0.2); }
-  50%       { box-shadow: 0 0 0 8px rgb(var(--brand-500) / 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgb(var(--brand-500) / 0.35); }
+  50%       { box-shadow: 0 0 0 14px rgb(var(--brand-500) / 0); }
+}
+@keyframes neonPulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgb(var(--brand-500) / 0.3), 0 0 35px rgb(var(--brand-500) / 0.15);
+    border-color: rgb(var(--brand-400) / 0.6);
+  }
+  50% {
+    box-shadow: 0 0 25px rgb(var(--brand-400) / 0.55), 0 0 60px rgb(var(--brand-500) / 0.3);
+    border-color: rgb(var(--brand-300) / 0.9);
+  }
+}
+@keyframes borderRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 @keyframes shimmer {
   from { background-position: -200% 0; }

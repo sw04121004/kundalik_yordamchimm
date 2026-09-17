@@ -27,16 +27,20 @@ function toggleFavorite(event) {
   <component
     :is="target === '#' ? 'div' : 'router-link'"
     :to="target !== '#' ? target : undefined"
-    class="p-4 flex flex-col gap-3.5 hover:-translate-y-2 hover:scale-[1.02] hover:shadow-2xl hover:shadow-brand-500/20 dark:hover:shadow-brand-500/25 transition-all duration-300 cursor-pointer group relative overflow-hidden bg-white/95 dark:bg-[#161c28]/95 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800/90 hover:border-brand-400 dark:hover:border-brand-400/80 rounded-2xl"
+    class="p-5 flex flex-col gap-3.5 hover:-translate-y-2.5 hover:scale-[1.03] hover:shadow-[0_20px_40px_-15px_rgba(var(--brand-500),0.3)] dark:hover:shadow-[0_20px_45px_-15px_rgba(var(--brand-500),0.4)] transition-all duration-300 ease-out cursor-pointer group relative overflow-hidden bg-white/95 dark:bg-[#161c28]/95 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800/90 hover:border-brand-400 dark:hover:border-brand-400 rounded-2xl"
   >
-    <!-- Dynamic Theme Accent Bottom Line (reacts to selected theme) -->
-    <div class="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-brand-400/70 dark:via-brand-400/90 to-transparent opacity-40 group-hover:opacity-100 group-hover:h-[3px] transition-all duration-300"></div>
+    <!-- Dynamic Theme Accent Glow Ring on Card -->
+    <div class="absolute inset-0 rounded-2xl border-2 border-brand-400/0 group-hover:border-brand-400/40 dark:group-hover:border-brand-400/50 transition-all duration-300 pointer-events-none"></div>
+
+    <!-- Dynamic Theme Accent Bottom Line with Pulsing Glow -->
+    <div class="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-brand-400 dark:via-brand-300 to-transparent opacity-40 group-hover:opacity-100 group-hover:h-[4px] group-hover:shadow-[0_0_12px_rgb(var(--brand-400))] transition-all duration-300"></div>
 
     <!-- Dynamic Theme Ambient Glow Expanding on Hover -->
-    <div class="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-brand-500/0 group-hover:bg-brand-500/20 blur-2xl transition-all duration-500 pointer-events-none group-hover:scale-150"></div>
+    <div class="absolute -right-6 -bottom-6 w-36 h-36 rounded-full bg-brand-500/0 group-hover:bg-brand-500/25 blur-2xl transition-all duration-500 pointer-events-none group-hover:scale-150"></div>
+    <div class="absolute -left-6 -top-6 w-28 h-28 rounded-full bg-brand-400/0 group-hover:bg-brand-400/20 blur-xl transition-all duration-500 pointer-events-none group-hover:scale-125"></div>
 
     <!-- Shimmer light sweep across card on hover -->
-    <div class="absolute inset-0 -translate-x-full group-hover:translate-x-full duration-1000 bg-gradient-to-r from-transparent via-brand-300/15 dark:via-brand-400/10 to-transparent transition-transform pointer-events-none"></div>
+    <div class="absolute inset-0 -translate-x-full group-hover:translate-x-full duration-700 ease-in-out bg-gradient-to-r from-transparent via-brand-300/20 dark:via-brand-400/15 to-transparent transition-transform pointer-events-none"></div>
 
     <!-- Favorite star button with spring scale & spin -->
     <button
@@ -53,13 +57,13 @@ function toggleFavorite(event) {
     </button>
 
     <!-- Dynamic Theme Glowing Icon Box -->
-    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-400/15 via-brand-500/15 to-brand-600/15 dark:from-brand-500/25 dark:via-brand-600/20 dark:to-brand-700/20 border border-brand-300/40 dark:border-brand-500/30 flex items-center justify-center text-2xl transition-all duration-300 group-hover:scale-120 group-hover:rotate-12 group-hover:shadow-lg group-hover:shadow-brand-500/20 group-hover:border-brand-400 group-hover:from-brand-400/30 dark:group-hover:from-brand-500/40 shrink-0">
-      <span class="transform transition-transform duration-300 group-hover:scale-110">{{ icon }}</span>
+    <div class="w-13 h-13 rounded-2xl bg-gradient-to-br from-brand-400/20 via-brand-500/20 to-brand-600/20 dark:from-brand-500/30 dark:via-brand-600/25 dark:to-brand-700/25 border border-brand-300/50 dark:border-brand-400/40 flex items-center justify-center text-2xl transition-all duration-300 group-hover:scale-115 group-hover:rotate-6 group-hover:shadow-[0_0_20px_rgb(var(--brand-500)/0.4)] group-hover:border-brand-400 group-hover:from-brand-400/35 dark:group-hover:from-brand-500/45 shrink-0">
+      <span class="transform transition-transform duration-300 group-hover:scale-110 select-none">{{ icon }}</span>
     </div>
 
     <!-- Text -->
     <div class="pr-4 relative z-10">
-      <h3 class="font-bold text-sm text-slate-800 dark:text-slate-100 group-hover:text-brand-500 dark:group-hover:text-brand-300 transition-colors leading-snug">{{ name }}</h3>
+      <h3 class="font-bold text-sm text-slate-800 dark:text-slate-100 group-hover:text-brand-600 dark:group-hover:text-brand-300 transition-colors leading-snug">{{ name }}</h3>
       <p v-if="description" class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed line-clamp-2">{{ description }}</p>
     </div>
   </component>
