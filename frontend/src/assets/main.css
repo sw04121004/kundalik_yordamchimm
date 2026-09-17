@@ -33,16 +33,24 @@ html.dark body {
   color: #e6edf3;
 }
 
-/* Subtle page-level glow in dark mode */
-html.dark body::before {
+/* Page-level dynamic theme glow (left side emphasis) */
+body::before {
   content: '';
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 800px 400px at 20% -5%, rgb(var(--brand-900) / 0.4), transparent 60%),
-    radial-gradient(ellipse 600px 400px at 90% 10%, rgb(var(--brand-700) / 0.15), transparent 55%);
+    radial-gradient(ellipse 700px 800px at -10% 25%, rgb(var(--brand-500) / 0.12), transparent 70%),
+    radial-gradient(ellipse 500px 600px at -5% 75%, rgb(var(--brand-400) / 0.08), transparent 65%);
   pointer-events: none;
-  z-index: -1;
+  z-index: 0;
+  transition: background 0.7s ease;
+}
+
+html.dark body::before {
+  background:
+    radial-gradient(ellipse 700px 800px at -10% 25%, rgb(var(--brand-500) / 0.18), transparent 70%),
+    radial-gradient(ellipse 600px 700px at -5% 75%, rgb(var(--brand-600) / 0.12), transparent 65%),
+    radial-gradient(ellipse 800px 400px at 110% 10%, rgb(var(--brand-700) / 0.1), transparent 60%);
 }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }

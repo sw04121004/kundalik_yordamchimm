@@ -54,9 +54,13 @@ const recentConversations = computed(() => aiStore.conversations.slice(0, 3))
     
     <!-- Floating Background Glow Orbs Powered 100% by Selected Theme -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
-      <div class="glow-orb w-[32rem] h-[32rem] -top-24 -right-24 bg-brand-500/25 dark:bg-brand-500/20 animate-floatSlow transition-colors duration-500"></div>
-      <div class="glow-orb w-[36rem] h-[36rem] top-1/4 -left-36 bg-brand-600/20 dark:bg-brand-600/15 animate-pulseGlow transition-colors duration-500" style="animation-delay: -3s"></div>
-      <div class="glow-orb w-[30rem] h-[30rem] bottom-10 right-1/4 bg-brand-400/20 dark:bg-brand-400/15 animate-floatSlow transition-colors duration-500" style="animation-delay: -6s"></div>
+      <!-- Chap tomondagi asosiy tanlangan rang nuri (Left Theme Aura) -->
+      <div class="glow-orb w-[40rem] h-[55rem] top-10 -left-48 bg-brand-500/25 dark:bg-brand-500/20 blur-[120px] rounded-full animate-floatSlow transition-colors duration-700 pointer-events-none"></div>
+      <div class="glow-orb w-[30rem] h-[35rem] top-1/2 -left-28 bg-brand-400/20 dark:bg-brand-600/15 blur-[100px] rounded-full animate-pulseGlow transition-colors duration-700 pointer-events-none" style="animation-delay: -2s"></div>
+
+      <!-- O'ng tomondagi qo'shimcha mayin nurlar -->
+      <div class="glow-orb w-[32rem] h-[32rem] -top-24 -right-24 bg-brand-500/20 dark:bg-brand-500/15 blur-[110px] animate-floatSlow transition-colors duration-700"></div>
+      <div class="glow-orb w-[28rem] h-[28rem] bottom-10 right-1/4 bg-brand-400/15 dark:bg-brand-400/10 blur-[100px] animate-floatSlow transition-colors duration-700" style="animation-delay: -4s"></div>
     </div>
 
     <div class="relative z-10">
