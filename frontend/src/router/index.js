@@ -122,6 +122,12 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/tools/transliterator',
+    name: 'transliterator',
+    component: () => import('../pages/services/Transliterator.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/tools/text-cleaner',
     name: 'text-cleaner',
     component: () => import('../pages/services/TextCleaner.vue'),

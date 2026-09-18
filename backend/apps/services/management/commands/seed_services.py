@@ -118,6 +118,13 @@ CATEGORIES = [
                 "route": "/tools/case-converter",
             },
             {
+                "name": "Kirill & Lotin Tarjimon",
+                "slug": "transliterator",
+                "description": "Matnlarni alifbolar orasida ogirish va AI orqali tarjima",
+                "icon": "🔄",
+                "route": "/tools/transliterator",
+            },
+            {
                 "name": "Matnni tozalash",
                 "slug": "matnni-tozalash",
                 "description": "Ortiqcha bo‘shliq va qatorlarni tozalang",

@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+﻿import { defineStore } from 'pinia'
 import api from '../api/axios'
 import { extractErrorMessage } from '../api/errors'
 
@@ -11,10 +11,11 @@ function todayISO() {
 
 export const usePlannerStore = defineStore('planner', {
   state: () => ({
-    tasks: [], // full list (used by the Reja page)
-    todayTasks: [], // just today's tasks (used by the dashboard widget)
+    tasks: [], // full list
+    todayTasks: [], // just today's
     loading: false,
     error: '',
+    notificationsStarted: false
   }),
 
   getters: {
@@ -33,6 +34,7 @@ export const usePlannerStore = defineStore('planner', {
       try {
         const { data } = await api.get('/planner/tasks/')
         this.tasks = data
+        this.todayTasks = data.filter(t => t.due_date === todayISO())
       } catch (error) {
         console.error('Vazifalarni yuklashda xatolik:', error)
       } finally {
@@ -57,7 +59,7 @@ export const usePlannerStore = defineStore('planner', {
         if (payload.due_date === todayISO()) this.todayTasks.push(data)
         return { success: true }
       } catch (error) {
-        const message = extractErrorMessage(error, 'Vazifa qo‘shib bo‘lmadi.')
+        const message = extractErrorMessage(error, "Vazifa qo'shib bo'lmadi.")
         this.error = message
         return { success: false, message }
       }
@@ -83,8 +85,46 @@ export const usePlannerStore = defineStore('planner', {
         this.tasks = this.tasks.filter((t) => t.id !== id)
         this.todayTasks = this.todayTasks.filter((t) => t.id !== id)
       } catch (error) {
-        console.error('Vazifani o‘chirishda xatolik:', error)
+        console.error("Vazifani o'chirishda xatolik:", error)
       }
     },
+
+    startNotifications() {
+      if (this.notificationsStarted) return;
+      this.notificationsStarted = true;
+
+      if (!('Notification' in window)) return;
+      
+      // Request permission only on user interaction if needed, but here we just ask if not denied
+      if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+        Notification.requestPermission();
+      }
+      
+      setInterval(() => {
+        if (Notification.permission !== 'granted') return;
+        const now = new Date();
+        const currentTime = now.toTimeString().slice(0, 5); // HH:MM
+        const currentDate = todayISO();
+        
+        // We only notify for today's tasks to optimize checking
+        this.todayTasks.forEach(task => {
+          if (!task.is_done && task.due_date === currentDate && task.due_time) {
+            const taskTime = task.due_time.slice(0, 5);
+            if (taskTime === currentTime && !task.notified) {
+              const notification = new Notification("Reja vaqti keldi!", {
+                body: task.title,
+                icon: '/favicon.ico'
+              });
+              task.notified = true;
+              
+              notification.onclick = () => {
+                window.focus();
+                notification.close();
+              };
+            }
+          }
+        });
+      }, 30000); // every 30 seconds
+    }
   },
 })

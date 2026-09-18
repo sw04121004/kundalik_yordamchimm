@@ -38,21 +38,21 @@ REQUEST_TIMEOUT = 30
 
 
 def _get_config():
-    """Read AI configuration fresh from environment each call.
-    
-    This lets the server pick up .env changes without a full restart
-    (in dev mode with Django's auto-reloader the module re-imports, but
-    in production or when the key is set after startup this is safer).
-    """
+    """Read AI configuration fresh from .env and environment each call."""
+    from pathlib import Path
+    env_file = Path(__file__).resolve().parent.parent.parent / ".env"
+    if env_file.exists():
+        with open(env_file, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    os.environ[k.strip()] = v.strip()
+
     provider = os.environ.get("AI_PROVIDER", "openai").strip().lower()
     key = os.environ.get("AI_API_KEY", "").strip()
-    model = os.environ.get("AI_MODEL", "").strip()
-    base_url = os.environ.get("AI_API_BASE_URL", "").strip()
-
-    if not base_url:
-        base_url = _DEFAULT_BASE_URLS.get(provider, _DEFAULT_BASE_URLS["openai"])
-    if not model:
-        model = _DEFAULT_MODELS.get(provider, _DEFAULT_MODELS["openai"])
+    model = os.environ.get("AI_MODEL", "mistral-small-latest").strip()
+    base_url = os.environ.get("AI_API_BASE_URL", "https://api.mistral.ai/v1").strip()
 
     return provider, key, model, base_url
 

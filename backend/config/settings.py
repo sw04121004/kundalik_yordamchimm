@@ -4,10 +4,15 @@ Django settings for Qulay project.
 import os
 from pathlib import Path
 from datetime import timedelta
-from dotenv import load_dotenv
-
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / ".env")
+env_file = BASE_DIR / ".env"
+if env_file.exists():
+    with open(env_file, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                os.environ.setdefault(k.strip(), v.strip())
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "insecure-dev-key-change-me")
 DEBUG = os.environ.get("DEBUG", "True") == "True"

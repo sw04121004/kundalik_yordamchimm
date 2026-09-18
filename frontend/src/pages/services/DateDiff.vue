@@ -10,8 +10,20 @@ onMounted(() => servicesStore.logUsage('sana-farqi'))
 
 const startDate = ref('')
 const endDate = ref('')
+const excludeWeekends = ref(false)
+const excludeHolidays = ref(false)
 const error = ref('')
 const result = ref(null)
+
+const UZ_HOLIDAYS = [
+  '01-01', // Yangi yil
+  '03-08', // Xotin-qizlar kuni
+  '03-21', // Navro'z
+  '05-09', // Xotira va qadrlash
+  '09-01', // Mustaqillik
+  '10-01', // O'qituvchilar
+  '12-08', // Konstitutsiya
+]
 
 function calculate() {
   error.value = ''
@@ -26,21 +38,60 @@ function calculate() {
   const end = new Date(endDate.value)
 
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-    error.value = 'Sana formati noto‘g‘ri.'
+    error.value = 'Sana formati noto??g??ri.'
+    return
+  }
+  
+  if (start > end) {
+    error.value = 'Boshlanish sanasi tugash sanasidan kichik bo\'lishi kerak.'
     return
   }
 
-  const diffMs = Math.abs(end - start)
-  const totalDays = Math.round(diffMs / (1000 * 60 * 60 * 24))
+  let totalDays = 0;
+  let workDays = 0;
+  let holidayCount = 0;
+  
+  const current = new Date(start)
+  
+  while (current <= end) {
+    totalDays++;
+    const dayOfWeek = current.getDay();
+    const mm = String(current.getMonth() + 1).padStart(2, '0');
+    const dd = String(current.getDate()).padStart(2, '0');
+    const mmdd = `${mm}-${dd}`;
+    
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    const isHoliday = UZ_HOLIDAYS.includes(mmdd);
+    
+    if (isHoliday) holidayCount++;
+    
+    let shouldCount = true;
+    if (excludeWeekends.value && isWeekend) shouldCount = false;
+    if (excludeHolidays.value && isHoliday) shouldCount = false;
+    
+    if (shouldCount) {
+      workDays++;
+    }
+    
+    current.setDate(current.getDate() + 1);
+  }
 
-  const years = Math.floor(totalDays / 365)
-  const remainderAfterYears = totalDays % 365
+  // To count absolute difference excluding first day if we want mathematical diff, 
+  // but usually for work days people include boundaries. Let's do absolute days minus 1 for total
+  // to match standard Math.abs(end - start)
+  const diffMs = Math.abs(end - start)
+  const mathDays = Math.round(diffMs / (1000 * 60 * 60 * 24))
+
+  const years = Math.floor(mathDays / 365)
+  const remainderAfterYears = mathDays % 365
   const months = Math.floor(remainderAfterYears / 30)
   const days = remainderAfterYears % 30
 
   result.value = {
-    totalDays,
-    weeks: Math.floor(totalDays / 7),
+    mathDays,
+    calculatedDays: workDays,
+    holidays: holidayCount,
+    weeks: Math.floor(mathDays / 7),
     approx: `${years} yil, ${months} oy, ${days} kun (taxminan)`,
   }
 }
@@ -48,13 +99,15 @@ function calculate() {
 function reset() {
   startDate.value = ''
   endDate.value = ''
+  excludeWeekends.value = false
+  excludeHolidays.value = false
   result.value = null
   error.value = ''
 }
 </script>
 
 <template>
-  <ToolShell icon="📅" title="Sana farqi" description="Ikki sana orasidagi farqni hisoblang" hint="Ikkita sanani tanlang — ular orasidagi farq kun, hafta va taxminiy yil/oy/kun ko‘rinishida chiqadi.">
+  <ToolShell icon="📅" title="Sana farqi" description="Ikki sana orasidagi farqni hisoblang" hint="Kunlar va ish kunlarini hisoblash uchun qo'shimcha parametrlardan foydalanishingiz mumkin.">
     <template #header><AppHeader /></template>
 
     <FormAlert :message="error" />
@@ -70,6 +123,17 @@ function reset() {
           <input v-model="endDate" type="date" class="input" />
         </div>
       </div>
+      
+      <div class="flex flex-col gap-2 pt-2">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" v-model="excludeWeekends" class="w-4 h-4 text-brand-600 rounded focus:ring-brand-500 border-slate-300 dark:border-slate-600 dark:bg-slate-700">
+          <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Shanba va Yakshanbani hisoblamaslik (Ish kunlari)</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" v-model="excludeHolidays" class="w-4 h-4 text-brand-600 rounded focus:ring-brand-500 border-slate-300 dark:border-slate-600 dark:bg-slate-700">
+          <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Bayram kunlarini hisoblamaslik</span>
+        </label>
+      </div>
 
       <div class="flex gap-3 pt-2">
         <button class="btn-primary flex-1" @click="calculate">Hisoblash</button>
@@ -79,12 +143,15 @@ function reset() {
       <transition name="page-fade">
         <div v-if="result" class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 animate-resultPop">
           <div class="rounded-xl bg-brand-50 dark:bg-slate-700 px-4 py-3 text-center">
-            <p class="text-xs text-brand-600 dark:text-brand-300 font-medium">Jami kunlar</p>
-            <p class="text-lg font-extrabold text-brand-800 dark:text-brand-200">{{ result.totalDays }} kun</p>
+            <p class="text-xs text-brand-600 dark:text-brand-300 font-medium">Kalendar bo'yicha</p>
+            <p class="text-lg font-extrabold text-brand-800 dark:text-brand-200">{{ result.mathDays }} kun farq</p>
           </div>
           <div class="rounded-xl bg-brand-50 dark:bg-slate-700 px-4 py-3 text-center">
-            <p class="text-xs text-brand-600 dark:text-brand-300 font-medium">Haftalar</p>
-            <p class="text-lg font-extrabold text-brand-800 dark:text-brand-200">{{ result.weeks }} hafta</p>
+            <p class="text-xs text-brand-600 dark:text-brand-300 font-medium">Tanlovga asosan chiqdi</p>
+            <p class="text-lg font-extrabold text-brand-800 dark:text-brand-200">{{ result.calculatedDays }} kun (ish/kunlar)</p>
+          </div>
+          <div v-if="result.holidays > 0" class="sm:col-span-2 text-center text-xs text-slate-500">
+            Shu oraliqda {{ result.holidays }} ta bayram kuni bor.
           </div>
           <div class="sm:col-span-2 rounded-xl bg-gradient-to-br from-brand-50 to-brand-100/60 dark:from-slate-700 dark:to-slate-700/60 border border-brand-100 dark:border-slate-600 px-5 py-4 text-center animate-resultPop">
             <p class="text-xs font-medium text-brand-600 uppercase tracking-wide">Taxminiy farq</p>
@@ -94,5 +161,4 @@ function reset() {
       </transition>
     </div>
   </ToolShell>
-
 </template>

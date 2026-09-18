@@ -1,8 +1,9 @@
-<script setup>
+﻿<script setup>
 import { reactive, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../store/auth'
 import FormAlert from '../components/FormAlert.vue'
+import { Eye, EyeOff } from 'lucide-vue-next'
 
 const router = useRouter()
 const route = useRoute()
@@ -11,6 +12,7 @@ const auth = useAuthStore()
 const form = reactive({ username: '', password: '' })
 const error = ref('')
 const submitting = ref(false)
+const showPassword = ref(false)
 
 async function handleSubmit() {
   error.value = ''
@@ -32,8 +34,6 @@ async function handleSubmit() {
 <template>
   <div class="min-h-screen flex items-center justify-center bg-[#f4f6fb] dark:bg-[#0d1117] px-4 py-12">
     <div class="w-full max-w-sm animate-fadeUp">
-
-      <!-- Logo -->
       <div class="text-center mb-8">
         <router-link :to="{ name: 'landing' }" class="inline-flex items-center gap-2.5 mb-5 group focus:outline-none rounded-xl">
           <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold shadow-sm group-hover:scale-105 transition-transform"
@@ -46,7 +46,6 @@ async function handleSubmit() {
         <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Hisobingizga kiring</p>
       </div>
 
-      <!-- Card -->
       <div class="card p-6 sm:p-8">
         <FormAlert :message="error" class="mb-5" />
         <form class="space-y-4" @submit.prevent="handleSubmit">
@@ -56,7 +55,13 @@ async function handleSubmit() {
           </div>
           <div>
             <label class="label">Parol</label>
-            <input v-model="form.password" type="password" class="input" placeholder="••••••••" autocomplete="current-password" />
+            <div class="relative">
+              <input v-model="form.password" :type="showPassword ? 'text' : 'password'" class="input pr-10" placeholder="••••••••" autocomplete="current-password" />
+              <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none">
+                <Eye v-if="!showPassword" class="w-5 h-5" />
+                <EyeOff v-else class="w-5 h-5" />
+              </button>
+            </div>
           </div>
           <button type="submit" class="btn-primary w-full mt-2" :disabled="submitting">
             <span v-if="submitting" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
