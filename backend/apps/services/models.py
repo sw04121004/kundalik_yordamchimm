@@ -4,7 +4,7 @@ from django.db import models
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, db_index=True)
     icon = models.CharField(max_length=10, default="🧩")
     order = models.PositiveIntegerField(default=0)
 
@@ -19,7 +19,7 @@ class Category(models.Model):
 class Service(models.Model):
     category = models.ForeignKey(Category, related_name="services", on_delete=models.CASCADE)
     name = models.CharField(max_length=150)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, db_index=True)
     description = models.CharField(max_length=255, blank=True)
     icon = models.CharField(max_length=10, default="⚙️")
     route = models.CharField(max_length=100, help_text="Frontend route path, e.g. /tools/percent")

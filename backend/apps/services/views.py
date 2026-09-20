@@ -1,10 +1,15 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, filters
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Category, Favorite, Service, UsageLog
-from .serializers import CategorySerializer, FavoriteSerializer, ServiceSerializer, UsageLogSerializer
+from .serializers import (
+    CategorySerializer,
+    FavoriteSerializer,
+    ServiceSerializer,
+    UsageLogSerializer,
+)
 
 
 class CategoryListView(generics.ListAPIView):
@@ -16,6 +21,12 @@ class CategoryListView(generics.ListAPIView):
 class ServiceListView(generics.ListAPIView):
     serializer_class = ServiceSerializer
     permission_classes = [permissions.AllowAny]
+    filter_backends = [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.OrderingFilter",
+    ]
+    ordering_fields = ["name", "order"]
+    pagination_class = None  # uses default PAGE_SIZE from settings
 
     def get_queryset(self):
         qs = Service.objects.select_related("category").all()
@@ -30,7 +41,10 @@ class UsageLogListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return UsageLog.objects.filter(user=self.request.user).select_related("service")[:20]
+        return (
+            UsageLog.objects.filter(user=self.request.user)
+            .select_related("service")[:20]
+        )
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
