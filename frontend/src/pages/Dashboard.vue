@@ -28,7 +28,7 @@ const greeting = computed(() => {
   return { icon: '🌇', text: 'Xayrli kech' }
 })
 
-const AI_ONLY_SLUGS = new Set(['oshxona-ai', 'uy-ai', 'oqish-ai', 'hujjat-ai'])
+const AI_ONLY_SLUGS = new Set()
 
 const filteredCategories = computed(() => {
   const q = search.value.trim().toLowerCase()

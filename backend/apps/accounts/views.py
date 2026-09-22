@@ -4,7 +4,9 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-
+from rest_framework import serializers
+import logging
+logger = logging.getLogger(__name__)
 from .serializers import (
     ChangePasswordSerializer,
     RegisterSerializer,
@@ -33,7 +35,13 @@ class RegisterView(generics.CreateAPIView):
 
 
 class EmailOrUsernameTokenSerializer(TokenObtainPairSerializer):
-    """Allow logging in with either username or email in the 'username' field."""
+    """Allow logging in with either username or email.
+
+    The serializer now accepts an optional ``email`` field. If ``email`` is provided
+    it is used to look up the user and the corresponding ``username`` is injected
+    into the data before the parent validation runs.
+    """
+    email = serializers.EmailField(write_only=True, required=False)
 
     @classmethod
     def get_token(cls, user):
@@ -42,22 +50,31 @@ class EmailOrUsernameTokenSerializer(TokenObtainPairSerializer):
         return token
 
     def validate(self, attrs):
-        login_value = attrs.get(self.username_field)
-        if login_value and "@" in login_value:
-            from django.contrib.auth import get_user_model
-
-            User = get_user_model()
-            try:
-                matched = User.objects.get(email__iexact=login_value)
-                attrs[self.username_field] = matched.username
-            except User.DoesNotExist:
-                pass
+        # Prefer explicit ``username`` if supplied, otherwise fall back to ``email``
+        login_value = attrs.get(self.username_field) or attrs.get("email")
+        if login_value:
+            # If the value contains an '@' we treat it as an email address
+            if "@" in login_value:
+                from django.contrib.auth import get_user_model
+                User = get_user_model()
+                try:
+                    matched = User.objects.get(email__iexact=login_value)
+                    attrs[self.username_field] = matched.username
+                except User.DoesNotExist:
+                    # Let the parent validation raise an appropriate error
+                    pass
+            else:
+                attrs[self.username_field] = login_value
         return super().validate(attrs)
 
 
 class LoginView(TokenObtainPairView):
     permission_classes = [permissions.AllowAny]
     serializer_class = EmailOrUsernameTokenSerializer
+
+    def post(self, request, *args, **kwargs):
+        logger.info("🔎 Login payload received: %s", request.data)
+        return super().post(request, *args, **kwargs)
 
 
 class MeView(generics.RetrieveUpdateAPIView):

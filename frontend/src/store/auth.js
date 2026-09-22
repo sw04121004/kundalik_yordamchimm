@@ -40,7 +40,9 @@ export const useAuthStore = defineStore('auth', {
         this.user = data.user
         return { success: true }
       } catch (error) {
-        return { success: false, message: extractErrorMessage(error, "Ro‘yxatdan o‘tishda xatolik yuz berdi.") }
+        const backendMsg = error.response?.data ? Object.values(error.response.data).flat().join(' ') : null
+        const message = backendMsg || "Ro‘yxatdan o‘tishda xatolik yuz berdi."
+        return { success: false, message }
       } finally {
         this.loading = false
       }
@@ -54,11 +56,9 @@ export const useAuthStore = defineStore('auth', {
         await this.fetchMe()
         return { success: true }
       } catch (error) {
-        // Login xatolarida backend kutubxonasi (SimpleJWT) ba'zan inglizcha
-        // xabar qaytaradi ("No active account found..."). Foydalanuvchiga
-        // har doim o'zbekcha, tushunarli xabar ko'rsatish uchun kutubxona
-        // matnini emas, o'zimizning xabarimizni ishlatamiz.
-        return { success: false, message: "Login yoki parol noto‘g‘ri." }
+        const backendMsg = error.response?.data ? Object.values(error.response.data).flat().join(' ') : null
+        const message = backendMsg || "Login yoki parol noto‘g‘ri."
+        return { success: false, message }
       } finally {
         this.loading = false
       }
