@@ -24,13 +24,13 @@ export const useServicesStore = defineStore('services', {
       console.log('🔵 Starting API request to /categories/');
       try {
         const { data } = await api.get('/categories/');
-        console.log('🔵 API response received, items:', data.length);
-        this.categories = data;
+        console.log('🔵 API response received, items:', data.results.length);
+        this.categories = data.results;
         this.loaded = true;
       } catch (error) {
         console.error('❗ Kategoriyalarni yuklashda xatolik:', error);
       } finally {
-        this.loading = false;
+        this.loading = false; this.loaded = true;
         console.log('🔵 fetchCategories finished, loading:', this.loading);
       }
     },
