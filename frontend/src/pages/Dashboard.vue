@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useServicesStore } from '../store/services'
-import { useAiStore, purposeMeta } from '../store/ai'
+import { useAiStore, purposeMeta, PURPOSES } from '../store/ai'
 import { useAuthStore } from '../store/auth'
 import { usePlannerStore } from '../store/planner'
 import AppHeader from '../components/AppHeader.vue'
@@ -47,6 +47,7 @@ const isSearching = computed(() => search.value.trim().length > 0)
 
 const favoriteServices = computed(() => servicesStore.favorites.map(f => f.service))
 const recentConversations = computed(() => aiStore.conversations.slice(0, 3))
+const aiShortcuts = PURPOSES.slice(0, 6)
 </script>
 
 <template>
@@ -158,33 +159,32 @@ const recentConversations = computed(() => aiStore.conversations.slice(0, 3))
           </div>
         </section>
 
-        <!-- AI Assistant Banner (100% Dynamic to Selected Theme) -->
-        <router-link
-          v-if="!isSearching"
-          :to="{ name: 'ai-assistant' }"
-          class="block rounded-2xl p-6 mb-12 shadow-xl shadow-brand-500/20 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-brand-500/35 transition-all duration-300 animate-fadeUp group relative overflow-hidden border border-brand-300/40 dark:border-brand-500/30"
-          style="background: linear-gradient(135deg, rgb(var(--brand-500)) 0%, rgb(var(--brand-600)) 45%, rgb(var(--brand-800)) 100%)"
-        >
-          <!-- Shimmer light sweep -->
-          <div class="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmerSweep pointer-events-none"></div>
-
-          <div class="relative flex items-center justify-between gap-5 z-10">
-            <div class="flex items-center gap-4 sm:gap-5 min-w-0">
-              <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-3xl shrink-0 group-hover:scale-115 group-hover:rotate-6 transition-all duration-300 shadow-md">
-                <span class="animate-bounceSoft">🤖</span>
-              </div>
-              <div class="min-w-0">
-                <h2 class="text-white font-black text-lg sm:text-xl leading-tight">AI Yordamchi</h2>
-                <p class="text-white/90 text-xs sm:text-sm mt-1 line-clamp-1 font-medium">Dasturlash, ta'lim, matn, tarjima, CV va g'oyalar bo'yicha — istagan tilda, tabiiy yozing.</p>
-              </div>
+        <!-- AI Shortcuts (Replaces large banner & history) -->
+        <section v-if="!isSearching" class="mb-12 animate-fadeUp">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-sm font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                <span class="text-xl animate-bounceSoft">🤖</span> AI Yordamchi
+              </h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Kerakli AI yordamchini tanlang</p>
             </div>
-            
-            <div class="shrink-0 flex items-center gap-2 bg-slate-900/90 text-white font-extrabold text-xs sm:text-sm px-4 sm:px-5 py-2.5 rounded-xl group-hover:bg-slate-950 group-hover:scale-105 transition-all shadow-lg">
-              <span>Suhbatni boshlash</span>
-              <span class="group-hover:translate-x-1.5 transition-transform duration-300">→</span>
-            </div>
+            <router-link :to="{ name: 'ai-assistant' }" class="text-xs font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition-colors flex items-center gap-1">
+              Barcha AI yordamchilar <span>→</span>
+            </router-link>
           </div>
-        </router-link>
+          
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 stagger-children">
+            <router-link
+              v-for="shortcut in aiShortcuts"
+              :key="shortcut.value"
+              :to="{ name: 'ai-assistant' }"
+              class="card p-4 flex flex-col items-center gap-2.5 hover:-translate-y-1 hover:shadow-lg hover:border-brand-400/50 transition-all duration-300 group bg-white/95 dark:bg-[#161b26]/95 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800"
+            >
+              <span class="text-3xl block group-hover:scale-115 group-hover:rotate-6 transition-transform duration-300">{{ shortcut.icon }}</span>
+              <span class="font-bold text-slate-800 dark:text-slate-100 text-xs text-center truncate w-full group-hover:text-brand-500 dark:group-hover:text-brand-300 transition-colors">{{ shortcut.label }}</span>
+            </router-link>
+          </div>
+        </section>
 
         <!-- Favorites (If Any) -->
         <section v-if="!isSearching && favoriteServices.length" class="mb-12 animate-fadeUp">
@@ -196,24 +196,7 @@ const recentConversations = computed(() => aiStore.conversations.slice(0, 3))
           </div>
         </section>
 
-        <!-- Recent AI Conversations -->
-        <section v-if="!isSearching && recentConversations.length" class="mb-12 animate-fadeUp">
-          <h2 class="text-sm font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <span class="text-lg">💬</span> So'nggi suhbatlar
-          </h2>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 stagger-children">
-            <router-link
-              v-for="conv in recentConversations"
-              :key="conv.id"
-              :to="{ name: 'ai-assistant' }"
-              class="card p-4 hover:-translate-y-1 hover:shadow-lg hover:border-brand-400/50 transition-all duration-300 group bg-white/90 dark:bg-[#161b26]/90 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800"
-            >
-              <span class="text-2xl block mb-2 group-hover:scale-115 group-hover:rotate-6 transition-transform duration-300">{{ purposeMeta(conv.purpose).icon }}</span>
-              <p class="font-bold text-slate-800 dark:text-slate-100 text-sm truncate group-hover:text-brand-500 dark:group-hover:text-brand-300 transition-colors">{{ conv.title }}</p>
-              <p v-if="conv.last_message" class="text-xs text-slate-400 mt-1 truncate">{{ conv.last_message }}</p>
-            </router-link>
-          </div>
-        </section>
+
 
         <!-- Search empty state -->
         <div v-if="isSearching && !hasResults" class="text-center py-20 animate-fadeUp">
@@ -227,6 +210,7 @@ const recentConversations = computed(() => aiStore.conversations.slice(0, 3))
           <div class="inline-block w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mb-3"></div>
           <p class="text-sm font-medium">Xizmatlar yuklanmoqda...</p>
         </div>
+
         
         <div v-else class="space-y-12">
           <section v-for="cat in filteredCategories" :key="cat.id" class="animate-fadeUp">

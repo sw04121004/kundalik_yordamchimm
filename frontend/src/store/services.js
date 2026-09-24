@@ -18,20 +18,16 @@ export const useServicesStore = defineStore('services', {
 
   actions: {
     async fetchCategories(force = false) {
-      console.log('🔵 fetchCategories called, loaded:', this.loaded, 'force:', force);
-      if (this.loaded && !force) return;
-      this.loading = true;
-      console.log('🔵 Starting API request to /categories/');
+      if (this.loaded && !force) return
+      this.loading = true
       try {
-        const { data } = await api.get('/categories/');
-        console.log('🔵 API response received, items:', data.results.length);
-        this.categories = data.results;
-        this.loaded = true;
+        const { data } = await api.get('/categories/')
+        this.categories = data
+        this.loaded = true
       } catch (error) {
-        console.error('❗ Kategoriyalarni yuklashda xatolik:', error);
+        console.error('Kategoriyalarni yuklashda xatolik:', error)
       } finally {
-        this.loading = false; this.loaded = true;
-        console.log('🔵 fetchCategories finished, loading:', this.loading);
+        this.loading = false
       }
     },
 
