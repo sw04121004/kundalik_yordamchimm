@@ -10,12 +10,24 @@ onMounted(() => servicesStore.logUsage('transliterator'))
 
 const text = ref('')
 const result = ref('')
-const mode = ref('latinToCyrillic')
+const mode = ref('latinToCyrillic') // 'latinToCyrillic' | 'cyrillicToLatin' | 'translate'
 const copied = ref(false)
+
+const fromLang = ref('uz')
+const toLang = ref('en')
+const isTranslating = ref(false)
+
+const languages = [
+  { code: 'uz', name: 'O\'zbekcha' },
+  { code: 'ru', name: 'Ruscha' },
+  { code: 'en', name: 'Inglizcha' },
+  { code: 'de', name: 'Nemischa' },
+  { code: 'fr', name: 'Fransuzcha' },
+]
 
 // O'zbek lotin va kirill harflari xaritasi
 const cyrillicToLatinMap = {
-  'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ё': 'Yo', 'Ж': 'J', 'З': 'Z', 'И': 'I', 'Й': 'Y', 'К': 'K', 'Л': 'L', 'М': 'M', 'Н': 'N', 'О': 'O', 'П': 'P', 'Р': 'R', 'С': 'S', 'Т': 'T', 'У': 'U', 'Ф': 'F', 'Х': 'X', 'Ц': 'Ts', 'Ч': 'Ch', 'Ш': 'Sh', 'Щ': 'Shch', 'Ъ': '\'', 'Ы': 'Y', 'Ь': '', 'Э': 'E', 'Ю': 'Yu', 'Я': 'Ya', 'Ў': 'O\'', 'Қ': 'Q', 'Ғ': 'G\'', 'Ҳ': 'H',
+  'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ё': 'Yo', 'Ж': 'J', 'З': 'Z', 'И': 'I', 'Й': 'Y', 'К': 'K', 'Л': 'L', 'М': 'M', 'Н': 'N', 'О': 'O', 'П': 'P', 'Р': 'R', 'С': 'S', 'T': 'T', 'У': 'U', 'Ф': 'F', 'Х': 'X', 'Ц': 'Ts', 'Ч': 'Ch', 'Ш': 'Sh', 'Щ': 'Shch', 'Ъ': '\'', 'Ы': 'Y', 'Ь': '', 'Э': 'E', 'Ю': 'Yu', 'Я': 'Ya', 'Ў': 'O\'', 'Қ': 'Q', 'Ғ': 'G\'', 'Ҳ': 'H',
   'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo', 'ж': 'j', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'x', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'shch', 'ъ': '\'', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya', 'ў': 'o\'', 'қ': 'q', 'ғ': 'g\'', 'ҳ': 'h'
 }
 
@@ -24,7 +36,37 @@ const latinToCyrillicMap = {
   'a': 'а', 'b': 'б', 'v': 'в', 'g': 'г', 'd': 'д', 'e': 'е', 'yo': 'ё', 'j': 'ж', 'z': 'з', 'i': 'и', 'y': 'й', 'k': 'к', 'l': 'л', 'm': 'м', 'n': 'н', 'o': 'о', 'p': 'п', 'r': 'р', 's': 'с', 't': 'т', 'u': 'у', 'f': 'ф', 'x': 'х', 'ts': 'ц', 'ch': 'ч', 'sh': 'ш', 'shch': 'щ', 'e\'': 'э', 'yu': 'ю', 'ya': 'я', 'o\'': 'ў', 'q': 'қ', 'g\'': 'ғ', 'h': 'ҳ'
 }
 
+async function translateText() {
+  if (!text.value.trim()) {
+    result.value = ''
+    return
+  }
+  isTranslating.value = true
+  try {
+    const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text.value)}&langpair=${fromLang.value}|${toLang.value}`)
+    const data = await res.json()
+    if (data && data.responseData) {
+      result.value = data.responseData.translatedText
+    } else {
+      result.value = 'Tarjima qilishda xatolik yuz berdi.'
+    }
+  } catch (err) {
+    result.value = 'Tarmoq xatoligi yuz berdi.'
+  } finally {
+    isTranslating.value = false
+  }
+}
+
+let debounceTimer = null
 function convert() {
+  if (mode.value === 'translate') {
+    clearTimeout(debounceTimer)
+    debounceTimer = setTimeout(() => {
+      translateText()
+    }, 600)
+    return
+  }
+
   let output = text.value
   
   if (mode.value === 'cyrillicToLatin') {
@@ -78,12 +120,22 @@ async function copyResult() {
     <div class="space-y-4">
       <div class="flex items-center justify-between mb-2 px-1">
         <div class="flex items-center gap-3">
-          <span class="font-bold text-sm" :class="mode === 'latinToCyrillic' ? 'text-brand-600 dark:text-brand-400' : 'text-slate-500'">Lotin</span>
+          <select v-if="mode === 'translate'" v-model="fromLang" @change="convert" class="input w-auto text-sm">
+            <option v-for="lang in languages" :key="lang.code" :value="lang.code">{{ lang.name }}</option>
+          </select>
+          <span v-else class="font-bold text-sm" :class="mode === 'latinToCyrillic' ? 'text-brand-600 dark:text-brand-400' : 'text-slate-500'">Lotin</span>
+
           <button @click="toggleMode" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
             <ArrowLeftRight class="w-4 h-4 text-slate-700 dark:text-slate-300" />
           </button>
-          <span class="font-bold text-sm" :class="mode === 'cyrillicToLatin' ? 'text-brand-600 dark:text-brand-400' : 'text-slate-500'">Kirill (Rus/O'zb)</span>
+
+          <select v-if="mode === 'translate'" v-model="toLang" @change="convert" class="input w-auto text-sm">
+            <option v-for="lang in languages" :key="lang.code" :value="lang.code">{{ lang.name }}</option>
+          </select>
+          <span v-else class="font-bold text-sm" :class="mode === 'cyrillicToLatin' ? 'text-brand-600 dark:text-brand-400' : 'text-slate-500'">Kirill (Rus/O'zb)</span>
         </div>
+        <button @click="mode = 'translate'; text = ''; result = '';" v-if="mode !== 'translate'" class="btn-secondary text-sm">Boshqa tillarga tarjima</button>
+        <button @click="mode = 'latinToCyrillic'; text = ''; result = '';" v-else class="btn-secondary text-sm">Lotin & Kirillga qaytish</button>
       </div>
 
       <div>
@@ -91,7 +143,7 @@ async function copyResult() {
           v-model="text"
           @input="convert"
           class="input min-h-[120px] resize-y text-base"
-          :placeholder="mode === 'latinToCyrillic' ? 'Bu yerga lotincha yozing...' : 'Бу ерга кирилча ёзинг...'"
+          :placeholder="mode === 'latinToCyrillic' ? 'Bu yerga lotincha yozing...' : (mode === 'cyrillicToLatin' ? 'Бу ерга кирилча ёзинг...' : 'Tarjima qilish uchun matn kiriting...')"
         ></textarea>
       </div>
 
@@ -112,12 +164,7 @@ async function copyResult() {
         </button>
       </div>
       
-      <div class="mt-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50">
-        <h3 class="font-bold text-blue-800 dark:text-blue-300 mb-1">🌍 Boshqa tillarga tarjima kerakmi?</h3>
-        <p class="text-sm text-blue-600 dark:text-blue-400">
-          Nemis, Fransuz, Rus yoki har qanday boshqa tilga tarjima qilish uchun orqaga qaytib <b>AI Yordamchi</b> ga o'ting. Unga shunchaki <i>"Shu matnni fransuz tiliga tarjima qilib ber"</i> desangiz bas!
-        </p>
-      </div>
+
     </div>
   </ToolShell>
 </template>

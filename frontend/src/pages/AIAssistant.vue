@@ -1,10 +1,24 @@
-﻿<script setup>
+<script setup>
 import { ref, nextTick, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { marked } from 'marked'
 import AppHeader from '../components/AppHeader.vue'
 import { useAiStore, PURPOSES, purposeMeta } from '../store/ai'
 
 const aiStore = useAiStore()
+const route = useRoute()
+const router = useRouter()
+
+const STARTER_PROMPTS = {
+  kitchen: ["Uyda bor mahsulotlarimdan ovqat topib ber", "Bugungi kechki ovqat uchun menyu tuz"],
+  study: ["Bu mavzuni oddiy qilib tushuntir", "Imtihon uchun test tuzib ber"],
+  document: ["Bu hujjatni qisqacha tushuntir", "Rasmiy matn qilib yozib ber"],
+  finance: ["Bugungi xarajatlarimni tahlil qil", "Byudjet rejasini tuz"],
+  programming: ["Bu koddagi xatoni top", "Kodimni tushuntirib ber"],
+  translation: ["Bu matnni ingliz tiliga tarjima qil"],
+  home: ["Bugun uyda nimalar qilishim kerak?"],
+  general: ["Menga yordam bering", "Qanday imkoniyatlaringiz bor?"]
+}
 
 function renderMarkdown(text) {
   if (!text) return ''
@@ -25,7 +39,20 @@ const attachedMedia = ref(null)
 
 const stickers = ['👋', '👍', '❤️', '😂', '🔥', '🎉', '💡', '🚀', '🤔', '🙌', '💯', '✨']
 
-onMounted(() => aiStore.fetchConversations())
+onMounted(async () => {
+  await aiStore.fetchConversations()
+  if (route.query.q && route.query.p) {
+    const p = route.query.p
+    const q = route.query.q
+    const result = await aiStore.startConversation(p)
+    if (result.success) {
+      draft.value = q
+      // give it a tiny delay to ensure everything is mounted
+      setTimeout(() => send(), 100)
+      router.replace({ query: {} })
+    }
+  }
+})
 
 function scrollToBottom() {
   nextTick(() => messagesEnd.value?.scrollIntoView({ behavior: 'smooth', block: 'end' }))
@@ -61,22 +88,64 @@ function attachFile() {
     if (!file) return
     const type = file.type.startsWith('video/') ? 'video' : 'image'
     const url = URL.createObjectURL(file)
-    attachedMedia.value = { type, url, name: file.name }
+    attachedMedia.value = { file, type, url, name: file.name }
   }
   input.click()
 }
 
+let speechRecognition = null
+if (window.SpeechRecognition || window.webkitSpeechRecognition) {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+  speechRecognition = new SpeechRecognition()
+  speechRecognition.continuous = true
+  speechRecognition.interimResults = true
+  speechRecognition.lang = 'uz-UZ' // O'zbek tili asosiy
+  
+  speechRecognition.onresult = (event) => {
+    let finalTranscript = ''
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
+      if (event.results[i].isFinal) {
+        finalTranscript += event.results[i][0].transcript
+      }
+    }
+    if (finalTranscript) {
+      draft.value += (draft.value ? ' ' : '') + finalTranscript
+      // Matn yozilgach, input moslashishi uchun:
+      nextTick(() => {
+        if (textareaRef.value) autoResize(textareaRef.value)
+      })
+    }
+  }
+  
+  speechRecognition.onerror = (e) => {
+    console.error('Ovoz yozishda xatolik:', e)
+    stopRecording()
+  }
+}
+
+function stopRecording() {
+  isRecording.value = false
+  clearInterval(recordInterval)
+  if (speechRecognition) {
+    speechRecognition.stop()
+  }
+  recordingTime.value = 0
+}
+
 function toggleRecord() {
   if (isRecording.value) {
-    isRecording.value = false
-    clearInterval(recordInterval)
-    if (recordingTime.value > 0) {
-      attachedMedia.value = { type: 'audio', url: '', duration: recordingTime.value }
-    }
-    recordingTime.value = 0
+    stopRecording()
   } else {
     isRecording.value = true
     recordingTime.value = 0
+    
+    // Agar brauzer qo'llab-quvvatlasa ovozni matnga o'giradi
+    if (speechRecognition) {
+      try {
+        speechRecognition.start()
+      } catch(e) {}
+    }
+    
     recordInterval = setInterval(() => {
       recordingTime.value++
     }, 1000)
@@ -145,7 +214,7 @@ async function send() {
     
     // Send actual text to backend (since backend only supports text right now)
     const prompt = text ? `${text} (Foydalanuvchi ${mediaObj.type} jo'natdi)` : `Men ${mediaObj.type} fayl jo'natdim. Nima yordam bera olasiz?`
-    await aiStore.sendMessage(aiStore.current.id, prompt)
+    await aiStore.sendMessage(aiStore.current.id, prompt, mediaObj.file)
   } else {
     await aiStore.sendMessage(aiStore.current.id, text)
   }
@@ -291,7 +360,20 @@ function autoResize(el) {
 
           <!-- Messages -->
           <div class="flex-1 overflow-y-auto px-4 sm:px-5 py-5 space-y-4">
-            <p v-if="!aiStore.current.messages.length" class="text-center text-slate-400 text-sm mt-8">Xabar, rasm, video yoki ovozli xabar yuboring 👋</p>
+            
+            <div v-if="!aiStore.current.messages.length" class="mt-8 mb-4 animate-fadeUp max-w-xl mx-auto w-full">
+              <p class="text-center text-slate-400 text-sm mb-6">Yoki quyidagilardan birini tanlang:</p>
+              <div class="flex flex-wrap justify-center gap-2.5">
+                <button
+                  v-for="(prompt, i) in (STARTER_PROMPTS[aiStore.current.purpose] || STARTER_PROMPTS['general'])"
+                  :key="i"
+                  @click="draft = prompt; send()"
+                  class="inline-flex items-center text-left px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md hover:shadow-brand-500/20 active:scale-95 border border-brand-200/50 dark:border-brand-500/30 bg-gradient-to-br from-white dark:from-[#1e2330] to-brand-50/50 dark:to-brand-900/20 text-brand-700 dark:text-brand-300 hover:border-brand-300 dark:hover:border-brand-500/50 hover:-translate-y-0.5 focus:outline-none"
+                >
+                  <span class="mr-2 opacity-70">💡</span> {{ prompt }}
+                </button>
+              </div>
+            </div>
 
             <div
               v-for="msg in aiStore.current.messages"

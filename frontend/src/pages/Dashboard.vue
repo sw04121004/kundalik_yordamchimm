@@ -28,7 +28,7 @@ const greeting = computed(() => {
   return { icon: '🌇', text: 'Xayrli kech' }
 })
 
-const AI_ONLY_SLUGS = new Set()
+const AI_ONLY_SLUGS = new Set(['oshxona-ai', 'uy-ai', 'oqish-ai', 'hujjat-ai'])
 
 const filteredCategories = computed(() => {
   const q = search.value.trim().toLowerCase()
@@ -46,8 +46,33 @@ const hasResults = computed(() => filteredCategories.value.some(c => c.services.
 const isSearching = computed(() => search.value.trim().length > 0)
 
 const favoriteServices = computed(() => servicesStore.favorites.map(f => f.service))
-const recentConversations = computed(() => aiStore.conversations.slice(0, 3))
 const aiShortcuts = PURPOSES.slice(0, 6)
+
+const timeBasedPrompts = computed(() => {
+  const hour = new Date().getHours()
+  if (hour >= 6 && hour < 12) {
+    return [
+      { text: "☀️ Bugungi kunni rejalashtirish", purpose: "general", prompt: "Bugungi kunimni samarali o'tkazish uchun reja tuzishda yordam ber" },
+      { text: "🍳 Nonushta g'oyalari", purpose: "kitchen", prompt: "Tez va foydali nonushta uchun retsept tavsiya qil" },
+      { text: "💡 Kunlik motivatsiya", purpose: "ideas", prompt: "Bugungi kunim yaxshi o'tishi uchun menga motivatsiya bering" },
+      { text: "📅 Vazifalarni tekshirish", purpose: "general", prompt: "Bugun nimalar qilishim kerak?" }
+    ]
+  } else if (hour >= 12 && hour < 18) {
+    return [
+      { text: "✅ Vazifalar holati", purpose: "general", prompt: "Bugungi ishlarimni tugatishga yordam bering" },
+      { text: "🥘 Tushlik uchun g'oya", purpose: "kitchen", prompt: "Tushlik uchun to'yimli va mazali ovqat tavsiya qiling" },
+      { text: "💰 Xarajatlarni hisoblash", purpose: "finance", prompt: "Bugungi xarajatlarimni ro'yxatga olishga yordam ber" },
+      { text: "🧠 Qisqa tanaffus", purpose: "ideas", prompt: "Ishdan chalg'ib, miyani dam oldirish uchun nima qilsam bo'ladi?" }
+    ]
+  } else {
+    return [
+      { text: "🌙 Kunning sarhisobi", purpose: "general", prompt: "Bugun bajargan ishlarimni sarhisob qilishga yordam ber" },
+      { text: "📝 Ertangi kunni rejalashtirish", purpose: "general", prompt: "Ertangi kunimni samarali o'tkazish uchun reja tuzib ber" },
+      { text: "🍳 Kechki ovqat menyusi", purpose: "kitchen", prompt: "Uyquga zarar qilmaydigan yengil kechki ovqat uchun retseptlar bering" },
+      { text: "📚 Uyqu oldidan qiziqarli fakt", purpose: "study", prompt: "Uxlashdan oldin o'qish uchun qiziqarli va foydali hikoya yoki fakt aytib ber" }
+    ]
+  }
+})
 </script>
 
 <template>
@@ -57,7 +82,9 @@ const aiShortcuts = PURPOSES.slice(0, 6)
     <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
       <!-- Chap tomondagi asosiy tanlangan rang nuri (Left Theme Aura) -->
       <div class="glow-orb w-[40rem] h-[55rem] top-10 -left-48 bg-brand-500/25 dark:bg-brand-500/20 blur-[120px] rounded-full animate-floatSlow transition-colors duration-700 pointer-events-none"></div>
-      <div class="glow-orb w-[30rem] h-[35rem] top-1/2 -left-28 bg-brand-400/20 dark:bg-brand-600/15 blur-[100px] rounded-full animate-pulseGlow transition-colors duration-700 pointer-events-none" style="animation-delay: -2s"></div>
+          <!-- Additional decorative orbs (new shapes) -->
+    <div class="glow-orb w-[25rem] h-[35rem] top-40 left-1/2 transform -translate-x-1/2 bg-purple-500/15 dark:bg-purple-500/10 blur-[80px] rounded-full animate-floatSlow" style="animation-delay: -1s;"></div>
+    <div class="glow-orb w-[20rem] h-[30rem] bottom-20 right-20 bg-pink-500/20 dark:bg-pink-500/12 blur-[90px] rounded-full animate-pulseGlow" style="animation-delay: -2s;"></div>
 
       <!-- O'ng tomondagi qo'shimcha mayin nurlar -->
       <div class="glow-orb w-[32rem] h-[32rem] -top-24 -right-24 bg-brand-500/20 dark:bg-brand-500/15 blur-[110px] animate-floatSlow transition-colors duration-700"></div>
@@ -94,6 +121,24 @@ const aiShortcuts = PURPOSES.slice(0, 6)
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
             </div>
+          </div>
+        </section>
+
+        <!-- Quick Actions (Tezkor Takliflar) -->
+        <section v-if="!isSearching" class="mb-10 animate-fadeUp">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-xl animate-bounceSoft">🤖</span>
+            <span class="text-sm font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Sizga bugun nimada yordam beray?</span>
+          </div>
+          <div class="flex flex-wrap gap-2.5">
+            <router-link
+              v-for="(action, i) in timeBasedPrompts"
+              :key="i"
+              :to="{ name: 'ai-assistant', query: { q: action.prompt, p: action.purpose } }"
+              class="inline-flex items-center px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md hover:shadow-brand-500/20 active:scale-95 border border-brand-200/50 dark:border-brand-500/30 bg-gradient-to-br from-brand-50/50 dark:from-brand-900/20 to-white dark:to-brand-800/10 text-brand-700 dark:text-brand-300 hover:border-brand-300 dark:hover:border-brand-500/50 hover:-translate-y-0.5"
+            >
+              {{ action.text }}
+            </router-link>
           </div>
         </section>
 
@@ -218,6 +263,7 @@ const aiShortcuts = PURPOSES.slice(0, 6)
               <span class="text-xl group-hover:scale-125 group-hover:rotate-12 transition-transform duration-300 inline-block">{{ cat.icon }}</span>
               <span class="group-hover:text-brand-500 dark:group-hover:text-brand-300 transition-colors duration-300">{{ cat.name }}</span>
             </h2>
+            <p v-if="cat.description" class="text-sm text-slate-500 dark:text-slate-400 mb-4">{{ cat.description }}</p>
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 stagger-children">
               <ServiceCard v-for="svc in cat.services" :key="svc.id" v-bind="svc" />
             </div>

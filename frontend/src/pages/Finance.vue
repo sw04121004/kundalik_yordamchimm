@@ -1,22 +1,21 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import ToolShell from '../components/ToolShell.vue'
 import AppHeader from '../components/AppHeader.vue'
+import { useAuthStore } from '../store/auth'
+
+const auth = useAuthStore()
 
 const categories = [
   { id: 'salary', name: 'Maosh / Daromad', icon: '💰', type: 'income' },
   { id: 'food', name: 'Oziq-ovqat va bozor', icon: '🛒', type: 'expense' },
-  { id: 'transport', name: 'Transport / Yonilg\'i', icon: '🚖', type: 'expense' },
+  { id: 'transport', name: 'Transport / Yonilg\'i', icon: '🚕', type: 'expense' },
   { id: 'bills', name: 'Kommunal / Aloqa', icon: '⚡', type: 'expense' },
   { id: 'fun', name: 'Hordiq va ko\'ngilochar', icon: '🎬', type: 'expense' },
   { id: 'other', name: 'Boshqa xarajatlar', icon: '📦', type: 'expense' },
 ]
 
-const transactions = ref([
-  { id: 1, type: 'income', category: 'salary', amount: 3500000, note: 'Oylik maosh', date: new Date().toISOString().slice(0, 10) },
-  { id: 2, type: 'expense', category: 'food', amount: 120000, note: 'KORZINKA bozor-ochar', date: new Date().toISOString().slice(0, 10) },
-  { id: 3, type: 'expense', category: 'transport', amount: 30000, note: 'Taksi va metro', date: new Date().toISOString().slice(0, 10) }
-])
+const transactions = ref([])
 
 const newTx = ref({
   type: 'expense',
@@ -25,15 +24,29 @@ const newTx = ref({
   note: ''
 })
 
+const userId = computed(() => auth.user?.id || 'guest')
+const storageKey = computed(() => `qulay_finance_txs_${userId.value}`)
+
 onMounted(() => {
-  const saved = localStorage.getItem('qulay_finance_txs')
+  const saved = localStorage.getItem(storageKey.value)
   if (saved) {
     try { transactions.value = JSON.parse(saved) } catch (e) {}
   }
 })
 
+watch(userId, (newId, oldId) => {
+  // When user changes (login/logout), reload transactions for the new user
+  const saved = localStorage.getItem(`qulay_finance_txs_${newId}`)
+  if (saved) {
+    try { transactions.value = JSON.parse(saved) } catch (e) {}
+  } else {
+    transactions.value = []
+  }
+})
+
+
 function saveTxs() {
-  localStorage.setItem('qulay_finance_txs', JSON.stringify(transactions.value))
+
 }
 
 function addTransaction() {

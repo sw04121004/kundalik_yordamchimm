@@ -1,14 +1,18 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, permissions, filters
+from rest_framework import generics, permissions
+from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.generics import RetrieveUpdateDestroyAPIView
+from django_filters.rest_framework import DjangoFilterBackend
 
-from .models import Category, Favorite, Service, UsageLog
+from .models import Category, Favorite, Service, UsageLog, Transaction
 from .serializers import (
     CategorySerializer,
     FavoriteSerializer,
     ServiceSerializer,
     UsageLogSerializer,
+    TransactionSerializer,
 )
 
 
@@ -22,8 +26,8 @@ class ServiceListView(generics.ListAPIView):
     serializer_class = ServiceSerializer
     permission_classes = [permissions.AllowAny]
     filter_backends = [
-        "django_filters.rest_framework.DjangoFilterBackend",
-        "rest_framework.filters.OrderingFilter",
+        DjangoFilterBackend,
+        OrderingFilter,
     ]
     ordering_fields = ["name", "order"]
     pagination_class = None  # uses default PAGE_SIZE from settings
@@ -80,3 +84,23 @@ class FavoriteDeleteView(APIView):
         if not deleted:
             return Response({"detail": "Sevimli topilmadi."}, status=404)
         return Response(status=204)
+
+
+class TransactionListCreateView(generics.ListCreateAPIView):
+    serializer_class = TransactionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Transaction.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class TransactionRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = TransactionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'pk'
+
+    def get_queryset(self):
+        return Transaction.objects.filter(user=self.request.user)

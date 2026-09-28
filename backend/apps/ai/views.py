@@ -1,7 +1,8 @@
-from django.shortcuts import get_object_or_404
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.shortcuts import get_object_or_404
 
 from .models import Conversation, Message, PURPOSE_CHOICES
 from .serializers import (
@@ -53,6 +54,8 @@ class ConversationDetailView(generics.RetrieveDestroyAPIView):
 
 class SendMessageView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+    # Accept JSON or multipart form data (for file uploads)
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def post(self, request, pk):
         conversation = get_object_or_404(Conversation, pk=pk, user=request.user)
@@ -61,7 +64,34 @@ class SendMessageView(APIView):
         serializer.is_valid(raise_exception=True)
         content = serializer.validated_data["content"]
 
-        user_message = Message.objects.create(conversation=conversation, role="user", content=content)
+        # ----- Media handling -----
+        media_file = request.FILES.get("media")
+        media_type = None
+        media_url = None
+        if media_file:
+            # Determine a simple media_type string
+            ct = media_file.content_type
+            if ct.startswith("image/"):
+                media_type = "image"
+            elif ct.startswith("video/"):
+                media_type = "video"
+            elif ct.startswith("audio/"):
+                media_type = "audio"
+            else:
+                media_type = "file"
+
+            # Save the file and obtain a public URL
+            from .storage import save_media
+            media_url = save_media(media_file)
+
+        # Create the user's message, including media info if present
+        user_message = Message.objects.create(
+            conversation=conversation,
+            role="user",
+            content=content,
+            media_type=media_type,
+            media_url=media_url,
+        )
 
         if conversation.messages.count() == 1:
             conversation.title = (content[:40] + "…") if len(content) > 40 else content

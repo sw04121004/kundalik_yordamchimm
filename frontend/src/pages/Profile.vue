@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { useAuthStore } from '../store/auth'
 import AppHeader from '../components/AppHeader.vue'
 import FormAlert from '../components/FormAlert.vue'
@@ -7,12 +7,17 @@ import FormAlert from '../components/FormAlert.vue'
 const auth = useAuthStore()
 
 const profileForm = reactive({
-  first_name: auth.user?.first_name || '',
-  email: auth.user?.email || '',
+  first_name: '',
+  email: '',
 })
 const profileError = ref('')
 const profileSuccess = ref('')
 const profileSubmitting = ref(false)
+
+onMounted(() => {
+  profileForm.first_name = auth.user?.first_name || ''
+  profileForm.email = auth.user?.email || ''
+})
 
 async function saveProfile() {
   profileError.value = ''

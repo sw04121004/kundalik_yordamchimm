@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../store/auth'
@@ -8,19 +8,28 @@ import { Eye, EyeOff } from 'lucide-vue-next'
 const router = useRouter()
 const auth = useAuthStore()
 
-const form = reactive({ username: '', email: '', password: '', password_confirm: '' })
+const form = reactive({ username: '', email: '', password: '', password2: '', first_name: '' })
 const error = ref('')
 const submitting = ref(false)
 const showPassword = ref(false)
 const showPasswordConfirm = ref(false)
+const fieldErrors = reactive({
+  username: '',
+  email: '',
+  password: '',
+  password2: '',
+  first_name: ''
+})
 
 async function handleSubmit() {
   error.value = ''
-  if (!form.username.trim() || !form.email.trim() || !form.password || !form.password_confirm) {
+  // Reset per-field errors
+  Object.keys(fieldErrors).forEach(k => fieldErrors[k] = '')
+  if (!form.username.trim() || !form.email.trim() || !form.password || !form.password2) {
     error.value = "Iltimos, barcha maydonlarni to'ldiring."
     return
   }
-  if (form.password !== form.password_confirm) {
+  if (form.password !== form.password2) {
     error.value = "Parollar mos kelmadi."
     return
   }
@@ -30,6 +39,15 @@ async function handleSubmit() {
   if (result.success) {
     router.push({ name: 'dashboard' })
   } else {
+    // Backend may return field errors in result.errors
+    if (result.errors) {
+      Object.entries(result.errors).forEach(([key, msgs]) => {
+        if (fieldErrors.hasOwnProperty(key)) {
+          fieldErrors[key] = Array.isArray(msgs) ? msgs.join(' ') : msgs
+        }
+      })
+    }
+    // Show generic error if no field-specific errors
     error.value = result.message
   }
 }
@@ -56,15 +74,23 @@ async function handleSubmit() {
           <div>
             <label class="label">Foydalanuvchi nomi</label>
             <input v-model="form.username" type="text" class="input" placeholder="aziz_dev" />
+            <p v-if="fieldErrors.username" class="text-red-500 text-sm mt-1">{{ fieldErrors.username }}</p>
+          </div>
+          <div>
+            <label class="label">Ism</label>
+            <input v-model="form.first_name" type="text" class="input" placeholder="Aziz" />
+            <p v-if="fieldErrors.first_name" class="text-red-500 text-sm mt-1">{{ fieldErrors.first_name }}</p>
           </div>
           <div>
             <label class="label">Pochta manzili</label>
             <input v-model="form.email" type="email" class="input" placeholder="aziz@example.com" />
+            <p v-if="fieldErrors.email" class="text-red-500 text-sm mt-1">{{ fieldErrors.email }}</p>
           </div>
           <div>
             <label class="label">Parol</label>
             <div class="relative">
               <input v-model="form.password" :type="showPassword ? 'text' : 'password'" class="input pr-10" placeholder="••••••••" />
+              <p class="text-red-500 text-sm">{{ fieldErrors.password }}</p>
               <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none">
                 <Eye v-if="!showPassword" class="w-5 h-5" />
                 <EyeOff v-else class="w-5 h-5" />
@@ -74,7 +100,8 @@ async function handleSubmit() {
           <div>
             <label class="label">Parolni tasdiqlang</label>
             <div class="relative">
-              <input v-model="form.password_confirm" :type="showPasswordConfirm ? 'text' : 'password'" class="input pr-10" placeholder="••••••••" />
+              <input v-model="form.password2" :type="showPasswordConfirm ? 'text' : 'password'" class="input pr-10" placeholder="••••••••" />
+              <p class="text-red-500 text-sm">{{ fieldErrors.password2 }}</p>
               <button type="button" @click="showPasswordConfirm = !showPasswordConfirm" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none">
                 <Eye v-if="!showPasswordConfirm" class="w-5 h-5" />
                 <EyeOff v-else class="w-5 h-5" />

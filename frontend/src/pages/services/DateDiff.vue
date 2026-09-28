@@ -82,17 +82,35 @@ function calculate() {
   const diffMs = Math.abs(end - start)
   const mathDays = Math.round(diffMs / (1000 * 60 * 60 * 24))
 
-  const years = Math.floor(mathDays / 365)
-  const remainderAfterYears = mathDays % 365
-  const months = Math.floor(remainderAfterYears / 30)
-  const days = remainderAfterYears % 30
+  const startYear = start.getFullYear();
+  const startMonth = start.getMonth();
+  const startDay = start.getDate();
+
+  const endYear = end.getFullYear();
+  const endMonth = end.getMonth();
+  const endDay = end.getDate();
+
+  let years = endYear - startYear;
+  let months = endMonth - startMonth;
+  let days = endDay - startDay;
+
+  if (days < 0) {
+    const prevMonthDate = new Date(endYear, endMonth, 0);
+    days += prevMonthDate.getDate();
+    months--;
+  }
+
+  if (months < 0) {
+    months += 12;
+    years--;
+  }
 
   result.value = {
     mathDays,
     calculatedDays: workDays,
     holidays: holidayCount,
     weeks: Math.floor(mathDays / 7),
-    approx: `${years} yil, ${months} oy, ${days} kun (taxminan)`,
+    approx: `${years} yil, ${months} oy, ${days} kun`,
   }
 }
 
@@ -154,7 +172,7 @@ function reset() {
             Shu oraliqda {{ result.holidays }} ta bayram kuni bor.
           </div>
           <div class="sm:col-span-2 rounded-xl bg-gradient-to-br from-brand-50 to-brand-100/60 dark:from-slate-700 dark:to-slate-700/60 border border-brand-100 dark:border-slate-600 px-5 py-4 text-center animate-resultPop">
-            <p class="text-xs font-medium text-brand-600 uppercase tracking-wide">Taxminiy farq</p>
+            <p class="text-xs font-medium text-brand-600 uppercase tracking-wide">Aniq farq</p>
             <p class="text-xl font-extrabold text-brand-800 mt-1">{{ result.approx }}</p>
           </div>
         </div>

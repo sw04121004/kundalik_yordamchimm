@@ -88,10 +88,17 @@ function process() {
     return
   }
 
+  const MAX_DIMENSION = 8192; // Maksimal ruxsat etilgan kenglik/balandlik
+
   const w = parseInt(width.value, 10)
   const h = parseInt(height.value, 10)
   if (!w || !h || w <= 0 || h <= 0) {
     error.value = 'Iltimos, to‘g‘ri o‘lcham kiriting.'
+    return
+  }
+
+  if (w > MAX_DIMENSION || h > MAX_DIMENSION) {
+    error.value = `Maksimal ruxsat etilgan o'lcham ${MAX_DIMENSION}px. Kichikroq qiymatlar kiriting.`
     return
   }
 

@@ -47,6 +47,9 @@ class Message(models.Model):
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    # New fields for multimodal support
+    media_type = models.CharField(max_length=20, null=True, blank=True)
+    media_url = models.URLField(null=True, blank=True)
 
     class Meta:
         ordering = ["created_at"]

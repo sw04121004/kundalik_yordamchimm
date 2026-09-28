@@ -51,8 +51,13 @@ def _get_config():
 
     provider = os.environ.get("AI_PROVIDER", "openai").strip().lower()
     key = os.environ.get("AI_API_KEY", "").strip()
-    model = os.environ.get("AI_MODEL", "mistral-small-latest").strip()
-    base_url = os.environ.get("AI_API_BASE_URL", "https://api.mistral.ai/v1").strip()
+    model = os.environ.get("AI_MODEL", "").strip()
+    base_url = os.environ.get("AI_API_BASE_URL", "").strip()
+
+    if not model:
+        model = _DEFAULT_MODELS.get(provider, _DEFAULT_MODELS["openai"])
+    if not base_url:
+        base_url = _DEFAULT_BASE_URLS.get(provider, _DEFAULT_BASE_URLS["openai"])
 
     return provider, key, model, base_url
 

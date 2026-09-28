@@ -5,15 +5,17 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
-import logging
-logger = logging.getLogger(__name__)
+
+
+import logging                # <-- bu qator qo‘shildi
+logger = logging.getLogger(__name__)   # <-- logger yaratildi
+
 from .serializers import (
     ChangePasswordSerializer,
     RegisterSerializer,
     UpdateProfileSerializer,
     UserSerializer,
 )
-
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import ToolShell from '../components/ToolShell.vue'
 import AppHeader from '../components/AppHeader.vue'
 
@@ -8,6 +8,8 @@ const modes = [
   { id: 'short', label: '☕ Qisqa tanaffus (5m)', minutes: 5 },
   { id: 'long', label: '🌴 Uzun tanaffus (15m)', minutes: 15 },
 ]
+
+const STORAGE_KEY = 'pomodoroState'
 
 const activeMode = ref('work')
 const timeLeft = ref(25 * 60)
@@ -34,6 +36,32 @@ const secondsFormatted = computed(() => {
 const progressPercent = computed(() => {
   return ((totalDuration.value - timeLeft.value) / totalDuration.value) * 100
 })
+
+function saveState() {
+  const state = {
+    activeMode: activeMode.value,
+    timeLeft: timeLeft.value,
+    isRunning: isRunning.value,
+    taskTitle: taskTitle.value,
+    completedCount: completedCount.value,
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+}
+
+function loadState() {
+  const savedState = localStorage.getItem(STORAGE_KEY)
+  if (savedState) {
+    const state = JSON.parse(savedState)
+    activeMode.value = state.activeMode
+    timeLeft.value = state.timeLeft
+    isRunning.value = state.isRunning
+    taskTitle.value = state.taskTitle
+    completedCount.value = state.completedCount
+    if (isRunning.value) {
+      startTimer() // Agar taymer ishlayotgan bo'lsa, uni qayta ishga tushiramiz
+    }
+  }
+}
 
 function setMode(modeId) {
   stopTimer()
@@ -87,8 +115,15 @@ function playBeep() {
   }
 }
 
+onMounted(() => {
+  loadState()
+  // Har bir o'zgaruvchi o'zgarganda saqlash
+  watch([activeMode, timeLeft, isRunning, taskTitle, completedCount], saveState, { deep: true })
+})
+
 onUnmounted(() => {
   stopTimer()
+  saveState() // Sahifadan chiqishdan oldin oxirgi holatni saqlash
 })
 </script>
 

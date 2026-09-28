@@ -38,11 +38,12 @@ export const useAuthStore = defineStore('auth', {
         const { data } = await api.post('/auth/register/', payload)
         this.setTokens(data.access, data.refresh)
         this.user = data.user
+        await this.fetchMe()
         return { success: true }
       } catch (error) {
-        const backendMsg = error.response?.data ? Object.values(error.response.data).flat().join(' ') : null
-        const message = backendMsg || "Ro‘yxatdan o‘tishda xatolik yuz berdi."
-        return { success: false, message }
+        const backendErrors = error.response?.data || null
+        const message = backendErrors ? "Ro‘yxatdan o‘tishda xatolik yuz berdi." : "Ro‘yxatdan o‘tishda xatolik yuz berdi."
+        return { success: false, message, errors: backendErrors }
       } finally {
         this.loading = false
       }

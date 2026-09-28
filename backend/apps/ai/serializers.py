@@ -8,8 +8,8 @@ VALID_PURPOSES = [choice[0] for choice in PURPOSE_CHOICES]
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
-        fields = ("id", "role", "content", "created_at")
-        read_only_fields = ("id", "role", "created_at")
+        fields = ("id", "role", "content", "created_at", "media_type", "media_url")
+        read_only_fields = ("id", "role", "created_at", "media_type", "media_url")
 
 
 class ConversationListSerializer(serializers.ModelSerializer):

@@ -21,16 +21,33 @@ function safeEvaluate(expr) {
   cleaned = cleaned.replace(/abs\(([^)]+)\)/gi, 'Math.abs($1)')
   cleaned = cleaned.replace(/log\(([^)]+)\)/gi, 'Math.log10($1)')
 
+  // Qavslar muvozanatini tekshirish
+  let balance = 0;
+  for (let i = 0; i < cleaned.length; i++) {
+    if (cleaned[i] === '(') balance++;
+    else if (cleaned[i] === ')') balance--;
+    if (balance < 0) {
+      throw new Error("Noto'g'ri joylashgan qavs: ')' ortiqcha")
+    }
+  }
+  if (balance !== 0) {
+    throw new Error("Qavslar muvozanati buzilgan: '(' yoki ')' yetishmayapti")
+  }
+
   if (/[^0-9\.\+\-\*\/\(\)\sMath\.\,sqrt|sin|cos|abs|log]/.test(cleaned.replace(/Math\.(sqrt|sin|cos|abs|log10|PI)/g, ''))) {
     throw new Error("Noto'g'ri belgi kiritildi")
   }
 
-  const fn = new Function(`return ${cleaned}`)
-  const res = fn()
-  if (typeof res !== 'number' || isNaN(res) || !isFinite(res)) {
-    throw new Error("Hisoblab bo'lmadi")
+  try {
+    const fn = new Function(`return ${cleaned}`)
+    const res = fn()
+    if (typeof res !== 'number' || isNaN(res) || !isFinite(res)) {
+      throw new Error("Hisoblab bo'lmadi")
+    }
+    return Number(res.toFixed(6))
+  } catch (e) {
+    throw new Error("Hisoblashda sintaktik xatolik: " + e.message)
   }
-  return Number(res.toFixed(6))
 }
 
 const result = computed(() => {

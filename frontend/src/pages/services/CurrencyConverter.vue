@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
 import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
@@ -100,9 +100,9 @@ function swap() {
 <template>
   <ToolShell
     icon="💱"
-    title="Valyuta konvertori"
-    description="So'm, dollar, yevro va boshqa valyutalar o'rtasida konvertatsiya"
-    hint="Qiymatni kiriting, valyutalarni tanlang — natija real vaqt rejimidagi bozor kursi asosida hisoblanadi."
+    title="Valyuta"
+    description="Valyuta konvertatsiyasi (so‘m, dollar, yevro va boshqalar)"
+    hint="Qiymat kiriting, valyutani tanlang — natija real vaqt bozor kursi asosida hisoblanadi."
   >
     <template #header><AppHeader /></template>
 

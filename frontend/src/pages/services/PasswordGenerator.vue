@@ -36,10 +36,24 @@ function generate() {
   copied.value = false
 
   let pool = ''
-  if (useUpper.value) pool += CHARSETS.upper
-  if (useLower.value) pool += CHARSETS.lower
-  if (useNumbers.value) pool += CHARSETS.numbers
-  if (useSymbols.value) pool += CHARSETS.symbols
+  const requiredChars = []
+
+  if (useUpper.value) {
+    pool += CHARSETS.upper
+    requiredChars.push(CHARSETS.upper[Math.floor(Math.random() * CHARSETS.upper.length)])
+  }
+  if (useLower.value) {
+    pool += CHARSETS.lower
+    requiredChars.push(CHARSETS.lower[Math.floor(Math.random() * CHARSETS.lower.length)])
+  }
+  if (useNumbers.value) {
+    pool += CHARSETS.numbers
+    requiredChars.push(CHARSETS.numbers[Math.floor(Math.random() * CHARSETS.numbers.length)])
+  }
+  if (useSymbols.value) {
+    pool += CHARSETS.symbols
+    requiredChars.push(CHARSETS.symbols[Math.floor(Math.random() * CHARSETS.symbols.length)])
+  }
 
   if (!pool) {
     error.value = 'Kamida bitta belgi turini tanlang.'
@@ -48,10 +62,24 @@ function generate() {
   }
 
   const len = Math.min(Math.max(parseInt(length.value, 10) || 8, 4), 64)
-  const array = new Uint32Array(len)
-  crypto.getRandomValues(array)
+  
+  let generatedPassword = ''
+  // Required characters first
+  for (let i = 0; i < requiredChars.length; i++) {
+    generatedPassword += requiredChars[i]
+  }
 
-  password.value = Array.from(array, (n) => pool[n % pool.length]).join('')
+  // Fill the rest of the password length
+  const remainingLength = len - requiredChars.length
+  const array = new Uint32Array(remainingLength)
+  crypto.getRandomValues(array)
+  
+  for (let i = 0; i < remainingLength; i++) {
+    generatedPassword += pool[array[i] % pool.length]
+  }
+
+  // Shuffle the password to mix required characters
+  password.value = generatedPassword.split('').sort(() => Math.random() - 0.5).join('')
 }
 
 async function copyPassword() {

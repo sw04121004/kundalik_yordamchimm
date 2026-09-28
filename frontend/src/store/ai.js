@@ -78,11 +78,12 @@ export const useAiStore = defineStore('ai', {
       }
     },
 
-    async sendMessage(conversationId, content) {
+    // Send a message (text only) or with media (multipart)
+    async sendMessage(conversationId, content, mediaFile = null) {
       this.error = ''
       this.sending = true
 
-      // optimistic append of the user's own message
+      // optimistic UI – add user's message immediately
       const optimisticMessage = {
         id: `temp-${Date.now()}`,
         role: 'user',
@@ -94,10 +95,28 @@ export const useAiStore = defineStore('ai', {
       }
 
       try {
-        const { data } = await api.post(`/ai/conversations/${conversationId}/messages/`, { content })
+        let response
+        if (mediaFile) {
+          // multipart request
+          const form = new FormData()
+          form.append('content', content)
+          form.append('media', mediaFile)
+          response = await api.post(
+            `/ai/conversations/${conversationId}/messages/`,
+            form,
+            { headers: { 'Content-Type': 'multipart/form-data' } }
+          )
+        } else {
+          // regular JSON request
+          response = await api.post(
+            `/ai/conversations/${conversationId}/messages/`,
+            { content }
+          )
+        }
+        const { data } = response
 
         if (this.current && this.current.id === conversationId) {
-          // replace optimistic message with the confirmed one, then add the reply
+          // replace optimistic entry and append assistant reply
           const idx = this.current.messages.findIndex((m) => m.id === optimisticMessage.id)
           if (idx !== -1) this.current.messages.splice(idx, 1, data.user_message)
           this.current.messages.push(data.assistant_message)
@@ -105,7 +124,6 @@ export const useAiStore = defineStore('ai', {
         }
 
         this.aiConfigured = data.ai_configured
-
         const listEntry = this.conversations.find((c) => c.id === conversationId)
         if (listEntry) {
           listEntry.title = data.conversation_title
@@ -114,7 +132,7 @@ export const useAiStore = defineStore('ai', {
 
         return { success: true, ai_ok: data.ai_ok }
       } catch (error) {
-        // roll back the optimistic message on failure
+        // rollback optimistic UI on error
         if (this.current && this.current.id === conversationId) {
           this.current.messages = this.current.messages.filter((m) => m.id !== optimisticMessage.id)
         }

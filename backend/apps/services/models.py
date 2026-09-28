@@ -6,6 +6,7 @@ class Category(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True, db_index=True)
     icon = models.CharField(max_length=10, default="🧩")
+    description = models.CharField(max_length=255, blank=True, default="")
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
@@ -55,3 +56,24 @@ class Favorite(models.Model):
 
     def __str__(self):
         return f"{self.user} ♥ {self.service}"
+
+
+class Transaction(models.Model):
+    TRANSACTION_TYPES = [
+        ('income', 'Income'),
+        ('expense', 'Expense'),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="transactions", on_delete=models.CASCADE)
+    type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    category = models.CharField(max_length=50)
+    description = models.CharField(max_length=255, blank=True)
+    date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-date", "-created_at"]
+
+    def __str__(self):
+        return f"{self.user} - {self.type.title()} {self.amount} {self.date}"
