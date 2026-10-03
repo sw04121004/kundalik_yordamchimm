@@ -20,9 +20,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ ./
 COPY --from=frontend-builder /app/backend/static/frontend /app/backend/static/frontend
 
-RUN python manage.py collectstatic --no-input --clear
-RUN python manage.py migrate
-
+RUN SECRET_KEY=build-only-placeholder python manage.py collectstatic --no-input --clear
 EXPOSE 8000
 
-CMD ["sh", "-c", "gunicorn config.wsgi:application --workers ${WEB_CONCURRENCY:-2} --bind 0.0.0.0:${PORT:-8000}"]
+CMD ["sh", "-c", "python manage.py migrate && exec gunicorn config.wsgi:application --workers ${WEB_CONCURRENCY:-2} --bind 0.0.0.0:${PORT:-8000}"]

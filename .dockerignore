@@ -1,5 +1,6 @@
 **/.git
 **/.github
+**/.env*
 **/__pycache__
 **/.venv
 **/node_modules
@@ -8,6 +9,7 @@
 **/*.pyc
 **/*.pyo
 **/*.pyd
+**/db.sqlite3
 backend/staticfiles
 backend/media
 frontend/dist
