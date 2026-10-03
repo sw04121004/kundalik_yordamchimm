@@ -26,7 +26,11 @@ default_hosts = ["localhost", "127.0.0.1", "0.0.0.0", "[::1]"]
 railway_hosts = [
     h.strip() for h in os.environ.get("ALLOWED_HOSTS", "").split(",") if h.strip()
 ]
-ALLOWED_HOSTS = railway_hosts or default_hosts + [".railway.app", ".up.railway.app"]
+ALLOWED_HOSTS = railway_hosts or default_hosts + [
+    ".railway.app",
+    ".up.railway.app",
+    ".onrender.com",
+]
 CSRF_TRUSTED_ORIGINS = [
     origin.strip() for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",") if origin.strip()
 ]
@@ -89,11 +93,6 @@ DATABASES = {
         conn_max_age=600,
     )
 }
-if (
-    not DEBUG
-    and DATABASES["default"]["ENGINE"] == "django.db.backends.postgresql"
-):
-    DATABASES["default"].setdefault("OPTIONS", {}).setdefault("sslmode", "require")
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
