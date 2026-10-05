@@ -11,7 +11,8 @@ const monthlyPayment = computed(() => {
   const p = amount.value
   const r = (rate.value / 100) / 12
   const n = months.value
-  if (!p || !r || !n) return 0
+  if (!Number.isFinite(p) || !Number.isFinite(r) || !Number.isFinite(n) || p <= 0 || r < 0 || n <= 0) return 0
+  if (r === 0) return Math.round(p / n)
   const pay = p * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1)
   return Math.round(pay)
 })

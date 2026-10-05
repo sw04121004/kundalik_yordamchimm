@@ -11,19 +11,8 @@ onMounted(() => servicesStore.logUsage('sana-farqi'))
 const startDate = ref('')
 const endDate = ref('')
 const excludeWeekends = ref(false)
-const excludeHolidays = ref(false)
 const error = ref('')
 const result = ref(null)
-
-const UZ_HOLIDAYS = [
-  '01-01', // Yangi yil
-  '03-08', // Xotin-qizlar kuni
-  '03-21', // Navro'z
-  '05-09', // Xotira va qadrlash
-  '09-01', // Mustaqillik
-  '10-01', // O'qituvchilar
-  '12-08', // Konstitutsiya
-]
 
 function calculate() {
   error.value = ''
@@ -47,29 +36,14 @@ function calculate() {
     return
   }
 
-  let totalDays = 0;
   let workDays = 0;
-  let holidayCount = 0;
   
   const current = new Date(start)
   
   while (current <= end) {
-    totalDays++;
     const dayOfWeek = current.getDay();
-    const mm = String(current.getMonth() + 1).padStart(2, '0');
-    const dd = String(current.getDate()).padStart(2, '0');
-    const mmdd = `${mm}-${dd}`;
-    
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-    const isHoliday = UZ_HOLIDAYS.includes(mmdd);
-    
-    if (isHoliday) holidayCount++;
-    
-    let shouldCount = true;
-    if (excludeWeekends.value && isWeekend) shouldCount = false;
-    if (excludeHolidays.value && isHoliday) shouldCount = false;
-    
-    if (shouldCount) {
+    if (!excludeWeekends.value || !isWeekend) {
       workDays++;
     }
     
@@ -108,7 +82,6 @@ function calculate() {
   result.value = {
     mathDays,
     calculatedDays: workDays,
-    holidays: holidayCount,
     weeks: Math.floor(mathDays / 7),
     approx: `${years} yil, ${months} oy, ${days} kun`,
   }
@@ -118,14 +91,13 @@ function reset() {
   startDate.value = ''
   endDate.value = ''
   excludeWeekends.value = false
-  excludeHolidays.value = false
   result.value = null
   error.value = ''
 }
 </script>
 
 <template>
-  <ToolShell icon="📅" title="Sana farqi" description="Ikki sana orasidagi farqni hisoblang" hint="Kunlar va ish kunlarini hisoblash uchun qo'shimcha parametrlardan foydalanishingiz mumkin.">
+  <ToolShell icon="📅" title="Sana farqi" description="Ikki sana orasidagi kalendar va ish kunlarini hisoblang" hint="Dam olish kunlari shanba-yakshanba deb olinadi. Rasmiy bayramlar va ko‘chirilgan dam olish kunlari kiritilmaydi.">
     <template #header><AppHeader /></template>
 
     <FormAlert :message="error" />
@@ -147,10 +119,6 @@ function reset() {
           <input type="checkbox" v-model="excludeWeekends" class="w-4 h-4 text-brand-600 rounded focus:ring-brand-500 border-slate-300 dark:border-slate-600 dark:bg-slate-700">
           <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Shanba va Yakshanbani hisoblamaslik (Ish kunlari)</span>
         </label>
-        <label class="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" v-model="excludeHolidays" class="w-4 h-4 text-brand-600 rounded focus:ring-brand-500 border-slate-300 dark:border-slate-600 dark:bg-slate-700">
-          <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Bayram kunlarini hisoblamaslik</span>
-        </label>
       </div>
 
       <div class="flex gap-3 pt-2">
@@ -167,9 +135,6 @@ function reset() {
           <div class="rounded-xl bg-brand-50 dark:bg-slate-700 px-4 py-3 text-center">
             <p class="text-xs text-brand-600 dark:text-brand-300 font-medium">Tanlovga asosan chiqdi</p>
             <p class="text-lg font-extrabold text-brand-800 dark:text-brand-200">{{ result.calculatedDays }} kun (ish/kunlar)</p>
-          </div>
-          <div v-if="result.holidays > 0" class="sm:col-span-2 text-center text-xs text-slate-500">
-            Shu oraliqda {{ result.holidays }} ta bayram kuni bor.
           </div>
           <div class="sm:col-span-2 rounded-xl bg-gradient-to-br from-brand-50 to-brand-100/60 dark:from-slate-700 dark:to-slate-700/60 border border-brand-100 dark:border-slate-600 px-5 py-4 text-center animate-resultPop">
             <p class="text-xs font-medium text-brand-600 uppercase tracking-wide">Aniq farq</p>

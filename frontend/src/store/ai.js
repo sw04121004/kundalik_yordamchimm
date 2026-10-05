@@ -78,8 +78,8 @@ export const useAiStore = defineStore('ai', {
       }
     },
 
-    // Send a message (text only) or with media (multipart)
-    async sendMessage(conversationId, content, mediaFile = null) {
+    // Send a text message. File upload is not supported by the configured model.
+    async sendMessage(conversationId, content) {
       this.error = ''
       this.sending = true
 
@@ -95,24 +95,10 @@ export const useAiStore = defineStore('ai', {
       }
 
       try {
-        let response
-        if (mediaFile) {
-          // multipart request
-          const form = new FormData()
-          form.append('content', content)
-          form.append('media', mediaFile)
-          response = await api.post(
-            `/ai/conversations/${conversationId}/messages/`,
-            form,
-            { headers: { 'Content-Type': 'multipart/form-data' } }
-          )
-        } else {
-          // regular JSON request
-          response = await api.post(
-            `/ai/conversations/${conversationId}/messages/`,
-            { content }
-          )
-        }
+        const response = await api.post(
+          `/ai/conversations/${conversationId}/messages/`,
+          { content }
+        )
         const { data } = response
 
         if (this.current && this.current.id === conversationId) {

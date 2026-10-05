@@ -35,7 +35,6 @@ const showStickers = ref(false)
 const isRecording = ref(false)
 const recordingTime = ref(0)
 let recordInterval = null
-const attachedMedia = ref(null)
 
 const stickers = ['👋', '👍', '❤️', '😂', '🔥', '🎉', '💡', '🚀', '🤔', '🙌', '💯', '✨']
 
@@ -77,20 +76,6 @@ async function openConversation(id) {
 function startNew() {
   aiStore.reset()
   sidebarOpen.value = false
-}
-
-function attachFile() {
-  const input = document.createElement('input')
-  input.type = 'file'
-  input.accept = 'image/*,video/*'
-  input.onchange = (e) => {
-    const file = e.target.files[0]
-    if (!file) return
-    const type = file.type.startsWith('video/') ? 'video' : 'image'
-    const url = URL.createObjectURL(file)
-    attachedMedia.value = { file, type, url, name: file.name }
-  }
-  input.click()
 }
 
 let speechRecognition = null
@@ -158,10 +143,6 @@ function formatDuration(sec) {
   return `${m}:${s}`
 }
 
-function removeAttachment() {
-  attachedMedia.value = null
-}
-
 async function sendSticker(s) {
   showStickers.value = false
   if (!aiStore.current) return
@@ -192,32 +173,26 @@ async function sendSticker(s) {
 
 async function send() {
   const text = draft.value.trim()
-  if ((!text && !attachedMedia.value) || aiStore.sending || !aiStore.current) return
-  
-  const mediaObj = attachedMedia.value
+  if (!text || aiStore.sending || !aiStore.current) return
+
   draft.value = ''
-  attachedMedia.value = null
   showStickers.value = false
-  
-  if (mediaObj) {
-    // If there is media, we'll visually add it to UI and tell AI about it in text
-    aiStore.current.messages.push({
-      id: Date.now(),
-      role: 'user',
-      content: text || (mediaObj.type === 'audio' ? '🎤 Ovozli xabar' : '📎 Media fayl'),
-      media_type: mediaObj.type,
-      media_url: mediaObj.url,
-      media_duration: mediaObj.duration,
-      created_at: new Date().toISOString()
-    })
-    scrollToBottom()
-    
-    // Send actual text to backend (since backend only supports text right now)
-    const prompt = text ? `${text} (Foydalanuvchi ${mediaObj.type} jo'natdi)` : `Men ${mediaObj.type} fayl jo'natdim. Nima yordam bera olasiz?`
-    await aiStore.sendMessage(aiStore.current.id, prompt, mediaObj.file)
-  } else {
-    await aiStore.sendMessage(aiStore.current.id, text)
+  await aiStore.sendMessage(aiStore.current.id, text)
+}
+
+function saveMessageAsPdf(content) {
+  const printWindow = window.open('', '_blank')
+  if (!printWindow) {
+    aiStore.error = 'PDF oynasini ochib bo‘lmadi. Brauzerda qalqib chiquvchi oynalarga ruxsat bering.'
+    return
   }
+  const escaped = content.replace(/[&<>]/g, (char) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;',
+  })[char])
+  printWindow.document.write(`<!doctype html><html lang="uz"><head><meta charset="utf-8"><title>AI javobi</title><style>body{font:16px/1.6 Arial,sans-serif;max-width:800px;margin:40px auto;padding:0 24px;color:#111}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit}@media print{body{margin:0 auto}}</style></head><body><h1>AI javobi</h1><pre>${escaped}</pre></body></html>`)
+  printWindow.document.close()
+  printWindow.focus()
+  printWindow.print()
 }
 
 function handleKeydown(e) {
@@ -408,6 +383,10 @@ function autoResize(el) {
               >
                 <div v-html="renderMarkdown(msg.content)" class="ai-prose"></div>
                 <div class="text-[10px] text-slate-400 mt-1.5">{{ formatTime(msg.created_at) }}</div>
+                <button
+                  class="mt-2 text-xs font-medium text-brand-600 dark:text-brand-400 hover:underline"
+                  @click="saveMessageAsPdf(msg.content)"
+                >PDF qilib saqlash</button>
               </div>
             </div>
 
@@ -428,6 +407,7 @@ function autoResize(el) {
 
           <!-- Input Area -->
           <div class="px-4 sm:px-5 py-3 border-t border-slate-100 dark:border-white/5 bg-white dark:bg-[#161b26] relative">
+            <p class="text-xs text-slate-400 mb-2">Rasm yoki PDF fayl yuborish, shuningdek AI orqali rasm yaratish hozircha yo‘q. Matnli javobni PDF qilib saqlash mumkin.</p>
             
             <!-- Stickers Popover -->
             <transition name="page-fade">
@@ -437,24 +417,6 @@ function autoResize(el) {
                 </button>
               </div>
             </transition>
-            
-            <!-- Attachment Preview -->
-            <div v-if="attachedMedia" class="mb-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3 animate-fadeUp">
-              <div class="flex items-center gap-3 min-w-0">
-                <div v-if="attachedMedia.type === 'image'" class="w-10 h-10 rounded bg-slate-200 bg-cover bg-center" :style="{ backgroundImage: `url(${attachedMedia.url})` }"></div>
-                <div v-else-if="attachedMedia.type === 'video'" class="w-10 h-10 rounded bg-slate-800 flex items-center justify-center text-white"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></div>
-                <div v-else-if="attachedMedia.type === 'audio'" class="w-10 h-10 rounded bg-brand-100 text-brand-600 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg></div>
-                
-                <div class="min-w-0 flex-1">
-                  <p class="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate">{{ attachedMedia.name || (attachedMedia.type === 'audio' ? `Ovozli xabar (${formatDuration(attachedMedia.duration)})` : 'Biriktirilgan fayl') }}</p>
-                  <p class="text-xs text-brand-600 dark:text-brand-400">Yuborishga tayyor</p>
-                </div>
-              </div>
-              <button @click="removeAttachment" class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-              </button>
-            </div>
-            
             <!-- Recording Indicator -->
             <div v-if="isRecording" class="flex items-center justify-between mb-3 px-4 py-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-xl animate-fadeUp">
               <div class="flex items-center gap-3">
@@ -471,9 +433,7 @@ function autoResize(el) {
             <div class="flex items-end gap-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-2xl px-3 py-2 transition-all focus-within:border-brand-500/50 focus-within:ring-2 focus-within:ring-brand-500/10" v-show="!isRecording">
               
               <div class="flex gap-1 shrink-0 pb-1">
-                <button class="p-2 text-slate-400 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-slate-800 rounded-xl transition-colors focus:outline-none" title="Rasm/Video kiritish" @click="attachFile">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                </button>
+
                 <button class="p-2 text-slate-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-slate-800 rounded-xl transition-colors focus:outline-none" title="Stikerlar" @click="showStickers = !showStickers">
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </button>
@@ -490,7 +450,7 @@ function autoResize(el) {
               ></textarea>
               
               <button
-                v-if="!draft.trim() && !attachedMedia"
+                v-if="!draft.trim()"
                 class="shrink-0 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-slate-800 rounded-xl transition-colors mb-0.5 focus:outline-none"
                 title="Ovozli xabar"
                 @click="toggleRecord"

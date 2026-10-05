@@ -31,8 +31,8 @@ function calculate() {
   }
 
   const n = parseInt(days.value, 10)
-  if (Number.isNaN(n) || n < 0) {
-    error.value = 'Iltimos, musbat butun son kiriting.'
+  if (!Number.isInteger(n) || n < 0) {
+    error.value = 'Iltimos, nol yoki undan katta butun son kiriting.'
     return
   }
 

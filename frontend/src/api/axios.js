@@ -61,6 +61,9 @@ api.interceptors.response.use(
       try {
         const { data } = await axios.post(`${API_BASE_URL}/auth/refresh/`, { refresh })
         localStorage.setItem('qulay_access', data.access)
+        if (data.refresh) {
+          localStorage.setItem('qulay_refresh', data.refresh)
+        }
         processQueue(null, data.access)
         originalRequest.headers.Authorization = `Bearer ${data.access}`
         return api(originalRequest)
