@@ -21,7 +21,7 @@ async function handleSubmit() {
     return
   }
   submitting.value = true
-  const result = await auth.login(form)
+  const result = await auth.login({ ...form, username: form.username.trim() })
   submitting.value = false
   if (result.success) {
     router.push(route.query.next || { name: 'dashboard' })

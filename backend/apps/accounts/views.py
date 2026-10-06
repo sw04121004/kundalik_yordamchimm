@@ -7,9 +7,6 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 
 
-import logging                # <-- bu qator qo‘shildi
-logger = logging.getLogger(__name__)   # <-- logger yaratildi
-
 from .serializers import (
     ChangePasswordSerializer,
     RegisterSerializer,
@@ -52,31 +49,21 @@ class EmailOrUsernameTokenSerializer(TokenObtainPairSerializer):
         return token
 
     def validate(self, attrs):
-        # Prefer explicit ``username`` if supplied, otherwise fall back to ``email``
-        login_value = attrs.get(self.username_field) or attrs.get("email")
+        # Resolve username/email case-insensitively and discard accidental spaces.
+        login_value = (attrs.get(self.username_field) or attrs.get("email") or "").strip()
         if login_value:
-            # If the value contains an '@' we treat it as an email address
-            if "@" in login_value:
-                from django.contrib.auth import get_user_model
-                User = get_user_model()
-                try:
-                    matched = User.objects.get(email__iexact=login_value)
-                    attrs[self.username_field] = matched.username
-                except User.DoesNotExist:
-                    # Let the parent validation raise an appropriate error
-                    pass
-            else:
-                attrs[self.username_field] = login_value
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            lookup = {"email__iexact": login_value} if "@" in login_value else {"username__iexact": login_value}
+            matched = User.objects.filter(**lookup).first()
+            if matched:
+                attrs[self.username_field] = matched.username
         return super().validate(attrs)
 
 
 class LoginView(TokenObtainPairView):
     permission_classes = [permissions.AllowAny]
     serializer_class = EmailOrUsernameTokenSerializer
-
-    def post(self, request, *args, **kwargs):
-        logger.info("🔎 Login payload received: %s", request.data)
-        return super().post(request, *args, **kwargs)
 
 
 class MeView(generics.RetrieveUpdateAPIView):
