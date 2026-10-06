@@ -14,8 +14,8 @@ const units = {
   g: { label: 'Gramm (g)', factor: 1 },
   kg: { label: 'Kilogramm (kg)', factor: 1000 },
   ton: { label: 'Tonna (t)', factor: 1000000 },
-  lb: { label: 'Funt (lb)', factor: 453.592 },
-  oz: { label: 'Untsiya (oz)', factor: 28.3495 },
+  lb: { label: 'Funt (lb)', factor: 453.59237 },
+  oz: { label: 'Untsiya (oz)', factor: 28.349523125 },
 }
 
 const value = ref('')
@@ -27,8 +27,8 @@ const result = computed(() => {
   error.value = ''
   if (value.value === '') return null
   const num = parseFloat(value.value)
-  if (Number.isNaN(num)) {
-    error.value = 'Iltimos, faqat raqam kiriting.'
+  if (!Number.isFinite(num) || num < 0) {
+    error.value = 'Og‘irlikni 0 yoki undan katta son bilan kiriting.'
     return null
   }
   const grams = num * units[from.value].factor

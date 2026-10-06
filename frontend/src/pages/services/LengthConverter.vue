@@ -16,7 +16,7 @@ const units = {
   km: { label: 'Kilometr (km)', factor: 1000 },
   inch: { label: 'Dyuym (inch)', factor: 0.0254 },
   ft: { label: 'Fut (ft)', factor: 0.3048 },
-  mile: { label: 'Milya (mile)', factor: 1609.34 },
+  mile: { label: 'Milya (mile)', factor: 1609.344 },
 }
 
 const value = ref('')
@@ -28,8 +28,8 @@ const result = computed(() => {
   error.value = ''
   if (value.value === '') return null
   const num = parseFloat(value.value)
-  if (Number.isNaN(num)) {
-    error.value = 'Iltimos, faqat raqam kiriting.'
+  if (!Number.isFinite(num) || num < 0) {
+    error.value = 'Uzunlikni 0 yoki undan katta son bilan kiriting.'
     return null
   }
   const meters = num * units[from.value].factor

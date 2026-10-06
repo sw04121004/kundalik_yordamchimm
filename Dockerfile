@@ -18,7 +18,8 @@ COPY backend/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/ ./
-COPY --from=frontend-builder /app/backend/static/frontend /app/backend/static/frontend
+RUN rm -rf static/frontend
+COPY --from=frontend-builder /app/backend/static/frontend ./static/frontend
 
 RUN SECRET_KEY=build-only-placeholder python manage.py collectstatic --no-input --clear
 EXPOSE 8000

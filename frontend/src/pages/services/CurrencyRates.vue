@@ -25,6 +25,7 @@ async function loadRates() {
     rates.value = await fetchOfficialCurrencyRates()
     if (!rates.value.some((item) => item.code === selectedCode.value)) selectedCode.value = 'USD'
   } catch (err) {
+    rates.value = []
     error.value = err.message || 'Kurslarni hozir olib bo‘lmadi.'
   } finally {
     loading.value = false

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
 import ResultBox from '../../components/ResultBox.vue'
@@ -18,6 +18,9 @@ function calculate() {
   error.value = ''
   result.value = null
 
+  if (number.value === '' && percent.value === '') return
+  if (number.value === '' || percent.value === '') return
+
   const n = parseFloat(number.value)
   const p = parseFloat(percent.value)
 
@@ -25,14 +28,20 @@ function calculate() {
     error.value = 'Iltimos, ikkala maydonni ham to‘ldiring.'
     return
   }
-  if (Number.isNaN(n) || Number.isNaN(p)) {
+  if (!Number.isFinite(n) || !Number.isFinite(p)) {
     error.value = 'Iltimos, faqat raqam kiriting.'
     return
   }
 
   const value = (n * p) / 100
+  if (!Number.isFinite(value)) {
+    error.value = 'Natija son chegarasidan oshib ketdi.'
+    return
+  }
   result.value = `${n} sonining ${p}% i = ${round(value)}`
 }
+
+watch([number, percent], calculate)
 
 function round(num) {
   return Math.round(num * 10000) / 10000
@@ -47,7 +56,7 @@ function reset() {
 </script>
 
 <template>
-  <ToolShell icon="🧮" title="Foiz hisoblagich" description="Sondan foizni tez va aniq hisoblang" hint="Son va foiz qiymatini kiriting, «Hisoblash»ni bosing — natija pastda chiqadi.">
+  <ToolShell icon="🧮" title="Foiz hisoblagich" description="Sondan foizni tez va aniq hisoblang" hint="Son va foizni kiriting — natija darhol hisoblanadi.">
     <template #header><AppHeader /></template>
 
     <FormAlert :message="error" />
@@ -55,17 +64,14 @@ function reset() {
     <div class="space-y-4">
       <div>
         <label class="label">Son</label>
-        <input v-model="number" type="number" class="input" placeholder="masalan: 250" @keyup.enter="calculate" />
+        <input v-model="number" type="number" class="input" placeholder="masalan: 250" />
       </div>
       <div>
         <label class="label">Foiz (%)</label>
-        <input v-model="percent" type="number" class="input" placeholder="masalan: 15" @keyup.enter="calculate" />
+        <input v-model="percent" type="number" class="input" placeholder="masalan: 15" />
       </div>
 
-      <div class="flex gap-3 pt-2">
-        <button class="btn-primary flex-1" @click="calculate">Hisoblash</button>
-        <button class="btn-secondary" @click="reset">Tozalash</button>
-      </div>
+      <button class="btn-secondary w-full" @click="reset">Tozalash</button>
 
       <ResultBox :value="result" />
     </div>

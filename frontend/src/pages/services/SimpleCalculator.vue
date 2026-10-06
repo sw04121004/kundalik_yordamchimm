@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
 import ResultBox from '../../components/ResultBox.vue'
@@ -29,11 +29,8 @@ function calculate() {
   const x = parseFloat(a.value)
   const y = parseFloat(b.value)
 
-  if (a.value === '' || b.value === '') {
-    error.value = 'Iltimos, ikkala sonni ham kiriting.'
-    return
-  }
-  if (Number.isNaN(x) || Number.isNaN(y)) {
+  if (a.value === '' || b.value === '') return
+  if (!Number.isFinite(x) || !Number.isFinite(y)) {
     error.value = 'Iltimos, faqat raqam kiriting.'
     return
   }
@@ -57,8 +54,14 @@ function calculate() {
       value = x / y
       break
   }
+  if (!Number.isFinite(value)) {
+    error.value = 'Natija son chegarasidan oshib ketdi.'
+    return
+  }
   result.value = Math.round(value * 100000) / 100000
 }
+
+watch([a, b, operation], calculate)
 
 function reset() {
   a.value = ''
@@ -70,7 +73,7 @@ function reset() {
 </script>
 
 <template>
-  <ToolShell icon="➗" title="Oddiy kalkulyator" description="Qo‘shish, ayirish, ko‘paytirish, bo‘lish" hint="Ikkita sonni kiriting, amalni tanlang (+, −, ×, ÷) va «Hisoblash»ni bosing.">
+  <ToolShell icon="➗" title="Oddiy kalkulyator" description="Qo‘shish, ayirish, ko‘paytirish, bo‘lish" hint="Ikki sonni kiriting va amalni tanlang — natija darhol yangilanadi.">
     <template #header><AppHeader /></template>
 
     <FormAlert :message="error" />
@@ -94,7 +97,6 @@ function reset() {
       </div>
 
       <div class="flex gap-3 pt-2">
-        <button class="btn-primary flex-1" @click="calculate">Hisoblash</button>
         <button class="btn-secondary" @click="reset">Tozalash</button>
       </div>
 

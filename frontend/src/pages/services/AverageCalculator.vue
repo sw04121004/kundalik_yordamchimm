@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
 import FormAlert from '../../components/FormAlert.vue'
@@ -21,18 +21,19 @@ function calculate() {
     .map((p) => p.trim())
     .filter(Boolean)
 
-  if (parts.length === 0) {
-    error.value = 'Iltimos, kamida bitta son kiriting.'
-    return
-  }
+  if (parts.length === 0) return
 
   const numbers = parts.map(Number)
-  if (numbers.some((n) => Number.isNaN(n))) {
+  if (numbers.some((n) => !Number.isFinite(n))) {
     error.value = 'Faqat raqamlarni vergul yoki bo‘shliq bilan ajratib kiriting.'
     return
   }
 
   const sum = numbers.reduce((acc, n) => acc + n, 0)
+  if (!Number.isFinite(sum)) {
+    error.value = 'Sonlar yig‘indisi hisoblash chegarasidan oshib ketdi.'
+    return
+  }
   const avg = sum / numbers.length
   const max = Math.max(...numbers)
   const min = Math.min(...numbers)
@@ -45,6 +46,8 @@ function calculate() {
     min,
   }
 }
+
+watch(numbersText, calculate)
 
 function round(num) {
   return Math.round(num * 10000) / 10000
@@ -75,7 +78,6 @@ function reset() {
       </div>
 
       <div class="flex gap-3 pt-2">
-        <button class="btn-primary flex-1" @click="calculate">Hisoblash</button>
         <button class="btn-secondary" @click="reset">Tozalash</button>
       </div>
 

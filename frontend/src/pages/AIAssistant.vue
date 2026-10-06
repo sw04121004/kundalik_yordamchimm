@@ -1,5 +1,5 @@
 <script setup>
-import { ref, nextTick, onMounted, watch } from 'vue'
+import { ref, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { marked } from 'marked'
 import AppHeader from '../components/AppHeader.vue'
@@ -29,14 +29,11 @@ const draft = ref('')
 const sidebarOpen = ref(false)
 const messagesEnd = ref(null)
 const textareaRef = ref(null)
-
-// Media attachments
-const showStickers = ref(false)
 const isRecording = ref(false)
 const recordingTime = ref(0)
-let recordInterval = null
-
-const stickers = ['👋', '👍', '❤️', '😂', '🔥', '🎉', '💡', '🚀', '🤔', '🙌', '💯', '✨']
+const voiceError = ref('')
+let speechRecognition = null
+let recordingTimer = null
 
 onMounted(async () => {
   await aiStore.fetchConversations()
@@ -59,6 +56,82 @@ function scrollToBottom() {
 
 watch(() => aiStore.current?.messages?.length, () => scrollToBottom())
 
+function stopRecording() {
+  isRecording.value = false
+  window.clearInterval(recordingTimer)
+  recordingTimer = null
+  if (speechRecognition) {
+    try { speechRecognition.stop() } catch { /* Recognition may already have stopped. */ }
+  }
+}
+
+function toggleRecord() {
+  voiceError.value = ''
+  if (isRecording.value) {
+    stopRecording()
+    return
+  }
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+  if (!SpeechRecognition) {
+    voiceError.value = 'Bu brauzer ovozni matnga aylantirishni qo‘llamaydi. Chrome yoki Edge brauzerida sinab ko‘ring.'
+    return
+  }
+
+  speechRecognition = new SpeechRecognition()
+  speechRecognition.lang = 'uz-UZ'
+  speechRecognition.continuous = true
+  speechRecognition.interimResults = true
+  speechRecognition.onstart = () => {
+    isRecording.value = true
+    recordingTime.value = 0
+    recordingTimer = window.setInterval(() => recordingTime.value++, 1000)
+  }
+  speechRecognition.onresult = (event) => {
+    let transcript = ''
+    for (let index = event.resultIndex; index < event.results.length; index++) {
+      if (event.results[index].isFinal) transcript += event.results[index][0].transcript
+    }
+    if (transcript.trim()) {
+      draft.value = `${draft.value.trim()} ${transcript.trim()}`.trim()
+      nextTick(() => textareaRef.value && autoResize(textareaRef.value))
+    }
+  }
+  speechRecognition.onerror = (event) => {
+    const messages = {
+      'not-allowed': 'Mikrofonga ruxsat berilmadi. Brauzer sozlamalaridan ruxsat bering.',
+      'service-not-allowed': 'Brauzer ovoz xizmatidan foydalanishga ruxsat bermadi.',
+      network: 'Ovozni matnga aylantirish xizmati tarmoqqa ulanmayapti.',
+      'no-speech': 'Ovoz aniqlanmadi. Qayta urinib ko‘ring.',
+    }
+    voiceError.value = messages[event.error] || 'Ovoz yozishda xatolik yuz berdi.'
+    stopRecording()
+  }
+  speechRecognition.onend = () => {
+    isRecording.value = false
+    window.clearInterval(recordingTimer)
+    recordingTimer = null
+  }
+
+  try {
+    speechRecognition.start()
+  } catch {
+    voiceError.value = 'Mikrofonni ishga tushirib bo‘lmadi. Qayta urinib ko‘ring.'
+    stopRecording()
+  }
+}
+
+function formatDuration(seconds) {
+  const minutes = Math.floor(seconds / 60).toString().padStart(2, '0')
+  const remainder = (seconds % 60).toString().padStart(2, '0')
+  return `${minutes}:${remainder}`
+}
+
+onUnmounted(() => {
+  window.clearInterval(recordingTimer)
+  if (speechRecognition) speechRecognition.stop()
+})
+
 async function pickPurpose(purposeValue) {
   const result = await aiStore.startConversation(purposeValue)
   if (result.success) {
@@ -78,105 +151,12 @@ function startNew() {
   sidebarOpen.value = false
 }
 
-let speechRecognition = null
-if (window.SpeechRecognition || window.webkitSpeechRecognition) {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-  speechRecognition = new SpeechRecognition()
-  speechRecognition.continuous = true
-  speechRecognition.interimResults = true
-  speechRecognition.lang = 'uz-UZ' // O'zbek tili asosiy
-  
-  speechRecognition.onresult = (event) => {
-    let finalTranscript = ''
-    for (let i = event.resultIndex; i < event.results.length; ++i) {
-      if (event.results[i].isFinal) {
-        finalTranscript += event.results[i][0].transcript
-      }
-    }
-    if (finalTranscript) {
-      draft.value += (draft.value ? ' ' : '') + finalTranscript
-      // Matn yozilgach, input moslashishi uchun:
-      nextTick(() => {
-        if (textareaRef.value) autoResize(textareaRef.value)
-      })
-    }
-  }
-  
-  speechRecognition.onerror = (e) => {
-    console.error('Ovoz yozishda xatolik:', e)
-    stopRecording()
-  }
-}
-
-function stopRecording() {
-  isRecording.value = false
-  clearInterval(recordInterval)
-  if (speechRecognition) {
-    speechRecognition.stop()
-  }
-  recordingTime.value = 0
-}
-
-function toggleRecord() {
-  if (isRecording.value) {
-    stopRecording()
-  } else {
-    isRecording.value = true
-    recordingTime.value = 0
-    
-    // Agar brauzer qo'llab-quvvatlasa ovozni matnga o'giradi
-    if (speechRecognition) {
-      try {
-        speechRecognition.start()
-      } catch(e) {}
-    }
-    
-    recordInterval = setInterval(() => {
-      recordingTime.value++
-    }, 1000)
-  }
-}
-
-function formatDuration(sec) {
-  const m = Math.floor(sec / 60).toString().padStart(2, '0')
-  const s = (sec % 60).toString().padStart(2, '0')
-  return `${m}:${s}`
-}
-
-async function sendSticker(s) {
-  showStickers.value = false
-  if (!aiStore.current) return
-  
-  // Directly append locally for UI speed
-  const msgObj = {
-    id: Date.now(),
-    role: 'user',
-    content: '',
-    media_type: 'sticker',
-    media_url: s,
-    created_at: new Date().toISOString()
-  }
-  aiStore.current.messages.push(msgObj)
-  scrollToBottom()
-  
-  // Fake AI reply for sticker
-  setTimeout(() => {
-    aiStore.current.messages.push({
-      id: Date.now() + 1,
-      role: 'assistant',
-      content: `${s} Ajoyib stiker! Qanday yordam bera olaman?`,
-      created_at: new Date().toISOString()
-    })
-    scrollToBottom()
-  }, 1000)
-}
-
 async function send() {
   const text = draft.value.trim()
   if (!text || aiStore.sending || !aiStore.current) return
 
+  if (isRecording.value) stopRecording()
   draft.value = ''
-  showStickers.value = false
   await aiStore.sendMessage(aiStore.current.id, text)
 }
 
@@ -361,18 +341,6 @@ function autoResize(el) {
                 class="max-w-[80%] sm:max-w-[65%] rounded-2xl rounded-br-sm px-4 py-3 text-sm leading-relaxed text-white whitespace-pre-wrap flex flex-col items-end"
                 style="background: linear-gradient(135deg, rgb(var(--brand-500)), rgb(var(--brand-600)))"
               >
-                <!-- Attached Media Display -->
-                <div v-if="msg.media_type" class="mb-2">
-                  <img v-if="msg.media_type === 'image'" :src="msg.media_url" class="max-w-full h-auto rounded-lg shadow-sm border border-white/20" alt="Image" style="max-height: 200px" />
-                  <video v-if="msg.media_type === 'video'" :src="msg.media_url" controls class="max-w-full rounded-lg shadow-sm border border-white/20" style="max-height: 200px"></video>
-                  <div v-if="msg.media_type === 'audio'" class="flex items-center gap-2 bg-white/20 rounded-full px-4 py-2 w-48">
-                    <svg class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                    <div class="flex-1 h-1 bg-white/30 rounded-full overflow-hidden"><div class="w-1/3 h-full bg-white"></div></div>
-                    <span class="text-xs font-mono font-bold">{{ formatDuration(msg.media_duration) }}</span>
-                  </div>
-                  <div v-if="msg.media_type === 'sticker'" class="text-[5rem] leading-none drop-shadow-lg animate-bounceSoft">{{ msg.media_url }}</div>
-                </div>
-
                 <span v-if="msg.content">{{ msg.content }}</span>
                 <div class="text-[10px] text-white/60 mt-1.5 text-right w-full">{{ formatTime(msg.created_at) }}</div>
               </div>
@@ -407,38 +375,23 @@ function autoResize(el) {
 
           <!-- Input Area -->
           <div class="px-4 sm:px-5 py-3 border-t border-slate-100 dark:border-white/5 bg-white dark:bg-[#161b26] relative">
-            <p class="text-xs text-slate-400 mb-2">Rasm yoki PDF fayl yuborish, shuningdek AI orqali rasm yaratish hozircha yo‘q. Matnli javobni PDF qilib saqlash mumkin.</p>
-            
-            <!-- Stickers Popover -->
-            <transition name="page-fade">
-              <div v-if="showStickers" class="absolute bottom-full left-4 mb-2 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 p-3 grid grid-cols-4 gap-2 w-64 z-10">
-                <button v-for="s in stickers" :key="s" @click="sendSticker(s)" class="text-3xl hover:scale-125 transition-transform p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none">
-                  {{ s }}
-                </button>
-              </div>
-            </transition>
-            <!-- Recording Indicator -->
-            <div v-if="isRecording" class="flex items-center justify-between mb-3 px-4 py-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-xl animate-fadeUp">
-              <div class="flex items-center gap-3">
-                <span class="w-3 h-3 rounded-full bg-red-500 animate-pulse"></span>
-                <span class="text-red-600 dark:text-red-400 font-mono font-bold">{{ formatDuration(recordingTime) }}</span>
-                <span class="text-sm text-red-600/70 dark:text-red-400/70">Ovoz yozilmoqda...</span>
-              </div>
-              <button @click="toggleRecord" class="text-red-600 hover:bg-red-100 dark:hover:bg-red-500/20 p-2 rounded-lg font-semibold text-sm transition-colors">
-                To'xtatish
-              </button>
-            </div>
-
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">AI tashqi modeldan javob oladi; javoblar xato yoki eskirgan bo‘lishi mumkin va jonli manbalar avtomatik tekshirilmaydi.</p>
+            <p v-if="isRecording" class="text-xs text-red-500 mb-2" role="status">🔴 Ovoz yozilmoqda · {{ formatDuration(recordingTime) }} · gapni matnga aylantiryapti</p>
+            <p v-else-if="voiceError" class="text-xs text-amber-600 dark:text-amber-400 mb-2" role="alert">{{ voiceError }}</p>
+            <p v-else class="text-[10px] text-slate-400 mb-2">Mikrofon gapirganingizni matnga aylantiradi; yuborishdan oldin matnni tekshiring.</p>
             <!-- Input Box -->
-            <div class="flex items-end gap-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-2xl px-3 py-2 transition-all focus-within:border-brand-500/50 focus-within:ring-2 focus-within:ring-brand-500/10" v-show="!isRecording">
-              
-              <div class="flex gap-1 shrink-0 pb-1">
-
-                <button class="p-2 text-slate-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-slate-800 rounded-xl transition-colors focus:outline-none" title="Stikerlar" @click="showStickers = !showStickers">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </button>
-              </div>
-              
+            <div class="flex items-end gap-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-2xl px-3 py-2 transition-all focus-within:border-brand-500/50 focus-within:ring-2 focus-within:ring-brand-500/10">
+              <button
+                type="button"
+                class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-colors mb-0.5"
+                :class="isRecording ? 'text-red-500 bg-red-50 dark:bg-red-500/10' : 'text-slate-400 hover:text-brand-600 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                :aria-label="isRecording ? 'Ovoz yozishni to‘xtatish' : 'Ovoz yozishni boshlash'"
+                :title="isRecording ? 'To‘xtatish' : 'Ovoz bilan yozish'"
+                @click="toggleRecord"
+              >
+                <svg v-if="!isRecording" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18.5a6.5 6.5 0 006.5-6.5m-13 0a6.5 6.5 0 006.5 6.5m0 0V22m0-3.5H8.5m3.5 0h3.5M9 12V5a3 3 0 016 0v7a3 3 0 01-6 0z"/></svg>
+                <svg v-else class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+              </button>
               <textarea
                 ref="textareaRef"
                 v-model="draft"
@@ -448,21 +401,10 @@ function autoResize(el) {
                 @keydown="handleKeydown"
                 @input="autoResize($event.target)"
               ></textarea>
-              
               <button
-                v-if="!draft.trim()"
-                class="shrink-0 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-slate-800 rounded-xl transition-colors mb-0.5 focus:outline-none"
-                title="Ovozli xabar"
-                @click="toggleRecord"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
-              </button>
-              
-              <button
-                v-else
                 class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-40 mb-0.5"
                 style="background: linear-gradient(135deg, rgb(var(--brand-500)), rgb(var(--brand-700)))"
-                :disabled="aiStore.sending"
+                :disabled="!draft.trim() || aiStore.sending"
                 @click="send"
               >
                 <svg class="w-4 h-4 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19V5m-7 7l7-7 7 7"/></svg>

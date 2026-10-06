@@ -25,6 +25,8 @@ async function fetchRates() {
     if (!rates.value.some((item) => item.code === to.value)) to.value = 'UZS'
     rateDate.value = rates.value[0]?.date || ''
   } catch (err) {
+    rates.value = []
+    rateDate.value = ''
     rateError.value = err.message || 'Markaziy bank kurslarini olib bo‘lmadi.'
   } finally {
     loadingRates.value = false

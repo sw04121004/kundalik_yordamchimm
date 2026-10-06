@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
 import ResultBox from '../../components/ResultBox.vue'
@@ -25,31 +25,41 @@ function calculate() {
   error.value = ''
   result.value = null
 
-  if (!baseDate.value || days.value === '') {
-    error.value = 'Iltimos, sana va kunlar sonini kiriting.'
-    return
-  }
+  if (!baseDate.value && days.value === '') return
+  if (!baseDate.value || days.value === '') return
 
-  const n = parseInt(days.value, 10)
-  if (!Number.isInteger(n) || n < 0) {
+  const n = Number(days.value)
+  if (!Number.isSafeInteger(n) || n < 0) {
     error.value = 'Iltimos, nol yoki undan katta butun son kiriting.'
     return
   }
 
-  const date = new Date(baseDate.value)
-  if (Number.isNaN(date.getTime())) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(baseDate.value)
+  if (!match) {
     error.value = 'Sana formati noto‘g‘ri.'
+    return
+  }
+  const [, year, month, day] = match
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)))
+  if (date.getUTCFullYear() !== Number(year) || date.getUTCMonth() !== Number(month) - 1 || date.getUTCDate() !== Number(day)) {
+    error.value = 'Kiritilgan sana mavjud emas.'
     return
   }
 
   const delta = mode.value === 'add' ? n : -n
-  date.setDate(date.getDate() + delta)
+  date.setUTCDate(date.getUTCDate() + delta)
+  if (!Number.isFinite(date.getTime())) {
+    error.value = 'Hisoblangan sana ruxsat etilgan oraliqdan tashqarida.'
+    return
+  }
 
   // Brauzerning o'zbekcha locale qo'llab-quvvatlashiga tayanmasdan qo'lda formatlaymiz
-  const formatted = `${date.getDate()}-${UZ_MONTHS[date.getMonth()]} ${date.getFullYear()}`
-  const weekday = weekdays[date.getDay()]
+  const formatted = `${date.getUTCDate()}-${UZ_MONTHS[date.getUTCMonth()]} ${date.getUTCFullYear()}`
+  const weekday = weekdays[date.getUTCDay()]
   result.value = `${formatted}, ${weekday}`
 }
+
+watch([baseDate, days, mode], calculate)
 
 function reset() {
   baseDate.value = ''
@@ -86,10 +96,7 @@ function reset() {
         </div>
       </div>
 
-      <div class="flex gap-3 pt-2">
-        <button class="btn-primary flex-1" @click="calculate">Hisoblash</button>
-        <button class="btn-secondary" @click="reset">Tozalash</button>
-      </div>
+      <button class="btn-secondary w-full" @click="reset">Tozalash</button>
 
       <ResultBox label="Yangi sana" :value="result" />
     </div>

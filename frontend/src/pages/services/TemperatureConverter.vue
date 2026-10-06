@@ -35,11 +35,15 @@ const result = computed(() => {
   error.value = ''
   if (value.value === '') return null
   const num = parseFloat(value.value)
-  if (Number.isNaN(num)) {
-    error.value = 'Iltimos, faqat raqam kiriting.'
+  if (!Number.isFinite(num)) {
+    error.value = 'Harorat uchun to‘g‘ri son kiriting.'
     return null
   }
   const celsius = toCelsius(num, from.value)
+  if (celsius < -273.15) {
+    error.value = 'Harorat mutlaq noldan (−273.15 °C) past bo‘lishi mumkin emas.'
+    return null
+  }
   const converted = fromCelsius(celsius, to.value)
   return Math.round(converted * 100) / 100
 })

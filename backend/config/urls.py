@@ -4,9 +4,11 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.http import FileResponse, Http404
+from django.views.decorators.cache import never_cache
 from django.urls import include, path, re_path
 
 
+@never_cache
 def serve_frontend(request, path=""):
     index_path = Path(settings.BASE_DIR) / "static" / "frontend" / "index.html"
     if index_path.exists():
