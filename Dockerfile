@@ -1,5 +1,6 @@
 FROM node:20 AS frontend-builder
 WORKDIR /app/frontend
+ENV VITE_BASE_PATH=/static/
 
 COPY frontend/package*.json ./
 RUN npm install
@@ -19,7 +20,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/ ./
 RUN rm -rf static/frontend
-COPY --from=frontend-builder /app/backend/static/frontend ./static/frontend
+COPY --from=frontend-builder /app/frontend/dist ./static/frontend
 
 RUN SECRET_KEY=build-only-placeholder python manage.py collectstatic --no-input --clear
 EXPOSE 8000

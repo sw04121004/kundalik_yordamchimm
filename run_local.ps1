@@ -13,7 +13,7 @@ if (Test-Path $venvPath) {
 $backendPath = "${PSScriptRoot}\backend"
 Start-Process -FilePath "powershell" -ArgumentList "-NoExit", "-Command", "python manage.py runserver" -WorkingDirectory $backendPath
 
-# 3️⃣ Start React/Vite frontend in another new PowerShell window
+# 3️⃣ Start Vue/Vite frontend in another new PowerShell window
 $frontendPath = "${PSScriptRoot}\frontend"
 Start-Process -FilePath "powershell" -ArgumentList "-NoExit", "-Command", "npm run dev" -WorkingDirectory $frontendPath
 

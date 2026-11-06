@@ -34,7 +34,7 @@ if (-not (Test-Path "node_modules")) {
 # ---------------------------------------------------------------
 $envFile = Join-Path $frontendPath ".env.local"
 if (-not (Test-Path $envFile)) {
-    $apiUrlLine = "VITE_API_URL=http://127.0.0.1:8000/api"
+    $apiUrlLine = "VITE_API_BASE_URL=http://127.0.0.1:8000"
     Set-Content -Path $envFile -Value $apiUrlLine -Encoding UTF8
     Write-Host "✅ .env.local created with API URL"
 }

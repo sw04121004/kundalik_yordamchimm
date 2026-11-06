@@ -4,13 +4,14 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
 export default defineConfig(({ command }) => ({
-  // Django serves production assets from /static/, while Vite's dev server
-  // should serve them from the site root so visiting /static/ can load the app.
-  base: command === 'serve' ? '/' : '/static/',
+  base: command === 'serve' ? '/' : (process.env.VITE_BASE_PATH || '/'),
   plugins: [vue()],
   build: {
-    outDir: '../backend/static/frontend',
+    outDir: 'dist',
     emptyOutDir: true,
+  },
+  server: {
+    port: 5173,
   },
   resolve: {
     alias: {
