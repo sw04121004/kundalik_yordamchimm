@@ -34,6 +34,17 @@ const recordingTime = ref(0)
 const voiceError = ref('')
 let speechRecognition = null
 let recordingTimer = null
+let recordingBaseDraft = ''
+let finalTranscript = ''
+let interimTranscript = ''
+
+function updateVoiceDraft() {
+  draft.value = [recordingBaseDraft, finalTranscript, interimTranscript]
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .join(' ')
+  nextTick(() => textareaRef.value && autoResize(textareaRef.value))
+}
 
 onMounted(async () => {
   await aiStore.fetchConversations()
@@ -82,20 +93,26 @@ function toggleRecord() {
   speechRecognition.lang = 'uz-UZ'
   speechRecognition.continuous = true
   speechRecognition.interimResults = true
+  recordingBaseDraft = draft.value.trim()
+  finalTranscript = ''
+  interimTranscript = ''
   speechRecognition.onstart = () => {
     isRecording.value = true
     recordingTime.value = 0
     recordingTimer = window.setInterval(() => recordingTime.value++, 1000)
   }
   speechRecognition.onresult = (event) => {
-    let transcript = ''
     for (let index = event.resultIndex; index < event.results.length; index++) {
-      if (event.results[index].isFinal) transcript += event.results[index][0].transcript
+      const text = event.results[index][0].transcript.trim()
+      if (!text) continue
+      if (event.results[index].isFinal) {
+        finalTranscript = `${finalTranscript} ${text}`.trim()
+        interimTranscript = ''
+      } else {
+        interimTranscript = text
+      }
     }
-    if (transcript.trim()) {
-      draft.value = `${draft.value.trim()} ${transcript.trim()}`.trim()
-      nextTick(() => textareaRef.value && autoResize(textareaRef.value))
-    }
+    updateVoiceDraft()
   }
   speechRecognition.onerror = (event) => {
     const messages = {
@@ -108,6 +125,7 @@ function toggleRecord() {
     stopRecording()
   }
   speechRecognition.onend = () => {
+    updateVoiceDraft()
     isRecording.value = false
     window.clearInterval(recordingTimer)
     recordingTimer = null
