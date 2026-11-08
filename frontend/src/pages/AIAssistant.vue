@@ -2,6 +2,7 @@
 import { ref, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import AppHeader from '../components/AppHeader.vue'
 import { useAiStore, PURPOSES, purposeMeta } from '../store/ai'
 
@@ -22,7 +23,7 @@ const STARTER_PROMPTS = {
 
 function renderMarkdown(text) {
   if (!text) return ''
-  return marked(text)
+  return DOMPurify.sanitize(marked(text))
 }
 
 const draft = ref('')

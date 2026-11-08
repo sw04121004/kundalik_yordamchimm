@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import api from '../api/axios'
 import { extractErrorMessage } from '../api/errors'
 import { useAiStore } from './ai'
+import { usePlannerStore } from './planner'
 import { useServicesStore } from './services'
 
 export const useAuthStore = defineStore('auth', {
@@ -106,6 +107,7 @@ export const useAuthStore = defineStore('auth', {
       // xotirada qolib ketmasligi uchun tegishli store'larni tozalaymiz —
       // aks holda keyingi login qilgan boshqa foydalanuvchi ularni ko'rib qolishi mumkin.
       useAiStore().$reset()
+      usePlannerStore().$reset()
       useServicesStore().$patch({ favorites: [], favoritesLoaded: false })
     },
   },
