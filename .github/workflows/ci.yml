@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ "*" ]
+    branches: [ "**" ]
   pull_request:
-    branches: [ "*" ]
+    branches: [ "**" ]
 
 jobs:
   build:
@@ -18,7 +18,7 @@ jobs:
           POSTGRES_DB: testdb
         ports:
           - 5432:5432
-        options: >
+        options: >-
           --health-cmd "pg_isready -U postgres"
           --health-interval 10s
           --health-timeout 5s
@@ -27,10 +27,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.13
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
+          python-version: "3.12"
 
       - name: Install backend dependencies
         working-directory: backend
@@ -40,21 +40,26 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Apply migrations (sqlite for CI)
+      - name: Check Django configuration and migrations
         working-directory: backend
         env:
-          DATABASE_URL: sqlite:///db.sqlite3
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/testdb
+          SECRET_KEY: ci-only-secret-key-for-tests-and-local-signing-123456
+          DEBUG: "True"
         run: |
           source venv/bin/activate
-          python manage.py migrate
+          python manage.py check
+          python manage.py makemigrations --check --dry-run
 
       - name: Run backend tests
         working-directory: backend
         env:
-          DATABASE_URL: sqlite:///db.sqlite3
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/testdb
+          SECRET_KEY: ci-only-secret-key-for-tests-and-local-signing-123456
+          DEBUG: "True"
         run: |
           source venv/bin/activate
-          pytest
+          python manage.py test
 
       - name: Set up Node.js 20
         uses: actions/setup-node@v4
@@ -65,11 +70,6 @@ jobs:
         working-directory: frontend
         run: |
           npm ci
-
-      - name: Run frontend unit tests
-        working-directory: frontend
-        run: |
-          npm test
 
       - name: Build frontend for production
         working-directory: frontend

@@ -5,7 +5,7 @@ Vue 3/Vite frontend va Django REST Framework backend’dan iborat kundalik yorda
 ## Render: backend
 
 1. GitHub repository’ni Render’ga ulang va `render.yaml` Blueprint’ni deploy qiling.
-2. Blueprint `backend/` ichida Python web service hamda PostgreSQL bazasini yaratadi. `SECRET_KEY` Render tomonidan yaratiladi; migratsiyalar va xizmatlar katalogi server startida qo‘llanadi. Blueprint `CORS_ALLOWED_ORIGINS` ni so‘rasa, dastlab `http://localhost:5173` kiriting.
+2. Blueprint backend papkasida backend service va PostgreSQL bazasini yaratadi. SECRET_KEY Render tomonidan yaratiladi; CORS_ALLOWED_ORIGINS qiymatiga production Netlify domenining aniq HTTPS manzilini (masalan, https://sayt-nomi.netlify.app) kiriting, localhost emas. Mavjud Render service uchun sync: false qiymat Blueprint sync orqali yangilanmaydi; uni Render Dashboard'da sozlang.
 3. Backend deploy bo‘lgach, Render service URL’ini yozib oling. API manzili shu URL’ning oxiriga `/api` qo‘shish orqali hosil bo‘ladi.
 4. Netlify site URL’i chiqqach, Render service’ning `CORS_ALLOWED_ORIGINS` qiymatiga uni kiriting. Bir nechta origin vergul bilan ajratiladi; masalan: `https://site-name.netlify.app,https://example.uz`.
 5. AI yordamchidan foydalanish uchun Render’da `AI_PROVIDER` va `AI_API_KEY` ni, ixtiyoriy ravishda `AI_MODEL` va `AI_API_BASE_URL` ni sozlang.
