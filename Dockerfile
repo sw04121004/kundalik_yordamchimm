@@ -22,7 +22,7 @@ COPY backend/ ./
 RUN rm -rf static/frontend
 COPY --from=frontend-builder /app/frontend/dist ./static/frontend
 
-RUN SECRET_KEY=build-only-placeholder python manage.py collectstatic --no-input --clear
+RUN DATABASE_URL=sqlite:////tmp/build.sqlite3 SECRET_KEY=build-only-placeholder python manage.py collectstatic --no-input --clear
 EXPOSE 8000
 
 CMD ["sh", "-c", "python manage.py migrate && exec gunicorn config.wsgi:application --workers ${WEB_CONCURRENCY:-2} --bind 0.0.0.0:${PORT:-8000}"]
