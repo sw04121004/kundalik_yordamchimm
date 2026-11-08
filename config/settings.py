@@ -10,6 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+# WARNING: LEGACY, UNUSED SETTINGS MODULE. This repository's Django application
+# uses backend/config/settings.py (with backend as the working directory). Do not
+# import or deploy this root-level file: it contains development-only defaults,
+# including an insecure SECRET_KEY. Kept only for historical reference.
+
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
