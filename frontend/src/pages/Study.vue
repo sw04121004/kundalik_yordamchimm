@@ -1,11 +1,15 @@
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import ToolShell from '../components/ToolShell.vue'
 import AppHeader from '../components/AppHeader.vue'
+import FormAlert from '../components/FormAlert.vue'
+import { useAuthStore } from '../store/auth'
 import { useAiStore } from '../store/ai'
 
 const router = useRouter()
+const route = useRoute()
+const auth = useAuthStore()
 const aiStore = useAiStore()
 
 const flashcards = ref([
@@ -41,6 +45,12 @@ function nextCard() {
 }
 
 async function askStudyAI() {
+  if (!auth.isAuthenticated) {
+    await router.push({ name: 'login', query: { next: route.fullPath } })
+    return
+  }
+
+  aiStore.error = ''
   const res = await aiStore.startConversation('study')
   if (res.success && aiStore.current) {
     await aiStore.sendMessage(aiStore.current.id, "Manga ingliz tili grammatikasi va lug'at boyligimni oshirish uchun samarali mashqlar tavsiya eting.")
@@ -61,6 +71,8 @@ async function askStudyAI() {
     </template>
 
     <div class="space-y-6">
+      <FormAlert :message="aiStore.error" />
+
       <!-- Flashcard Quiz Display -->
       <div v-if="flashcards.length" class="text-center space-y-4">
         <div

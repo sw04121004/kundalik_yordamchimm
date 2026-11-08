@@ -1,11 +1,15 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import ToolShell from '../components/ToolShell.vue'
 import AppHeader from '../components/AppHeader.vue'
+import FormAlert from '../components/FormAlert.vue'
+import { useAuthStore } from '../store/auth'
 import { useAiStore } from '../store/ai'
 
 const router = useRouter()
+const route = useRoute()
+const auth = useAuthStore()
 const aiStore = useAiStore()
 
 const docText = ref('')
@@ -29,6 +33,12 @@ function cleanDoc() {
 
 async function askDocAI(type) {
   if (!docText.value.trim()) return
+  if (!auth.isAuthenticated) {
+    await router.push({ name: 'login', query: { next: route.fullPath } })
+    return
+  }
+
+  aiStore.error = ''
   const prompts = {
     summarize: `Ushbu hujjat/matnni qisqacha xulosalab bering:\n\n${docText.value}`,
     grammar: `Ushbu matnning imlo va grammatik xatolarini tekshirib, tuzatilgan variantini bering:\n\n${docText.value}`,
@@ -55,6 +65,8 @@ async function askDocAI(type) {
     </template>
 
     <div class="space-y-6">
+      <FormAlert :message="aiStore.error" />
+
       <!-- Textarea Input -->
       <div>
         <label class="label">Hujjat matnini kiriting</label>

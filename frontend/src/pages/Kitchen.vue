@@ -1,11 +1,15 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import ToolShell from '../components/ToolShell.vue'
 import AppHeader from '../components/AppHeader.vue'
+import FormAlert from '../components/FormAlert.vue'
+import { useAuthStore } from '../store/auth'
 import { useAiStore } from '../store/ai'
 
 const router = useRouter()
+const route = useRoute()
+const auth = useAuthStore()
 const aiStore = useAiStore()
 
 const availableIngredients = [
@@ -27,6 +31,12 @@ function toggleIngredient(item) {
 }
 
 async function askKitchenAI() {
+  if (!auth.isAuthenticated) {
+    await router.push({ name: 'login', query: { next: route.fullPath } })
+    return
+  }
+
+  aiStore.error = ''
   const prompt = selectedIngredients.value.length
     ? `Menda quyidagi masalliqlar bor: ${selectedIngredients.value.join(', ')}. Ushbu masalliqlardan qanday mazali taomlar pishirishim mumkin? Retseptini bering.`
     : `Oshxona bo'yicha maslahat va oson tayyorlanadigan milliy va xalqaro retseptlar tavsiya eting.`
@@ -67,6 +77,8 @@ const convResult = computed(() => {
     </template>
 
     <div class="space-y-6">
+      <FormAlert :message="aiStore.error" />
+
       <!-- Ingredient selector card -->
       <div class="p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50 shadow-sm space-y-4">
         <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">

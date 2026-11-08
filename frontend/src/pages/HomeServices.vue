@@ -1,11 +1,15 @@
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import ToolShell from '../components/ToolShell.vue'
 import AppHeader from '../components/AppHeader.vue'
+import FormAlert from '../components/FormAlert.vue'
+import { useAuthStore } from '../store/auth'
 import { useAiStore } from '../store/ai'
 
 const router = useRouter()
+const route = useRoute()
+const auth = useAuthStore()
 const aiStore = useAiStore()
 
 const stains = [
@@ -19,6 +23,12 @@ const stains = [
 const selectedStain = ref('coffee')
 
 async function askHomeAI() {
+  if (!auth.isAuthenticated) {
+    await router.push({ name: 'login', query: { next: route.fullPath } })
+    return
+  }
+
+  aiStore.error = ''
   const res = await aiStore.startConversation('home')
   if (res.success && aiStore.current) {
     await aiStore.sendMessage(aiStore.current.id, "Uyni toza saqlash, maishiy texnika parvarishi va mebellarni tozalash bo'yicha maslahatlar bering.")
@@ -39,6 +49,8 @@ async function askHomeAI() {
     </template>
 
     <div class="space-y-6">
+      <FormAlert :message="aiStore.error" />
+
       <!-- Stain remover helper -->
       <div class="p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50 shadow-sm space-y-4">
         <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
