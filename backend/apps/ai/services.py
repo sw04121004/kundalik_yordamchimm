@@ -100,13 +100,10 @@ def is_configured() -> bool:
 
 def get_not_configured_message() -> str:
     return (
-        "🤖 AI yordamchi hozircha ulanmagan.\n\n"
-        "Administrator backend/.env faylida AI_API_KEY (va xohlasa AI_PROVIDER, "
-        "AI_MODEL) qiymatlarini to'ldirishi kerak. Bu sozlangandan so'ng AI "
-        "javoblari avtomatik ravishda ishga tushadi — hozircha bu haqiqiy AI "
-        "javobi emas, shunchaki tizim xabari."
+        "AI yordamchi hozircha ulanmagan. Administrator AI_API_KEY ni "
+        "server muhitining environment variables qismida sozlashi kerak. "
+        "Hozircha bu xabar AI javobi emas."
     )
-
 
 def _build_history_with_system(purpose: str, history: list[dict]) -> tuple[str, list[dict]]:
     system_prompt = PURPOSE_SYSTEM_PROMPTS.get(purpose, PURPOSE_SYSTEM_PROMPTS[DEFAULT_PROMPT_KEY])

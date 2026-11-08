@@ -11,7 +11,12 @@ from .serializers import (
     MessageSerializer,
     SendMessageSerializer,
 )
-from .services import AIUnavailableError, generate_reply, is_configured
+from .services import (
+    AIUnavailableError,
+    generate_reply,
+    get_not_configured_message,
+    is_configured,
+)
 
 
 class PurposeListView(APIView):
@@ -75,12 +80,16 @@ class SendMessageView(APIView):
             for message in conversation.messages.order_by("created_at")
         ]
 
-        ai_ok = True
-        try:
-            reply_text = generate_reply(conversation.purpose, history)
-        except AIUnavailableError as exc:
-            reply_text = f"😔 Xatolik yuz berdi: {str(exc)}"
-            ai_ok = False
+        ai_configured = is_configured()
+        ai_ok = ai_configured
+        if not ai_configured:
+            reply_text = get_not_configured_message()
+        else:
+            try:
+                reply_text = generate_reply(conversation.purpose, history)
+            except AIUnavailableError as exc:
+                reply_text = f"AI javobini olishda xatolik yuz berdi: {str(exc)}"
+                ai_ok = False
 
         assistant_message = Message.objects.create(
             conversation=conversation, role="assistant", content=reply_text
@@ -94,7 +103,7 @@ class SendMessageView(APIView):
                 "user_message": MessageSerializer(user_message).data,
                 "assistant_message": MessageSerializer(assistant_message).data,
                 "conversation_title": conversation.title,
-                "ai_configured": is_configured(),
+                "ai_configured": ai_configured,
                 "ai_ok": ai_ok,
             },
             status=status.HTTP_201_CREATED,
