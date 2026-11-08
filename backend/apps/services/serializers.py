@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from decimal import Decimal
 from .models import Category, Favorite, Service, UsageLog, Transaction
 
 
@@ -60,3 +61,22 @@ class TransactionSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data["user"] = self.context["request"].user
         return super().create(validated_data)
+
+
+class LegacyTransactionImportSerializer(serializers.Serializer):
+    legacy_id = serializers.CharField(max_length=100)
+    type = serializers.ChoiceField(choices=Transaction.TRANSACTION_TYPES)
+    amount = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=Decimal("0.01"))
+    category = serializers.CharField(max_length=50)
+    description = serializers.CharField(max_length=255, allow_blank=True, required=False, default="")
+    date = serializers.DateField()
+
+
+class LegacyTransactionBatchSerializer(serializers.Serializer):
+    transactions = LegacyTransactionImportSerializer(many=True, allow_empty=True, max_length=500)
+
+    def validate_transactions(self, items):
+        ids = [item["legacy_id"] for item in items]
+        if len(ids) != len(set(ids)):
+            raise serializers.ValidationError("Import ichida takrorlangan yozuv IDsi bor.")
+        return items

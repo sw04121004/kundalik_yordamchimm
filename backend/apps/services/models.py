@@ -70,10 +70,14 @@ class Transaction(models.Model):
     category = models.CharField(max_length=50)
     description = models.CharField(max_length=255, blank=True)
     date = models.DateField()
+    legacy_id = models.CharField(max_length=100, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["-date", "-created_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["user", "legacy_id"], name="unique_transaction_legacy_id_per_user")
+        ]
 
     def __str__(self):
         return f"{self.user} - {self.type.title()} {self.amount} {self.date}"

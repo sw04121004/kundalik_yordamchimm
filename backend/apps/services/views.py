@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django.db import transaction as db_transaction
 from rest_framework import generics, permissions
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
@@ -13,6 +14,7 @@ from .serializers import (
     ServiceSerializer,
     UsageLogSerializer,
     TransactionSerializer,
+    LegacyTransactionBatchSerializer,
 )
 
 
@@ -104,3 +106,21 @@ class TransactionRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView
 
     def get_queryset(self):
         return Transaction.objects.filter(user=self.request.user)
+
+
+class LegacyTransactionImportView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = LegacyTransactionBatchSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        created = 0
+        with db_transaction.atomic():
+            for item in serializer.validated_data["transactions"]:
+                _, was_created = Transaction.objects.get_or_create(
+                    user=request.user,
+                    legacy_id=item["legacy_id"],
+                    defaults={key: value for key, value in item.items() if key != "legacy_id"},
+                )
+                created += int(was_created)
+        return Response({"created": created, "received": len(serializer.validated_data["transactions"])})

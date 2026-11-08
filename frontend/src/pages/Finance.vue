@@ -1,7 +1,10 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import ToolShell from '../components/ToolShell.vue'
 import AppHeader from '../components/AppHeader.vue'
+import FormAlert from '../components/FormAlert.vue'
+import api from '../api/axios'
+import { extractErrorMessage } from '../api/errors'
 import { useAuthStore } from '../store/auth'
 
 const auth = useAuthStore()
@@ -16,6 +19,9 @@ const categories = [
 ]
 
 const transactions = ref([])
+const loading = ref(false)
+const saving = ref(false)
+const error = ref('')
 
 const newTx = ref({
   type: 'expense',
@@ -24,52 +30,106 @@ const newTx = ref({
   note: ''
 })
 
-const userId = computed(() => auth.user?.id || 'guest')
-const storageKey = computed(() => `qulay_finance_txs_${userId.value}`)
-
-onMounted(() => {
-  const saved = localStorage.getItem(storageKey.value)
-  if (saved) {
-    try { transactions.value = JSON.parse(saved) } catch (e) {}
+async function fetchTransactions() {
+  loading.value = true
+  error.value = ''
+  try {
+    const { data } = await api.get('/transactions/')
+    transactions.value = data.map((transaction) => ({
+      ...transaction,
+      amount: Number(transaction.amount),
+      note: transaction.description || (transaction.type === 'income' ? 'Kirim' : 'Chiqim'),
+    }))
+  } catch (requestError) {
+    error.value = extractErrorMessage(requestError, 'Amallarni yuklab bo‘lmadi.')
+  } finally {
+    loading.value = false
   }
-})
-
-watch(userId, (newId, oldId) => {
-  // When user changes (login/logout), reload transactions for the new user
-  const saved = localStorage.getItem(`qulay_finance_txs_${newId}`)
-  if (saved) {
-    try { transactions.value = JSON.parse(saved) } catch (e) {}
-  } else {
-    transactions.value = []
-  }
-})
-
-
-function saveTxs() {
-
 }
 
-function addTransaction() {
+async function migrateLegacyTransactions() {
+  if (!auth.user?.id) return
+  const userId = String(auth.user.id)
+  const sourceKey = `qulay_finance_txs_${userId}`
+  const markerKey = `qulay_finance_migrated_v1_${userId}`
+  if (localStorage.getItem(markerKey)) return
+
+  const raw = localStorage.getItem(sourceKey)
+  if (raw === null) {
+    localStorage.setItem(markerKey, 'done')
+    return
+  }
+
+  try {
+    const legacy = JSON.parse(raw)
+    if (!Array.isArray(legacy)) throw new Error('Eski moliya ma’lumotlari ro‘yxat shaklida emas.')
+    const payload = legacy.map((item, index) => ({
+      legacy_id: String(item.id ?? `index-${index}`),
+      type: item.type,
+      amount: item.amount,
+      category: String(item.category ?? 'other'),
+      description: String(item.note ?? item.description ?? '').slice(0, 255),
+      date: item.date,
+    }))
+    for (let start = 0; start < payload.length; start += 500) {
+      await api.post('/transactions/import-legacy/', { transactions: payload.slice(start, start + 500) })
+    }
+    // Keep the original browser records as a recovery copy; marker only prevents repeat work.
+    localStorage.setItem(markerKey, 'done')
+  } catch (migrationError) {
+    error.value = `Eski moliya yozuvlarini ko‘chirish amalga oshmadi. Brauzer nusxasi saqlangan. ${extractErrorMessage(migrationError, '')}`.trim()
+  }
+}
+
+onMounted(async () => {
+  if (auth.access && !auth.user) await auth.fetchMe()
+  await migrateLegacyTransactions()
+  await fetchTransactions()
+})
+
+function localDateISO() {
+  const date = new Date()
+  date.setMinutes(date.getMinutes() - date.getTimezoneOffset())
+  return date.toISOString().slice(0, 10)
+}
+
+async function addTransaction() {
   const num = Number(newTx.value.amount)
   if (isNaN(num) || num <= 0) return
 
-  transactions.value.unshift({
-    id: Date.now(),
-    type: newTx.value.type,
-    category: newTx.value.category,
-    amount: num,
-    note: newTx.value.note.trim() || (newTx.value.type === 'income' ? 'Kirim' : 'Chiqim'),
-    date: new Date().toISOString().slice(0, 10)
-  })
-
-  saveTxs()
-  newTx.value.amount = ''
-  newTx.value.note = ''
+  saving.value = true
+  error.value = ''
+  try {
+    const description = newTx.value.note.trim()
+    const { data } = await api.post('/transactions/', {
+      type: newTx.value.type,
+      category: newTx.value.category,
+      amount: num,
+      description,
+      date: localDateISO(),
+    })
+    transactions.value.unshift({
+      ...data,
+      amount: Number(data.amount),
+      note: data.description || (data.type === 'income' ? 'Kirim' : 'Chiqim'),
+    })
+    newTx.value.amount = ''
+    newTx.value.note = ''
+  } catch (requestError) {
+    error.value = extractErrorMessage(requestError, 'O‘tkazmani saqlab bo‘lmadi.')
+  } finally {
+    saving.value = false
+  }
 }
 
-function deleteTx(id) {
-  transactions.value = transactions.value.filter(t => t.id !== id)
-  saveTxs()
+async function deleteTx(id) {
+  error.value = ''
+  try {
+    await api.delete(`/transactions/${id}/`)
+    transactions.value = transactions.value.filter((transaction) => transaction.id !== id)
+  } catch (requestError) {
+    error.value = extractErrorMessage(requestError, 'O‘tkazmani o‘chirib bo‘lmadi.')
+  }
 }
 
 const totalIncome = computed(() => {
@@ -107,6 +167,8 @@ function getCatMeta(catId) {
     </template>
 
     <div class="space-y-6">
+      <FormAlert :message="error" />
+
       <!-- Summary Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="p-4 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-soft">
@@ -174,8 +236,8 @@ function getCatMeta(catId) {
             <input v-model="newTx.note" type="text" class="input" placeholder="Masalan: Tushlik va kofe" />
           </div>
 
-          <button type="submit" class="btn-primary w-full !py-2.5">
-            + Saqlash
+          <button type="submit" class="btn-primary w-full !py-2.5" :disabled="saving">
+            {{ saving ? 'Saqlanmoqda...' : '+ Saqlash' }}
           </button>
         </form>
       </div>
@@ -183,7 +245,10 @@ function getCatMeta(catId) {
       <!-- Transactions History List -->
       <div>
         <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3">📋 Amallar tarixi</h3>
-        <div v-if="!transactions.length" class="text-center text-slate-400 py-6 text-sm">
+        <div v-if="loading" class="text-center text-slate-400 py-6 text-sm">
+          Ma’lumotlar yuklanmoqda...
+        </div>
+        <div v-else-if="!transactions.length" class="text-center text-slate-400 py-6 text-sm">
           Hali hech qanday o'tkazma kiritilmadi.
         </div>
         <div v-else class="space-y-2">
