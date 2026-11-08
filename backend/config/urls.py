@@ -7,6 +7,8 @@ from django.http import FileResponse, Http404
 from django.views.decorators.cache import never_cache
 from django.urls import include, path, re_path
 
+from .health import health_check
+
 
 @never_cache
 def serve_frontend(request, path=""):
@@ -17,6 +19,7 @@ def serve_frontend(request, path=""):
 
 
 urlpatterns = [
+    path("health/", health_check, name="health-check"),
     path("admin/", admin.site.urls),
     path("api/auth/", include("apps.accounts.urls")),
     path("api/ai/", include("apps.ai.urls")),
