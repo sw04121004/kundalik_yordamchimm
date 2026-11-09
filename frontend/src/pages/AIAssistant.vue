@@ -3,6 +3,7 @@ import { ref, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
+import { Bot } from 'lucide-vue-next'
 import AppHeader from '../components/AppHeader.vue'
 import { useAiStore, PURPOSES, purposeMeta } from '../store/ai'
 
@@ -218,7 +219,7 @@ function autoResize(el) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#f4f6fb] dark:bg-[#0d1117] flex flex-col">
+  <div class="min-h-screen bg-slate-50 dark:bg-[#151b1a] flex flex-col">
     <AppHeader />
 
     <div class="flex-1 flex max-w-5xl w-full mx-auto px-4 sm:px-6 py-5 gap-4" style="min-height: calc(100vh - 4rem)">
@@ -297,7 +298,7 @@ function autoResize(el) {
         <div v-if="!aiStore.current" class="flex-1 flex items-center justify-center p-6 overflow-y-auto">
           <div class="max-w-2xl w-full animate-fadeUp">
             <div class="text-center mb-8">
-              <div class="w-16 h-16 rounded-2xl bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center text-4xl mx-auto mb-4 animate-float">🤖</div>
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-100 to-emerald-50 dark:from-brand-900/60 dark:to-emerald-950/50 border border-brand-200/70 dark:border-brand-700/50 text-brand-700 dark:text-brand-300 flex items-center justify-center mx-auto mb-4 animate-float"><Bot class="w-8 h-8" aria-hidden="true" /></div>
               <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">AI Yordamchi</h1>
               <p class="text-slate-500 dark:text-slate-400">Qaysi sohada yordam kerak?</p>
             </div>
@@ -342,7 +343,7 @@ function autoResize(el) {
                   v-for="(prompt, i) in (STARTER_PROMPTS[aiStore.current.purpose] || STARTER_PROMPTS['general'])"
                   :key="i"
                   @click="draft = prompt; send()"
-                  class="inline-flex items-center text-left px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md hover:shadow-brand-500/20 active:scale-95 border border-brand-200/50 dark:border-brand-500/30 bg-gradient-to-br from-white dark:from-[#1e2330] to-brand-50/50 dark:to-brand-900/20 text-brand-700 dark:text-brand-300 hover:border-brand-300 dark:hover:border-brand-500/50 hover:-translate-y-0.5 focus:outline-none"
+                  class="inline-flex items-center text-left px-4 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md hover:shadow-brand-500/15 active:scale-95 border border-brand-200/50 dark:border-brand-500/30 bg-gradient-to-br from-white dark:from-[#26342e] to-brand-50/50 dark:to-brand-900/20 text-brand-700 dark:text-brand-300 hover:border-brand-300 dark:hover:border-brand-500/50 hover:-translate-y-0.5 focus:outline-none"
                 >
                   <span class="mr-2 opacity-70">💡</span> {{ prompt }}
                 </button>
@@ -393,7 +394,7 @@ function autoResize(el) {
           <p v-if="aiStore.error" class="px-4 sm:px-5 pb-2 text-xs text-red-500 font-medium">{{ aiStore.error }}</p>
 
           <!-- Input Area -->
-          <div class="px-4 sm:px-5 py-3 border-t border-slate-100 dark:border-white/5 bg-white dark:bg-[#161b26] relative">
+          <div class="px-4 sm:px-5 py-3 border-t border-slate-100 dark:border-white/5 bg-white dark:bg-[#1d2523] relative">
             <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">AI tashqi modeldan javob oladi; javoblar xato yoki eskirgan bo‘lishi mumkin va jonli manbalar avtomatik tekshirilmaydi.</p>
             <p v-if="isRecording" class="text-xs text-red-500 mb-2" role="status">🔴 Ovoz yozilmoqda · {{ formatDuration(recordingTime) }} · gapni matnga aylantiryapti</p>
             <p v-else-if="voiceError" class="text-xs text-amber-600 dark:text-amber-400 mb-2" role="alert">{{ voiceError }}</p>
@@ -440,9 +441,9 @@ function autoResize(el) {
 :deep(.ai-prose p:first-child) { margin-top: 0; }
 :deep(.ai-prose p:last-child) { margin-bottom: 0; }
 :deep(.ai-prose pre) {
-  background: #0d1117 !important;
-  border-radius: 0.625rem;
-  padding: 0.875rem 1rem;
+  background: #25302c !important;
+  border-radius: 1rem;
+  padding: 1rem 1.125rem;
   overflow-x: auto;
   margin: 0.75rem 0;
 }

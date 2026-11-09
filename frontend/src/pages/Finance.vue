@@ -187,21 +187,21 @@ function getCatMeta(catId) {
 
       <!-- Summary Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="p-4 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-soft">
-          <span class="text-xs uppercase tracking-wider opacity-80">Balans</span>
-          <div class="text-2xl font-extrabold mt-1 font-mono">
+        <div class="finance-summary finance-summary-primary">
+          <span class="text-xs uppercase tracking-wider text-slate-600 dark:text-slate-300">Balans</span>
+          <div class="text-2xl font-bold mt-2 font-mono text-slate-900 dark:text-white">
             {{ formatSum(balance) }}
           </div>
         </div>
-        <div class="p-4 rounded-2xl bg-emerald-500 text-white shadow-soft">
-          <span class="text-xs uppercase tracking-wider opacity-80">Jami Kirim</span>
-          <div class="text-2xl font-extrabold mt-1 font-mono">
+        <div class="finance-summary finance-summary-income">
+          <span class="text-xs uppercase tracking-wider text-slate-600 dark:text-slate-300">Jami Kirim</span>
+          <div class="text-2xl font-bold mt-2 font-mono text-slate-900 dark:text-white">
             +{{ formatSum(totalIncome) }}
           </div>
         </div>
-        <div class="p-4 rounded-2xl bg-rose-500 text-white shadow-soft">
-          <span class="text-xs uppercase tracking-wider opacity-80">Jami Chiqim</span>
-          <div class="text-2xl font-extrabold mt-1 font-mono">
+        <div class="finance-summary finance-summary-expense">
+          <span class="text-xs uppercase tracking-wider text-slate-600 dark:text-slate-300">Jami Chiqim</span>
+          <div class="text-2xl font-bold mt-2 font-mono text-slate-900 dark:text-white">
             -{{ formatSum(totalExpense) }}
           </div>
         </div>

@@ -1,4 +1,6 @@
 <script setup>
+import { Sparkles } from 'lucide-vue-next'
+
 defineProps({
   icon: { type: String, default: '⚙️' },
   title: { type: String, required: true },
@@ -8,7 +10,7 @@ defineProps({
 </script>
 
 <template>
-  <div class="relative min-h-screen bg-gradient-to-b from-brand-50/60 to-slate-50 dark:from-slate-950 dark:to-slate-950 overflow-hidden">
+  <div class="relative min-h-screen bg-gradient-to-b from-brand-50/60 to-slate-50 dark:from-[#1d2925] dark:to-[#151b1a] overflow-hidden">
     <div class="hidden dark:block absolute pointer-events-none w-72 h-72 -top-10 -right-10 rounded-full bg-brand-500/10 blur-3xl" aria-hidden="true"></div>
     <slot name="header" />
     <main class="relative max-w-2xl mx-auto px-4 sm:px-6 py-10 animate-fadeUp">
@@ -20,8 +22,8 @@ defineProps({
       </router-link>
 
       <div class="flex items-center gap-3 mb-2">
-        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-2xl shadow-soft animate-fadeUp transition-transform duration-300 hover:scale-110 hover:rotate-6">
-          {{ icon }}
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-100 to-emerald-50 dark:from-brand-900/60 dark:to-emerald-950/50 border border-brand-200/70 dark:border-brand-700/50 flex items-center justify-center text-brand-700 dark:text-brand-300 shadow-sm animate-fadeUp transition-transform duration-300 hover:scale-105">
+          <Sparkles class="w-6 h-6" aria-hidden="true" />
         </div>
         <div>
           <h1 class="text-xl font-extrabold text-slate-800 dark:text-slate-100">{{ title }}</h1>

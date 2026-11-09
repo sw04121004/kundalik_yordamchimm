@@ -117,7 +117,7 @@ async function deleteAccount() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-b from-brand-50/60 to-slate-50 dark:from-slate-900 dark:to-slate-950">
+  <div class="min-h-screen bg-gradient-to-b from-brand-50/60 to-slate-50 dark:from-[#1d2925] dark:to-[#151b1a]">
     <AppHeader />
 
     <main class="max-w-2xl mx-auto px-4 sm:px-6 py-10 animate-fadeUp">

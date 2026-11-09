@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { usePlannerStore } from '../store/planner'
 import AppHeader from '../components/AppHeader.vue'
 import FormAlert from '../components/FormAlert.vue'
+import { CalendarDays } from 'lucide-vue-next'
 
 const planner = usePlannerStore()
 const form = reactive({ title: '', due_date: '', due_time: '' })
@@ -54,7 +55,7 @@ function formatTime(t) { return t ? t.slice(0, 5) : '' }
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#f4f6fb] dark:bg-[#0d1117]">
+  <div class="min-h-screen bg-slate-50 dark:bg-[#151b1a]">
     <AppHeader />
 
     <main class="max-w-2xl mx-auto px-4 sm:px-6 py-10 animate-fadeUp">
@@ -66,8 +67,9 @@ function formatTime(t) { return t ? t.slice(0, 5) : '' }
 
       <!-- Title -->
       <div class="flex items-center gap-3 mb-6">
-        <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-sm text-white"
-          style="background: linear-gradient(135deg, rgb(var(--brand-500)), rgb(var(--brand-700)))">📅</div>
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-brand-700 dark:text-brand-300 border border-brand-200/70 dark:border-brand-700/50 shadow-sm bg-gradient-to-br from-brand-100 to-emerald-50 dark:from-brand-900/60 dark:to-emerald-950/50">
+          <CalendarDays class="w-6 h-6" aria-hidden="true" />
+        </div>
         <div>
           <h1 class="text-xl font-bold text-slate-900 dark:text-white">Reja / To-do</h1>
           <p class="text-sm text-slate-500 dark:text-slate-400">Kunlik vazifalaringiz</p>

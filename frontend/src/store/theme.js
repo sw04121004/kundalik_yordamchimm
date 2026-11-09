@@ -32,13 +32,13 @@ const DARK_STORAGE_KEY = 'qulay_dark'
 
 export const useThemeStore = defineStore('theme', {
   state: () => ({
-    accent: localStorage.getItem(STORAGE_KEY) || 'blue',
+    accent: localStorage.getItem(STORAGE_KEY) || 'teal',
     isDark: localStorage.getItem(DARK_STORAGE_KEY) === 'true',
   }),
 
   actions: {
     applyAccent(name) {
-      const preset = ACCENT_PRESETS[name] || ACCENT_PRESETS.blue
+      const preset = ACCENT_PRESETS[name] || ACCENT_PRESETS.teal
       const root = document.documentElement
       Object.entries(preset.shades).forEach(([shade, rgb]) => {
         root.style.setProperty(`--brand-${shade}`, rgb)

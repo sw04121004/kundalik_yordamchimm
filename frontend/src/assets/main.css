@@ -3,16 +3,22 @@
 @tailwind utilities;
 
 :root {
-  --brand-50: 238 246 255;
-  --brand-100: 219 235 254;
-  --brand-200: 191 223 254;
-  --brand-300: 147 203 253;
-  --brand-400: 96 174 250;
-  --brand-500: 59 143 245;
-  --brand-600: 37 111 232;
-  --brand-700: 30 89 207;
-  --brand-800: 31 73 166;
-  --brand-900: 31 64 131;
+  --brand-50: 232 248 245;
+  --brand-100: 204 240 234;
+  --brand-200: 160 224 214;
+  --brand-300: 106 203 188;
+  --brand-400: 53 181 163;
+  --brand-500: 15 157 138;
+  --brand-600: 13 135 119;
+  --brand-700: 11 112 99;
+  --brand-800: 10 91 81;
+  --brand-900: 8 70 63;
+  --warm-canvas: #faf8f5;
+  --warm-surface: #ffffff;
+  --warm-ink: #1f2937;
+  --warm-border: #ece7df;
+  --warm-shadow: 0 8px 24px rgb(48 43 35 / 0.07);
+  --accent-amber: #f5a524;
 }
 
 * { box-sizing: border-box; }
@@ -21,16 +27,16 @@ html, body { overflow-x: hidden; }
 
 body {
   font-family: 'Inter', system-ui, sans-serif;
-  background: #f6f7f9;
-  color: #20242c;
+  background: var(--warm-canvas);
+  color: var(--warm-ink);
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Dark mode — deep navy background */
 html.dark body {
-  background: #111318;
-  color: #e7e9ed;
+  background: #151b1a;
+  color: #e8eeeb;
 }
 
 /* Page-level dynamic theme glow (left side emphasis) */
@@ -50,7 +56,7 @@ html.dark body::before {
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #d1d9e8; border-radius: 999px; }
+::-webkit-scrollbar-thumb { background: #d9d2c8; border-radius: 999px; }
 html.dark ::-webkit-scrollbar-thumb { background: rgb(var(--brand-700) / 0.4); }
 
 /* ── Page transition ── */
@@ -192,23 +198,29 @@ html.dark ::-webkit-scrollbar-thumb { background: rgb(var(--brand-700) / 0.4); }
 
   /* ─ Card ─ */
   .card {
-    @apply bg-white rounded-xl border border-slate-200/80 shadow-sm transition-all duration-200;
+    @apply bg-white rounded-2xl border border-slate-200/80 shadow-sm transition-all duration-200;
+    background-color: var(--warm-surface);
+    border-color: var(--warm-border);
+    box-shadow: var(--warm-shadow);
   }
   html.dark .card {
-    background: #191c22;
-    border-color: rgba(255,255,255,0.1);
-    box-shadow: 0 2px 8px rgb(0 0 0 / 0.18);
+    background: #1d2523;
+    border-color: rgba(225, 239, 232, 0.1);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
   }
 
   /* ─ Glass surface (sidebar, modals, dropdowns) ─ */
   .glass-surface {
-    @apply bg-white rounded-xl border border-slate-200/80 shadow-sm transition-all duration-200;
+    @apply bg-white rounded-2xl border border-slate-200/80 shadow-sm transition-all duration-200;
+    background-color: var(--warm-surface);
+    border-color: var(--warm-border);
+    box-shadow: var(--warm-shadow);
   }
   html.dark .glass-surface {
-    background: rgba(25, 28, 34, 0.96);
+    background: rgba(29, 37, 35, 0.97);
     backdrop-filter: blur(12px);
-    border-color: rgba(255,255,255,0.1);
-    box-shadow: 0 4px 18px rgb(0 0 0 / 0.24);
+    border-color: rgba(225, 239, 232, 0.1);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.22);
   }
 
   /* ─ Input ─ */
@@ -220,6 +232,11 @@ html.dark ::-webkit-scrollbar-thumb { background: rgb(var(--brand-700) / 0.4); }
     border-color: rgb(var(--brand-500) / 0.6);
     box-shadow: 0 0 0 3px rgb(var(--brand-500) / 0.12);
   }
+  html.dark .input {
+    background: #171e1c;
+    border-color: #394641;
+    color: #e8eeeb;
+  }
 
   /* ─ Label ─ */
   .label {
@@ -229,11 +246,12 @@ html.dark ::-webkit-scrollbar-thumb { background: rgb(var(--brand-700) / 0.4); }
   /* ─ Primary button ─ */
   .btn-primary {
     @apply relative overflow-hidden inline-flex items-center justify-center gap-2 rounded-xl font-semibold px-5 py-2.5 text-white shadow-sm transition-all duration-200 select-none;
-    background: rgb(var(--brand-700));
+    background: rgb(var(--brand-500));
   }
   .btn-primary:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px -4px rgb(var(--brand-600) / 0.45);
+    background: rgb(var(--brand-600));
+    box-shadow: 0 6px 16px -5px rgb(var(--brand-600) / 0.32);
   }
   .btn-primary:active:not(:disabled) {
     transform: translateY(0) scale(0.97);
@@ -257,3 +275,68 @@ html.dark ::-webkit-scrollbar-thumb { background: rgb(var(--brand-700) / 0.4); }
     transform: translateY(0) scale(0.97);
   }
 }
+
+/* Warm neutral surfaces and readable text across all Tailwind-based pages. */
+[class~="text-slate-900"], [class~="text-slate-800"] { color: #1f2937; }
+[class~="text-slate-700"] { color: #3f4b58; }
+[class~="text-slate-600"] { color: #566472; }
+[class~="text-slate-500"] { color: #687582; }
+[class~="text-slate-400"] { color: #828d96; }
+[class~="bg-slate-50"] { background-color: #faf8f5; }
+[class~="bg-slate-100"] { background-color: #f3f0eb; }
+[class~="bg-slate-200"] { background-color: #e9e4dc; }
+[class~="border-slate-100"] { border-color: #f0ece6; }
+[class~="border-slate-200"] { border-color: #e8e2d9; }
+
+html.dark [class~="dark:text-slate-100"], html.dark [class~="dark:text-white"] { color: #e8eeeb; }
+html.dark [class~="dark:text-slate-200"] { color: #d4ded9; }
+html.dark [class~="dark:text-slate-300"] { color: #bac8c1; }
+html.dark [class~="dark:text-slate-400"] { color: #9caaa3; }
+html.dark [class~="dark:bg-slate-900"] { background-color: #171e1c; }
+html.dark [class~="dark:bg-slate-800"] { background-color: #222b28; }
+html.dark [class~="dark:bg-slate-700"] { background-color: #303a36; }
+html.dark [class~="dark:border-slate-700"] { border-color: #3a4641; }
+html.dark [class~="dark:border-slate-800"] { border-color: #303a36; }
+
+/* Consistent warm summary surfaces and dashboard icon accents. */
+.finance-summary {
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+  border: 1px solid var(--warm-border);
+  border-radius: 16px;
+  background: var(--warm-surface);
+  box-shadow: var(--warm-shadow);
+}
+.finance-summary::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: rgb(var(--brand-500));
+}
+.finance-summary-income::after { background: var(--accent-amber); }
+.finance-summary-expense::after { background: #d97762; }
+html.dark .finance-summary { background: #1d2523; border-color: rgba(225, 239, 232, 0.1); }
+.dashboard-page h2 > svg {
+  width: 32px;
+  height: 32px;
+  padding: 7px;
+  border-radius: 999px;
+  background: rgb(var(--brand-100));
+}
+html.dark .dashboard-page h2 > svg { background: rgb(var(--brand-900) / 0.6); }
+
+/* Service icon tiles use distinct, muted tints while the app keeps one primary hue. */
+.stagger-children > .service-card:nth-child(6n + 1) .service-card-icon { background: #e4f4ef; color: #0b7568; border-color: #cce8df; }
+.stagger-children > .service-card:nth-child(6n + 2) .service-card-icon { background: #fff2dd; color: #94600a; border-color: #f3dfbd; }
+.stagger-children > .service-card:nth-child(6n + 3) .service-card-icon { background: #e8f0f8; color: #3f688b; border-color: #d4e1ed; }
+.stagger-children > .service-card:nth-child(6n + 4) .service-card-icon { background: #f1eafa; color: #73539a; border-color: #e2d5f0; }
+.stagger-children > .service-card:nth-child(6n + 5) .service-card-icon { background: #fbece6; color: #a35d3e; border-color: #f0d8cc; }
+.stagger-children > .service-card:nth-child(6n) .service-card-icon { background: #eaf1e2; color: #587239; border-color: #d9e5cb; }
+html.dark .stagger-children > .service-card:nth-child(6n + 1) .service-card-icon { background: #263a35; border-color: #3b514a; color: #9bd4c3; }
+html.dark .stagger-children > .service-card:nth-child(6n + 2) .service-card-icon { background: #3b3426; border-color: #554832; color: #e8c47e; }
+html.dark .stagger-children > .service-card:nth-child(6n + 3) .service-card-icon { background: #293642; border-color: #394e5f; color: #a9c6dc; }
+html.dark .stagger-children > .service-card:nth-child(6n + 4) .service-card-icon { background: #352d3d; border-color: #4a3c55; color: #cfb4e2; }
+html.dark .stagger-children > .service-card:nth-child(6n + 5) .service-card-icon { background: #3b302b; border-color: #564137; color: #e1b19a; }
+html.dark .stagger-children > .service-card:nth-child(6n) .service-card-icon { background: #30382b; border-color: #465039; color: #bfd09e; }

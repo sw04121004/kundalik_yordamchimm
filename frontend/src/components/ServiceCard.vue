@@ -28,7 +28,7 @@ function toggleFavorite(event) {
   <component
     :is="target === '#' ? 'div' : 'router-link'"
     :to="target !== '#' ? target : undefined"
-    class="p-4 flex flex-col gap-3 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 cursor-pointer group relative bg-white dark:bg-[#191c22] border border-slate-200/80 dark:border-white/10 hover:border-brand-500/50 rounded-xl"
+    class="service-card p-5 flex flex-col gap-4 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 cursor-pointer group relative bg-white dark:bg-[#1d2523] border border-slate-200/80 dark:border-white/10 hover:border-brand-500/50 rounded-2xl"
   >
     <button
       v-if="showFavorite && slug"
@@ -40,7 +40,7 @@ function toggleFavorite(event) {
       <Star class="w-4 h-4" :fill="isFavorite ? 'currentColor' : 'none'" aria-hidden="true" />
     </button>
 
-    <div class="w-10 h-10 rounded-lg bg-brand-50 dark:bg-brand-900/30 border border-brand-100 dark:border-brand-800/70 flex items-center justify-center text-brand-700 dark:text-brand-300 transition-transform duration-200 group-hover:scale-105 shrink-0">
+    <div class="service-card-icon w-11 h-11 rounded-full bg-brand-50 dark:bg-brand-900/30 border border-brand-100 dark:border-brand-800/70 flex items-center justify-center text-brand-700 dark:text-brand-300 transition-transform duration-200 group-hover:scale-105 shrink-0">
       <Wrench class="w-5 h-5" aria-hidden="true" />
     </div>
 

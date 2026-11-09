@@ -132,7 +132,7 @@ const timeBasedPrompts = computed(() => {
 </script>
 
 <template>
-  <div class="dashboard-page relative min-h-screen bg-slate-50 dark:bg-[#111318] text-slate-800 dark:text-slate-100 transition-colors duration-200 overflow-x-hidden">
+  <div class="dashboard-page relative min-h-screen bg-slate-50 dark:bg-[#151b1a] text-slate-800 dark:text-slate-100 transition-colors duration-200 overflow-x-hidden">
     
     <div class="relative z-10">
       <AppHeader />
@@ -141,7 +141,7 @@ const timeBasedPrompts = computed(() => {
 
         <!-- Greeting + Search (Centered, Dynamic to Selected Theme) -->
         <section class="mb-10 animate-fadeUp text-center flex flex-col items-center">
-          <div class="inline-flex items-center justify-center gap-3 mb-2 px-5 py-2 rounded-xl bg-white dark:bg-[#191c22] border border-slate-200 dark:border-white/10 shadow-sm">
+          <div class="inline-flex items-center justify-center gap-3 mb-2 px-5 py-2 rounded-2xl bg-white dark:bg-[#1d2523] border border-slate-200 dark:border-white/10 shadow-sm">
             <Sun class="w-6 h-6 text-brand-700 dark:text-brand-300" aria-hidden="true" />
             <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
               {{ greeting.text }}<span v-if="auth.user?.first_name || auth.user?.username">, {{ auth.user.first_name || auth.user.username }}</span>!
@@ -156,7 +156,7 @@ const timeBasedPrompts = computed(() => {
               <input
                 v-model="search"
                 type="text"
-                class="input !pl-11 !py-3 !rounded-xl shadow-sm text-sm bg-white dark:bg-[#191c22] border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-200"
+                class="input !pl-11 !py-3 !rounded-2xl shadow-sm text-sm bg-white dark:bg-[#1d2523] border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-200"
                 placeholder="Masalan: foiz hisoblash, rasm o'lchamini o'zgartirish, maosh..."
               />
               <button v-if="search" @click="search=''" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 focus:outline-none transition-transform hover:scale-125">
@@ -177,7 +177,7 @@ const timeBasedPrompts = computed(() => {
               v-for="(action, i) in timeBasedPrompts"
               :key="i"
               :to="{ name: 'ai-assistant', query: { q: action.prompt, p: action.purpose } }"
-              class="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer border border-slate-200 dark:border-white/10 bg-white dark:bg-[#191c22] text-slate-700 dark:text-slate-200 hover:border-brand-500/50 hover:text-brand-700 dark:hover:text-brand-300 hover:-translate-y-0.5"
+              class="inline-flex items-center px-4 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 cursor-pointer border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1d2523] text-slate-700 dark:text-slate-200 hover:border-brand-500/50 hover:text-brand-700 dark:hover:text-brand-300 hover:-translate-y-0.5"
             >
               {{ action.text }}
             </router-link>
@@ -192,7 +192,7 @@ const timeBasedPrompts = computed(() => {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
             <!-- Planner Widget -->
-            <router-link :to="{ name: 'planner' }" class="card p-5 hover:-translate-y-0.5 hover:shadow-md hover:border-brand-500/50 transition-all duration-200 group relative overflow-hidden bg-white dark:bg-[#191c22] border border-slate-200/80 dark:border-white/10">
+            <router-link :to="{ name: 'planner' }" class="card p-5 hover:-translate-y-0.5 hover:shadow-md hover:border-brand-500/50 transition-all duration-200 group relative overflow-hidden bg-white dark:bg-[#1d2523] border border-slate-200/80 dark:border-white/10">
               <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2.5">
                   <div class="w-10 h-10 rounded-lg bg-brand-50 dark:bg-brand-950/40 border border-brand-200/50 dark:border-brand-500/30 flex items-center justify-center text-brand-700 dark:text-brand-300 transition-transform duration-200 group-hover:scale-105"><CalendarDays class="w-5 h-5" aria-hidden="true" /></div>
@@ -228,7 +228,7 @@ const timeBasedPrompts = computed(() => {
             </router-link>
 
             <!-- Finance Widget -->
-            <router-link :to="{ name: 'finance' }" class="card p-5 hover:-translate-y-0.5 hover:shadow-md hover:border-brand-500/50 transition-all duration-200 group relative overflow-hidden bg-white dark:bg-[#191c22] border border-slate-200/80 dark:border-white/10">
+            <router-link :to="{ name: 'finance' }" class="card p-5 hover:-translate-y-0.5 hover:shadow-md hover:border-brand-500/50 transition-all duration-200 group relative overflow-hidden bg-white dark:bg-[#1d2523] border border-slate-200/80 dark:border-white/10">
               <div class="flex items-center justify-between mb-4 relative z-10">
                 <div class="flex items-center gap-2.5">
                   <div class="w-10 h-10 rounded-lg bg-brand-50 dark:bg-brand-950/40 border border-brand-200/50 dark:border-brand-500/30 flex items-center justify-center text-brand-700 dark:text-brand-300 transition-transform duration-200 group-hover:scale-105"><WalletCards class="w-5 h-5" aria-hidden="true" /></div>
@@ -267,7 +267,7 @@ const timeBasedPrompts = computed(() => {
               v-for="shortcut in aiShortcuts"
               :key="shortcut.value"
               :to="{ name: 'ai-assistant' }"
-              class="card p-4 flex flex-col items-center gap-2.5 hover:-translate-y-0.5 hover:shadow-md hover:border-brand-500/50 transition-all duration-200 group bg-white dark:bg-[#191c22] border border-slate-200/80 dark:border-white/10"
+              class="card p-5 flex flex-col items-center gap-3 hover:-translate-y-0.5 hover:shadow-md hover:border-brand-500/50 transition-all duration-200 group bg-white dark:bg-[#1d2523] border border-slate-200/80 dark:border-white/10"
             >
               <Sparkles class="w-6 h-6 text-brand-700 dark:text-brand-300 transition-transform duration-200 group-hover:scale-105" aria-hidden="true" />
               <span class="font-bold text-slate-800 dark:text-slate-100 text-xs text-center truncate w-full group-hover:text-brand-500 dark:group-hover:text-brand-300 transition-colors">{{ shortcut.label }}</span>
