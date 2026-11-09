@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useServicesStore } from '../store/services'
 import { useAiStore, purposeMeta, PURPOSES } from '../store/ai'
 import { useAuthStore } from '../store/auth'
@@ -7,6 +7,7 @@ import { usePlannerStore } from '../store/planner'
 import AppHeader from '../components/AppHeader.vue'
 import ServiceCard from '../components/ServiceCard.vue'
 import api from '../api/axios'
+import { Bot, CalendarDays, Layers, Search, Sparkles, Star, Sun, WalletCards } from 'lucide-vue-next'
 
 const servicesStore = useServicesStore()
 const aiStore = useAiStore()
@@ -14,6 +15,28 @@ const auth = useAuthStore()
 const planner = usePlannerStore()
 const search = ref('')
 const todayExpenses = ref(null)
+const displayedExpenses = ref(0)
+const expensesLoading = ref(true)
+let expenseAnimationFrame
+
+watch(todayExpenses, (value) => {
+  cancelAnimationFrame(expenseAnimationFrame)
+  if (value === null) return
+  const from = displayedExpenses.value
+  const startedAt = performance.now()
+  const duration = 240
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (reducedMotion) {
+    displayedExpenses.value = value
+    return
+  }
+  const tick = (now) => {
+    const progress = Math.min((now - startedAt) / duration, 1)
+    displayedExpenses.value = Math.round(from + (value - from) * progress)
+    if (progress < 1) expenseAnimationFrame = requestAnimationFrame(tick)
+  }
+  expenseAnimationFrame = requestAnimationFrame(tick)
+})
 
 function todayISO() {
   const date = new Date()
@@ -22,6 +45,7 @@ function todayISO() {
 }
 
 async function fetchTodayExpenses() {
+  expensesLoading.value = true
   try {
     const { data } = await api.get('/transactions/', { params: { date: todayISO() } })
     todayExpenses.value = data
@@ -29,6 +53,8 @@ async function fetchTodayExpenses() {
       .reduce((total, transaction) => total + Number(transaction.amount), 0)
   } catch {
     todayExpenses.value = null
+  } finally {
+    expensesLoading.value = false
   }
 }
 
@@ -47,6 +73,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('finance-transactions-updated', handleFinanceUpdate)
+  cancelAnimationFrame(expenseAnimationFrame)
 })
 
 const greeting = computed(() => {
@@ -105,31 +132,18 @@ const timeBasedPrompts = computed(() => {
 </script>
 
 <template>
-  <div class="relative min-h-screen bg-[#f8f9fc] dark:bg-[#0c0f17] text-slate-800 dark:text-slate-100 transition-colors duration-500 overflow-x-hidden">
+  <div class="dashboard-page relative min-h-screen bg-slate-50 dark:bg-[#111318] text-slate-800 dark:text-slate-100 transition-colors duration-200 overflow-x-hidden">
     
-    <!-- Floating Background Glow Orbs Powered 100% by Selected Theme -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
-      <!-- Chap tomondagi asosiy tanlangan rang nuri (Left Theme Aura) -->
-      <div class="glow-orb w-[40rem] h-[55rem] top-10 -left-48 bg-brand-500/25 dark:bg-brand-500/20 blur-[120px] rounded-full animate-floatSlow transition-colors duration-700 pointer-events-none"></div>
-          <!-- Additional decorative orbs (new shapes) -->
-    <div class="glow-orb w-[25rem] h-[35rem] top-40 left-1/2 transform -translate-x-1/2 bg-purple-500/15 dark:bg-purple-500/10 blur-[80px] rounded-full animate-floatSlow" style="animation-delay: -1s;"></div>
-    <div class="glow-orb w-[20rem] h-[30rem] bottom-20 right-20 bg-pink-500/20 dark:bg-pink-500/12 blur-[90px] rounded-full animate-pulseGlow" style="animation-delay: -2s;"></div>
-
-      <!-- O'ng tomondagi qo'shimcha mayin nurlar -->
-      <div class="glow-orb w-[32rem] h-[32rem] -top-24 -right-24 bg-brand-500/20 dark:bg-brand-500/15 blur-[110px] animate-floatSlow transition-colors duration-700"></div>
-      <div class="glow-orb w-[28rem] h-[28rem] bottom-10 right-1/4 bg-brand-400/15 dark:bg-brand-400/10 blur-[100px] animate-floatSlow transition-colors duration-700" style="animation-delay: -4s"></div>
-    </div>
-
     <div class="relative z-10">
       <AppHeader />
 
       <main class="max-w-5xl mx-auto px-4 sm:px-6 py-8">
 
         <!-- Greeting + Search (Centered, Dynamic to Selected Theme) -->
-        <section class="mb-12 animate-fadeUp text-center flex flex-col items-center">
-          <div class="inline-flex items-center justify-center gap-3 mb-2 px-6 py-2.5 rounded-2xl bg-white/80 dark:bg-[#161b26]/80 backdrop-blur-xl border border-brand-300/40 dark:border-brand-500/30 shadow-lg shadow-brand-500/10 hover:scale-105 transition-all duration-300">
-            <span class="text-3xl animate-bounceSoft">{{ greeting.icon }}</span>
-            <h1 class="text-2xl sm:text-3xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
+        <section class="mb-10 animate-fadeUp text-center flex flex-col items-center">
+          <div class="inline-flex items-center justify-center gap-3 mb-2 px-5 py-2 rounded-xl bg-white dark:bg-[#191c22] border border-slate-200 dark:border-white/10 shadow-sm">
+            <Sun class="w-6 h-6 text-brand-700 dark:text-brand-300" aria-hidden="true" />
+            <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
               {{ greeting.text }}<span v-if="auth.user?.first_name || auth.user?.username">, {{ auth.user.first_name || auth.user.username }}</span>!
             </h1>
           </div>
@@ -137,13 +151,12 @@ const timeBasedPrompts = computed(() => {
 
           <!-- Search Bar with glowing aura from Selected Theme -->
           <div class="relative w-full max-w-xl mx-auto group">
-            <div class="absolute -inset-1 rounded-2xl bg-gradient-to-r from-brand-500/30 via-brand-400/30 to-brand-600/30 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-500 blur-lg pointer-events-none"></div>
             <div class="relative">
-              <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none group-hover:text-brand-500 group-hover:scale-110 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" aria-hidden="true" />
               <input
                 v-model="search"
                 type="text"
-                class="input !pl-11 !py-3.5 !rounded-2xl shadow-sm text-sm bg-white/90 dark:bg-[#161b26]/90 backdrop-blur-xl border-slate-200/80 dark:border-slate-700/80 focus:ring-2 focus:ring-brand-500/50 focus:border-brand-400 transition-all duration-300"
+                class="input !pl-11 !py-3 !rounded-xl shadow-sm text-sm bg-white dark:bg-[#191c22] border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-200"
                 placeholder="Masalan: foiz hisoblash, rasm o'lchamini o'zgartirish, maosh..."
               />
               <button v-if="search" @click="search=''" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 focus:outline-none transition-transform hover:scale-125">
@@ -156,7 +169,7 @@ const timeBasedPrompts = computed(() => {
         <!-- Quick Actions (Tezkor Takliflar) -->
         <section v-if="!isSearching" class="mb-10 animate-fadeUp">
           <div class="flex items-center gap-2 mb-3">
-            <span class="text-xl animate-bounceSoft">🤖</span>
+            <Bot class="w-5 h-5 text-brand-700 dark:text-brand-300" aria-hidden="true" />
             <span class="text-sm font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Sizga bugun nimada yordam beray?</span>
           </div>
           <div class="flex flex-wrap gap-2.5">
@@ -164,7 +177,7 @@ const timeBasedPrompts = computed(() => {
               v-for="(action, i) in timeBasedPrompts"
               :key="i"
               :to="{ name: 'ai-assistant', query: { q: action.prompt, p: action.purpose } }"
-              class="inline-flex items-center px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md hover:shadow-brand-500/20 active:scale-95 border border-brand-200/50 dark:border-brand-500/30 bg-gradient-to-br from-brand-50/50 dark:from-brand-900/20 to-white dark:to-brand-800/10 text-brand-700 dark:text-brand-300 hover:border-brand-300 dark:hover:border-brand-500/50 hover:-translate-y-0.5"
+              class="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer border border-slate-200 dark:border-white/10 bg-white dark:bg-[#191c22] text-slate-700 dark:text-slate-200 hover:border-brand-500/50 hover:text-brand-700 dark:hover:text-brand-300 hover:-translate-y-0.5"
             >
               {{ action.text }}
             </router-link>
@@ -174,15 +187,15 @@ const timeBasedPrompts = computed(() => {
         <!-- Mening kunim (My Day widgets) reacting to Selected Theme -->
         <section v-if="!isSearching" class="mb-10 animate-fadeUp">
           <h2 class="text-sm font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-3.5 flex items-center gap-2">
-            <span class="text-lg animate-wiggle">☀️</span> Mening kunim
+            <CalendarDays class="w-5 h-5 text-brand-700 dark:text-brand-300" aria-hidden="true" /> Mening kunim
           </h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
             <!-- Planner Widget -->
-            <router-link :to="{ name: 'planner' }" class="card p-5 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-brand-500/15 hover:border-brand-400/50 transition-all duration-300 group relative overflow-hidden bg-white/95 dark:bg-[#161b26]/95 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800">
+            <router-link :to="{ name: 'planner' }" class="card p-5 hover:-translate-y-0.5 hover:shadow-md hover:border-brand-500/50 transition-all duration-200 group relative overflow-hidden bg-white dark:bg-[#191c22] border border-slate-200/80 dark:border-white/10">
               <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-950/40 border border-brand-200/50 dark:border-brand-500/30 flex items-center justify-center text-xl group-hover:scale-115 group-hover:rotate-6 transition-all duration-300">📅</div>
+                  <div class="w-10 h-10 rounded-lg bg-brand-50 dark:bg-brand-950/40 border border-brand-200/50 dark:border-brand-500/30 flex items-center justify-center text-brand-700 dark:text-brand-300 transition-transform duration-200 group-hover:scale-105"><CalendarDays class="w-5 h-5" aria-hidden="true" /></div>
                   <div>
                     <p class="text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-brand-500 dark:group-hover:text-brand-300 transition-colors">Bugungi rejangiz</p>
                     <p class="text-xs text-slate-500 dark:text-slate-400">Kunlik vazifalar</p>
@@ -215,11 +228,10 @@ const timeBasedPrompts = computed(() => {
             </router-link>
 
             <!-- Finance Widget -->
-            <router-link :to="{ name: 'finance' }" class="card p-5 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-brand-500/15 hover:border-brand-400/50 transition-all duration-300 group relative overflow-hidden bg-white/95 dark:bg-[#161b26]/95 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800">
-              <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-brand-500/10 dark:bg-brand-500/15 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500"></div>
+            <router-link :to="{ name: 'finance' }" class="card p-5 hover:-translate-y-0.5 hover:shadow-md hover:border-brand-500/50 transition-all duration-200 group relative overflow-hidden bg-white dark:bg-[#191c22] border border-slate-200/80 dark:border-white/10">
               <div class="flex items-center justify-between mb-4 relative z-10">
                 <div class="flex items-center gap-2.5">
-                  <div class="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-950/40 border border-brand-200/50 dark:border-brand-500/30 flex items-center justify-center text-xl group-hover:scale-115 group-hover:rotate-6 transition-all duration-300">💰</div>
+                  <div class="w-10 h-10 rounded-lg bg-brand-50 dark:bg-brand-950/40 border border-brand-200/50 dark:border-brand-500/30 flex items-center justify-center text-brand-700 dark:text-brand-300 transition-transform duration-200 group-hover:scale-105"><WalletCards class="w-5 h-5" aria-hidden="true" /></div>
                   <div>
                     <p class="text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-brand-500 dark:group-hover:text-brand-300 transition-colors">Mening pulim</p>
                     <p class="text-xs text-slate-500 dark:text-slate-400">Moliya va byudjet</p>
@@ -227,7 +239,10 @@ const timeBasedPrompts = computed(() => {
                 </div>
                 <span class="text-[11px] font-extrabold px-2.5 py-0.5 bg-brand-100 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 border border-brand-300/40 rounded-full animate-pulse">Yangi xizmat</span>
               </div>
-              <p class="text-3xl font-black text-slate-900 dark:text-white relative z-10 tracking-tight">{{ todayExpenses === null ? '—' : new Intl.NumberFormat('uz-UZ').format(todayExpenses) }} <span class="text-base font-normal text-slate-400">so'm</span></p>
+              <div class="relative z-10 min-h-10 flex items-center">
+                <div v-if="expensesLoading" class="h-8 w-40 rounded-md bg-slate-200 dark:bg-slate-700 animate-pulse" aria-label="Yuklanmoqda"></div>
+                <p v-else class="text-3xl font-bold text-slate-900 dark:text-white tracking-tight"><span>{{ todayExpenses === null ? '—' : new Intl.NumberFormat('uz-UZ').format(displayedExpenses) }}</span> <span class="text-base font-normal text-slate-500 dark:text-slate-400">so'm</span></p>
+              </div>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 relative z-10 group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors">Bugungi xarajatlar. Byudjetni rejalashtirish uchun kiring →</p>
             </router-link>
           </div>
@@ -238,7 +253,7 @@ const timeBasedPrompts = computed(() => {
           <div class="flex items-center justify-between mb-4">
             <div>
               <h2 class="text-sm font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                <span class="text-xl animate-bounceSoft">🤖</span> AI Yordamchi
+                <Bot class="w-5 h-5 text-brand-700 dark:text-brand-300" aria-hidden="true" /> AI Yordamchi
               </h2>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Kerakli AI yordamchini tanlang</p>
             </div>
@@ -252,9 +267,9 @@ const timeBasedPrompts = computed(() => {
               v-for="shortcut in aiShortcuts"
               :key="shortcut.value"
               :to="{ name: 'ai-assistant' }"
-              class="card p-4 flex flex-col items-center gap-2.5 hover:-translate-y-1 hover:shadow-lg hover:border-brand-400/50 transition-all duration-300 group bg-white/95 dark:bg-[#161b26]/95 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800"
+              class="card p-4 flex flex-col items-center gap-2.5 hover:-translate-y-0.5 hover:shadow-md hover:border-brand-500/50 transition-all duration-200 group bg-white dark:bg-[#191c22] border border-slate-200/80 dark:border-white/10"
             >
-              <span class="text-3xl block group-hover:scale-115 group-hover:rotate-6 transition-transform duration-300">{{ shortcut.icon }}</span>
+              <Sparkles class="w-6 h-6 text-brand-700 dark:text-brand-300 transition-transform duration-200 group-hover:scale-105" aria-hidden="true" />
               <span class="font-bold text-slate-800 dark:text-slate-100 text-xs text-center truncate w-full group-hover:text-brand-500 dark:group-hover:text-brand-300 transition-colors">{{ shortcut.label }}</span>
             </router-link>
           </div>
@@ -263,7 +278,7 @@ const timeBasedPrompts = computed(() => {
         <!-- Favorites (If Any) -->
         <section v-if="!isSearching && favoriteServices.length" class="mb-12 animate-fadeUp">
           <h2 class="text-sm font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <span class="text-amber-400 animate-wiggle">⭐</span> Sevimlilar
+            <Star class="w-4 h-4 text-amber-600 dark:text-amber-400" aria-hidden="true" /> Sevimlilar
           </h2>
           <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 stagger-children">
             <ServiceCard v-for="svc in favoriteServices" :key="svc.id" v-bind="svc" />
@@ -289,7 +304,7 @@ const timeBasedPrompts = computed(() => {
         <div v-else class="space-y-12">
           <section v-for="cat in filteredCategories" :key="cat.id" class="animate-fadeUp">
             <h2 class="text-sm font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-2.5 group">
-              <span class="text-xl group-hover:scale-125 group-hover:rotate-12 transition-transform duration-300 inline-block">{{ cat.icon }}</span>
+              <Layers class="w-5 h-5 text-brand-700 dark:text-brand-300" aria-hidden="true" />
               <span class="group-hover:text-brand-500 dark:group-hover:text-brand-300 transition-colors duration-300">{{ cat.name }}</span>
             </h2>
             <p v-if="cat.description" class="text-sm text-slate-500 dark:text-slate-400 mb-4">{{ cat.description }}</p>
