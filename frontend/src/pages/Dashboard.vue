@@ -1,23 +1,52 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useServicesStore } from '../store/services'
 import { useAiStore, purposeMeta, PURPOSES } from '../store/ai'
 import { useAuthStore } from '../store/auth'
 import { usePlannerStore } from '../store/planner'
 import AppHeader from '../components/AppHeader.vue'
 import ServiceCard from '../components/ServiceCard.vue'
+import api from '../api/axios'
 
 const servicesStore = useServicesStore()
 const aiStore = useAiStore()
 const auth = useAuthStore()
 const planner = usePlannerStore()
 const search = ref('')
+const todayExpenses = ref(null)
+
+function todayISO() {
+  const date = new Date()
+  date.setMinutes(date.getMinutes() - date.getTimezoneOffset())
+  return date.toISOString().slice(0, 10)
+}
+
+async function fetchTodayExpenses() {
+  try {
+    const { data } = await api.get('/transactions/', { params: { date: todayISO() } })
+    todayExpenses.value = data
+      .filter((transaction) => transaction.type === 'expense')
+      .reduce((total, transaction) => total + Number(transaction.amount), 0)
+  } catch {
+    todayExpenses.value = null
+  }
+}
+
+function handleFinanceUpdate() {
+  fetchTodayExpenses()
+}
 
 onMounted(() => {
   servicesStore.fetchCategories()
   servicesStore.fetchFavorites()
   aiStore.fetchConversations()
   planner.fetchToday()
+  fetchTodayExpenses()
+  window.addEventListener('finance-transactions-updated', handleFinanceUpdate)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('finance-transactions-updated', handleFinanceUpdate)
 })
 
 const greeting = computed(() => {
@@ -198,7 +227,7 @@ const timeBasedPrompts = computed(() => {
                 </div>
                 <span class="text-[11px] font-extrabold px-2.5 py-0.5 bg-brand-100 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 border border-brand-300/40 rounded-full animate-pulse">Yangi xizmat</span>
               </div>
-              <p class="text-3xl font-black text-slate-900 dark:text-white relative z-10 tracking-tight">0 <span class="text-base font-normal text-slate-400">so'm</span></p>
+              <p class="text-3xl font-black text-slate-900 dark:text-white relative z-10 tracking-tight">{{ todayExpenses === null ? '—' : new Intl.NumberFormat('uz-UZ').format(todayExpenses) }} <span class="text-base font-normal text-slate-400">so'm</span></p>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 relative z-10 group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors">Bugungi xarajatlar. Byudjetni rejalashtirish uchun kiring →</p>
             </router-link>
           </div>

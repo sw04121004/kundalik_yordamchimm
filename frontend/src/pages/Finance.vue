@@ -17,6 +17,8 @@ const categories = [
   { id: 'fun', name: 'Hordiq va ko\'ngilochar', icon: '🎬', type: 'expense' },
   { id: 'other', name: 'Boshqa xarajatlar', icon: '📦', type: 'expense' },
 ]
+const MAX_TRANSACTION_AMOUNT = 1_000_000_000_000
+const AMOUNT_LIMIT_MESSAGE = 'Summa 1 trillion so‘mdan oshmasligi kerak.'
 
 const transactions = ref([])
 const loading = ref(false)
@@ -93,9 +95,21 @@ function localDateISO() {
   return date.toISOString().slice(0, 10)
 }
 
+function validateTransactionAmount() {
+  if (Number(newTx.value.amount) > MAX_TRANSACTION_AMOUNT) {
+    error.value = AMOUNT_LIMIT_MESSAGE
+  } else if (error.value === AMOUNT_LIMIT_MESSAGE) {
+    error.value = ''
+  }
+}
+
 async function addTransaction() {
   const num = Number(newTx.value.amount)
   if (isNaN(num) || num <= 0) return
+  if (num > MAX_TRANSACTION_AMOUNT) {
+    error.value = AMOUNT_LIMIT_MESSAGE
+    return
+  }
 
   saving.value = true
   error.value = ''
@@ -113,6 +127,7 @@ async function addTransaction() {
       amount: Number(data.amount),
       note: data.description || (data.type === 'income' ? 'Kirim' : 'Chiqim'),
     })
+    window.dispatchEvent(new Event('finance-transactions-updated'))
     newTx.value.amount = ''
     newTx.value.note = ''
   } catch (requestError) {
@@ -127,6 +142,7 @@ async function deleteTx(id) {
   try {
     await api.delete(`/transactions/${id}/`)
     transactions.value = transactions.value.filter((transaction) => transaction.id !== id)
+    window.dispatchEvent(new Event('finance-transactions-updated'))
   } catch (requestError) {
     error.value = extractErrorMessage(requestError, 'O‘tkazmani o‘chirib bo‘lmadi.')
   }
@@ -219,7 +235,7 @@ function getCatMeta(catId) {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label class="label text-xs">Summa (so'mda)</label>
-              <input v-model="newTx.amount" type="number" min="0" step="1000" class="input font-mono" placeholder="100 000" required />
+              <input v-model="newTx.amount" type="number" min="0" max="1000000000000" step="1000" class="input font-mono" placeholder="100 000" required @input="validateTransactionAmount" />
             </div>
             <div>
               <label class="label text-xs">Kategoriya</label>

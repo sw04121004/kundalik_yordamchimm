@@ -93,7 +93,11 @@ class TransactionListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Transaction.objects.filter(user=self.request.user)
+        queryset = Transaction.objects.filter(user=self.request.user)
+        transaction_date = self.request.query_params.get("date")
+        if transaction_date:
+            queryset = queryset.filter(date=transaction_date)
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

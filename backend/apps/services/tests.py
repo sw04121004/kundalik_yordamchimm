@@ -1,9 +1,10 @@
-from datetime import date
+from datetime import date, timedelta
 
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
+from django.utils import timezone
 
 from .models import Category, Favorite, Service, Transaction
 
@@ -113,3 +114,39 @@ class ServicesAPITests(APITestCase):
 		self.assertEqual(Transaction.objects.filter(user=self.user).count(), 2)
 		self.assertEqual(Transaction.objects.get(user=self.user, legacy_id="old-1").description, "Keep existing")
 		self.assertFalse(Transaction.objects.filter(user=self.other_user, legacy_id="old-2").exists())
+
+	def test_transaction_list_can_filter_today_for_dashboard_totals(self):
+		today = timezone.localdate()
+		Transaction.objects.create(user=self.user, type="expense", amount="25.00", category="food", date=today)
+		Transaction.objects.create(user=self.user, type="income", amount="100.00", category="salary", date=today)
+		Transaction.objects.create(user=self.user, type="expense", amount="40.00", category="food", date=today - timedelta(days=1))
+		self.client.force_authenticate(self.user)
+
+		response = self.client.get(reverse("transaction-list-create"), {"date": today.isoformat()})
+
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		self.assertEqual({item["type"] for item in response.data}, {"expense", "income"})
+		self.assertEqual(sum(float(item["amount"]) for item in response.data if item["type"] == "expense"), 25.0)
+
+	def test_transaction_amount_limit_applies_to_create_and_legacy_import(self):
+		self.client.force_authenticate(self.user)
+		create_url = reverse("transaction-list-create")
+		payload = {
+			"type": "expense", "amount": "1000000000000.01", "category": "food", "date": "2026-11-09",
+		}
+		response = self.client.post(create_url, payload, format="json")
+		self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+		self.assertEqual(str(response.data["amount"][0]), "Summa 1 trillion so‘mdan oshmasligi kerak.")
+		self.assertFalse(Transaction.objects.filter(user=self.user).exists())
+
+		payload["amount"] = "1000000000000.00"
+		response = self.client.post(create_url, payload, format="json")
+		self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+		import_url = reverse("transaction-import-legacy")
+		response = self.client.post(import_url, {"transactions": [{
+			"legacy_id": "too-large", "type": "expense", "amount": "1000000000000.01",
+			"category": "food", "date": "2026-11-09",
+		}]}, format="json")
+		self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+		self.assertEqual(str(response.data["transactions"][0]["amount"][0]), "Summa 1 trillion so‘mdan oshmasligi kerak.")

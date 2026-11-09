@@ -53,6 +53,14 @@ class UsageLogSerializer(serializers.ModelSerializer):
 
 
 class TransactionSerializer(serializers.ModelSerializer):
+    amount = serializers.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        min_value=Decimal("0.01"),
+        max_value=Decimal("1000000000000.00"),
+        error_messages={"max_value": "Summa 1 trillion so‘mdan oshmasligi kerak."},
+    )
+
     class Meta:
         model = Transaction
         fields = ("id", "type", "amount", "category", "description", "date", "created_at")
@@ -66,7 +74,13 @@ class TransactionSerializer(serializers.ModelSerializer):
 class LegacyTransactionImportSerializer(serializers.Serializer):
     legacy_id = serializers.CharField(max_length=100)
     type = serializers.ChoiceField(choices=Transaction.TRANSACTION_TYPES)
-    amount = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=Decimal("0.01"))
+    amount = serializers.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        min_value=Decimal("0.01"),
+        max_value=Decimal("1000000000000.00"),
+        error_messages={"max_value": "Summa 1 trillion so‘mdan oshmasligi kerak."},
+    )
     category = serializers.CharField(max_length=50)
     description = serializers.CharField(max_length=255, allow_blank=True, required=False, default="")
     date = serializers.DateField()
