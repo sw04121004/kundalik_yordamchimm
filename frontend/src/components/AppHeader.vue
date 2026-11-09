@@ -1,17 +1,44 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../store/auth'
 import ThemeSwitcher from './ThemeSwitcher.vue'
+import { LogOut, UserRound } from 'lucide-vue-next'
 
 const router = useRouter()
 const auth = useAuthStore()
 const menuOpen = ref(false)
+const accountMenuRef = ref(null)
+const accountButtonRef = ref(null)
 
-function handleLogout() {
-  auth.logout()
+async function handleLogout() {
+  menuOpen.value = false
+  await auth.logout()
   router.push({ name: 'landing' })
 }
+
+function handleOutsideClick(event) {
+  if (accountMenuRef.value && !accountMenuRef.value.contains(event.target)) {
+    menuOpen.value = false
+  }
+}
+
+function handleMenuKeydown(event) {
+  if (event.key === 'Escape' && menuOpen.value) {
+    menuOpen.value = false
+    accountButtonRef.value?.focus()
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('mousedown', handleOutsideClick)
+  document.addEventListener('keydown', handleMenuKeydown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('mousedown', handleOutsideClick)
+  document.removeEventListener('keydown', handleMenuKeydown)
+})
 </script>
 
 <template>
@@ -68,9 +95,15 @@ function handleLogout() {
           Salom, <span class="font-semibold text-slate-700 dark:text-slate-200">{{ auth.user.first_name || auth.user.username }}</span>
         </span>
         <ThemeSwitcher />
-        <div class="relative">
+        <div ref="accountMenuRef" class="relative">
           <button
+            ref="accountButtonRef"
+            type="button"
             class="w-9 h-9 rounded-full bg-brand-100 dark:bg-white/5 text-brand-700 dark:text-brand-300 font-bold flex items-center justify-center hover:bg-brand-200 dark:hover:bg-white/10 transition-all duration-200 hover:scale-105 active:scale-95"
+            aria-label="Akkaunt menyusini ochish"
+            aria-haspopup="menu"
+            :aria-expanded="menuOpen"
+            aria-controls="account-menu"
             @click="menuOpen = !menuOpen"
           >
             {{ (auth.user?.username || 'U').charAt(0).toUpperCase() }}
@@ -78,7 +111,9 @@ function handleLogout() {
           <transition name="pop">
             <div
               v-if="menuOpen"
+              id="account-menu"
               class="absolute right-0 mt-3 w-48 glass-surface p-2 text-sm z-50 origin-top-right"
+              role="menu"
               @click="menuOpen = false"
             >
               <router-link
@@ -95,14 +130,19 @@ function handleLogout() {
               </router-link>
               <router-link
                 :to="{ name: 'profile' }"
+                role="menuitem"
                 class="w-full text-left px-3 py-2 rounded-lg hover:bg-brand-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300 font-medium transition-colors duration-200 flex items-center gap-1.5"
               >
-                👤 Profil
+                <UserRound class="w-4 h-4" aria-hidden="true" />
+                Profil
               </router-link>
               <button
+                type="button"
+                role="menuitem"
                 class="w-full text-left px-3 py-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 text-red-600 dark:text-red-400 font-medium transition-colors duration-200"
                 @click="handleLogout"
               >
+                <LogOut class="inline w-4 h-4 mr-2" aria-hidden="true" />
                 Chiqish
               </button>
             </div>

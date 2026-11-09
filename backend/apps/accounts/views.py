@@ -5,10 +5,14 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
+from django.db import transaction
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 
 
 from .serializers import (
     ChangePasswordSerializer,
+    DeleteAccountSerializer,
     RegisterSerializer,
     UpdateProfileSerializer,
     UserSerializer,
@@ -76,6 +80,46 @@ class MeView(generics.RetrieveUpdateAPIView):
         if self.request.method in ("PATCH", "PUT"):
             return UpdateProfileSerializer
         return UserSerializer
+
+
+class LogoutView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        raw_refresh = request.data.get("refresh")
+        if not isinstance(raw_refresh, str) or not raw_refresh:
+            return Response({"detail": "Refresh token yuborilmadi."}, status=400)
+
+        try:
+            refresh = RefreshToken(raw_refresh)
+        except TokenError:
+            return Response({"detail": "Refresh token yaroqsiz yoki muddati tugagan."}, status=400)
+
+        if str(refresh.get("user_id")) != str(request.user.pk):
+            return Response({"detail": "Bu refresh token joriy akkauntga tegishli emas."}, status=403)
+
+        try:
+            refresh.blacklist()
+        except AttributeError:
+            return Response({"detail": "Token blacklist xizmati sozlanmagan."}, status=503)
+        except TokenError:
+            return Response({"detail": "Refresh token allaqachon bekor qilingan."}, status=400)
+        return Response({"detail": "Sessiya yakunlandi."})
+
+
+class DeleteAccountView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request):
+        serializer = DeleteAccountSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+
+        with transaction.atomic():
+            for outstanding in OutstandingToken.objects.filter(user=request.user):
+                BlacklistedToken.objects.get_or_create(token=outstanding)
+            request.user.delete()
+
+        return Response(status=204)
 
 
 class ChangePasswordView(APIView):

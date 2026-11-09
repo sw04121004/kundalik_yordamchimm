@@ -101,7 +101,7 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    logout() {
+    clearSession() {
       this.clearTokens()
       // Oldingi foydalanuvchining shaxsiy ma'lumotlari (AI suhbatlari, sevimlilar)
       // xotirada qolib ketmasligi uchun tegishli store'larni tozalaymiz —
@@ -109,6 +109,29 @@ export const useAuthStore = defineStore('auth', {
       useAiStore().$reset()
       usePlannerStore().$reset()
       useServicesStore().$patch({ favorites: [], favoritesLoaded: false })
+    },
+
+    async logout() {
+      try {
+        if (this.refresh) await api.post('/auth/logout/', { refresh: this.refresh })
+      } catch {
+        // Always clear this browser session even if the server cannot be reached.
+      } finally {
+        this.clearSession()
+      }
+    },
+
+    async deleteAccount(currentPassword) {
+      this.loading = true
+      try {
+        await api.delete('/auth/account/', { data: { current_password: currentPassword } })
+        this.clearSession()
+        return { success: true }
+      } catch (error) {
+        return { success: false, message: extractErrorMessage(error, 'Akkauntni o‘chirib bo‘lmadi.') }
+      } finally {
+        this.loading = false
+      }
     },
   },
 })
