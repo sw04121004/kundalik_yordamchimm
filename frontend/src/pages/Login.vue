@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../store/auth'
 import FormAlert from '../components/FormAlert.vue'
 import { Eye, EyeOff } from 'lucide-vue-next'
+import LanguageSwitcher from '../components/LanguageSwitcher.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -33,6 +34,7 @@ async function handleSubmit() {
 
 <template>
   <div class="min-h-screen flex items-center justify-center bg-[#f4f6fb] dark:bg-[#0d1117] px-4 py-12">
+    <div class="absolute top-4 right-4"><LanguageSwitcher /></div>
     <div class="w-full max-w-sm animate-fadeUp">
       <div class="text-center mb-8">
         <router-link :to="{ name: 'landing' }" class="inline-flex items-center gap-2.5 mb-5 group focus:outline-none rounded-xl">

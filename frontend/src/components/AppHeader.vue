@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../store/auth'
 import ThemeSwitcher from './ThemeSwitcher.vue'
 import { LogOut, UserRound } from 'lucide-vue-next'
+import LanguageSwitcher from './LanguageSwitcher.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -91,6 +92,7 @@ onUnmounted(() => {
       </nav>
 
       <div class="flex items-center gap-2 sm:gap-3">
+        <LanguageSwitcher />
         <span v-if="auth.user" class="hidden lg:block text-sm text-slate-500 dark:text-slate-400">
           Salom, <span class="font-semibold text-slate-700 dark:text-slate-200">{{ auth.user.first_name || auth.user.username }}</span>
         </span>

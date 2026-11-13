@@ -105,15 +105,17 @@ def get_not_configured_message() -> str:
         "Hozircha bu xabar AI javobi emas."
     )
 
-def _build_history_with_system(purpose: str, history: list[dict]) -> tuple[str, list[dict]]:
+def _build_history_with_system(purpose: str, history: list[dict], language: str = "uz") -> tuple[str, list[dict]]:
     system_prompt = PURPOSE_SYSTEM_PROMPTS.get(purpose, PURPOSE_SYSTEM_PROMPTS[DEFAULT_PROMPT_KEY])
     system_prompt += _INPUT_TOLERANCE_NOTE
+    language_instruction = {"ru": "Отвечай пользователю на русском языке.", "en": "Reply to the user in English.", "uz": "Foydalanuvchiga o'zbek tilida javob ber."}
+    system_prompt += " " + language_instruction.get(language, language_instruction["uz"])
     # keep only the last N turns to keep requests small and fast
     trimmed = history[-20:]
     return system_prompt, trimmed
 
 
-def generate_reply(purpose: str, history: list[dict]) -> str:
+def generate_reply(purpose: str, history: list[dict], language: str = "uz") -> str:
     """
     history: list of {"role": "user"|"assistant", "content": str}, oldest first.
     Returns the assistant's reply text.
@@ -125,7 +127,7 @@ def generate_reply(purpose: str, history: list[dict]) -> str:
     if not key:
         return get_not_configured_message()
 
-    system_prompt, messages = _build_history_with_system(purpose, history)
+    system_prompt, messages = _build_history_with_system(purpose, history, language)
 
     try:
         if provider == "anthropic":

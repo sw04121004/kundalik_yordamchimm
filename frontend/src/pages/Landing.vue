@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import LanguageSwitcher from '../components/LanguageSwitcher.vue'
 
 const capabilities = [
   { icon: '🤖', title: 'AI Yordamchi', desc: 'Dasturlash, ta’lim, matn, tarjima, CV va g‘oyalar bo‘yicha suhbat' },
@@ -29,6 +30,7 @@ const heroWords = computed(() =>
     <!-- Header -->
     <header class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       <div class="flex items-center gap-2">
+        <LanguageSwitcher />
         <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white font-extrabold shadow-soft">
           Q
         </div>

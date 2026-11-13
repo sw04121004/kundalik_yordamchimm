@@ -88,7 +88,7 @@ class SendMessageView(APIView):
             reply_text = get_not_configured_message()
         else:
             try:
-                reply_text = generate_reply(conversation.purpose, history)
+                reply_text = generate_reply(conversation.purpose, history, language=request.headers.get("Accept-Language", "uz").split(",", 1)[0].split("-", 1)[0].lower())
             except AIUnavailableError:
                 reply_text = "AI xizmati vaqtincha javob bermayapti. Keyinroq qayta urinib ko'ring."
                 ai_ok = False

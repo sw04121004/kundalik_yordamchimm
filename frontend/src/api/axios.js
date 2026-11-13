@@ -11,6 +11,7 @@ const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
+  config.headers['Accept-Language'] = localStorage.getItem('qulay_language') || 'uz'
   const access = localStorage.getItem('qulay_access')
   if (access) {
     config.headers.Authorization = `Bearer ${access}`

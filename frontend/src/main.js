@@ -5,6 +5,8 @@ import router from './router'
 import { revealDirective } from './directives/reveal'
 import './assets/main.css'
 import './assets/animations.css'
+import { initLanguage } from './i18n'
+initLanguage()
 
 const app = createApp(App)
 
