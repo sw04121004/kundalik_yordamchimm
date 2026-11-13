@@ -15,7 +15,7 @@ class WeatherSearchQuerySerializer(serializers.Serializer):
         },
     )
     country = serializers.RegexField(r"^[A-Za-z]{2}$", required=False, allow_blank=True)
-    lang = serializers.ChoiceField(choices=("uz", "ru", "en"), default="uz")
+    lang = serializers.RegexField(r"^[a-z]{2,3}$", default="uz")
 
 
 class WeatherForecastQuerySerializer(serializers.Serializer):
@@ -39,7 +39,7 @@ class WeatherForecastQuerySerializer(serializers.Serializer):
             "max_value": "Uzunlik 180 dan oshmasin.",
         },
     )
-    lang = serializers.ChoiceField(choices=("uz", "ru", "en"), default="uz")
+    lang = serializers.RegexField(r"^[a-z]{2,3}$", default="uz")
 
 
 class ServiceSerializer(serializers.ModelSerializer):

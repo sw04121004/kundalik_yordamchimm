@@ -29,10 +29,12 @@ export const ACCENT_PRESETS = {
 
 const STORAGE_KEY = 'qulay_accent'
 const DARK_STORAGE_KEY = 'qulay_dark'
+const previousAccent = localStorage.getItem(STORAGE_KEY)
+const defaultAccent = ['rose', 'red', 'coral', 'berry'].includes(previousAccent) ? 'blue' : (previousAccent || 'blue')
 
 export const useThemeStore = defineStore('theme', {
   state: () => ({
-    accent: localStorage.getItem(STORAGE_KEY) || 'teal',
+    accent: defaultAccent,
     isDark: localStorage.getItem(DARK_STORAGE_KEY) === 'true',
   }),
 
@@ -63,6 +65,7 @@ export const useThemeStore = defineStore('theme', {
     },
 
     init() {
+      if (['rose', 'red', 'coral', 'berry'].includes(previousAccent)) this.setAccent('blue')
       this.applyAccent(this.accent)
       this.applyDark(this.isDark)
     },

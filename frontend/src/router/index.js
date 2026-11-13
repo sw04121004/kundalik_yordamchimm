@@ -18,6 +18,11 @@ const routes = [
     meta: { guestOnly: true },
   },
   {
+    path: '/forgot-password',
+    name: 'forgot-password',
+    component: () => import('../pages/ForgotPassword.vue'),
+  },
+  {
     path: '/register',
     name: 'register',
     component: () => import('../pages/Register.vue'),

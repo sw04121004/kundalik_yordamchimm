@@ -89,6 +89,7 @@ const AI_ONLY_SLUGS = new Set(['oshxona-ai', 'uy-ai', 'oqish-ai', 'hujjat-ai'])
 const filteredCategories = computed(() => {
   const q = search.value.trim().toLowerCase()
   return servicesStore.categories
+    .filter(cat => cat.slug !== 'ob-havo')
     .map(cat => ({
       ...cat,
       services: cat.services.filter(s =>
@@ -132,7 +133,7 @@ const timeBasedPrompts = computed(() => {
 </script>
 
 <template>
-  <div class="dashboard-page relative min-h-screen bg-slate-50 dark:bg-[#151b1a] text-slate-800 dark:text-slate-100 transition-colors duration-200 overflow-x-hidden">
+  <div class="dashboard-page relative min-h-screen bg-slate-50 dark:bg-[#111318] text-slate-800 dark:text-slate-100 transition-colors duration-200 overflow-x-hidden">
     
     <div class="relative z-10">
       <AppHeader />

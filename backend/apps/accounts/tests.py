@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -12,6 +13,8 @@ from apps.ai.models import Conversation, Message
 from apps.planner.models import Task
 from apps.services.models import Category, Favorite, Service, Transaction, UsageLog
 from apps.accounts.throttles import LoginThrottle, PasswordChangeThrottle, RegisterThrottle
+from apps.accounts.models import PasswordResetCode
+import re
 
 User = get_user_model()
 
@@ -246,3 +249,29 @@ class AccountAPITests(APITestCase):
 			self.client.post(reverse("token_refresh"), {"refresh": str(refresh)}, format="json").status_code,
 			status.HTTP_401_UNAUTHORIZED,
 		)
+
+	@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+	@patch("apps.accounts.views.send_mail")
+	def test_email_password_reset_code_is_hashed_one_time_and_changes_password(self, send_mail_mock):
+		request = self.client.post(reverse("password-reset-request"), {"email": self.user.email}, format="json")
+		self.assertEqual(request.status_code, status.HTTP_202_ACCEPTED)
+		code = re.search(r"\b(\d{6})\b", send_mail_mock.call_args.args[1]).group(1)
+		reset = PasswordResetCode.objects.get(user=self.user)
+		self.assertNotEqual(reset.code_hash, code)
+
+		payload = {"email": self.user.email, "code": code, "new_password": "UpdatedPass456!", "new_password2": "UpdatedPass456!"}
+		confirmed = self.client.post(reverse("password-reset-confirm"), payload, format="json")
+		self.assertEqual(confirmed.status_code, status.HTTP_200_OK)
+		self.user.refresh_from_db()
+		self.assertTrue(self.user.check_password("UpdatedPass456!"))
+		login = self.client.post(reverse("login"), {"username": self.user.email, "password": "UpdatedPass456!"}, format="json")
+		self.assertEqual(login.status_code, status.HTTP_200_OK)
+		self.assertIsNotNone(PasswordResetCode.objects.get(pk=reset.pk).used_at)
+		self.assertEqual(self.client.post(reverse("password-reset-confirm"), payload, format="json").status_code, status.HTTP_400_BAD_REQUEST)
+
+	@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+	def test_password_reset_does_not_disclose_unknown_email(self):
+		known = self.client.post(reverse("password-reset-request"), {"email": self.user.email}, format="json")
+		unknown = self.client.post(reverse("password-reset-request"), {"email": "missing@example.com"}, format="json")
+		self.assertEqual(known.status_code, unknown.status_code)
+		self.assertEqual(known.data["detail"], unknown.data["detail"])

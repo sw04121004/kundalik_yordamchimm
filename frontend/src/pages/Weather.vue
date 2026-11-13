@@ -51,7 +51,13 @@ const translations = {
     error: "Could not load weather information.",
   },
 }
-const t = computed(() => translations[language.value] || translations.uz)
+translations.ru = {
+  title: '\u041f\u043e\u0433\u043e\u0434\u0430', subtitle: '\u041d\u0430\u0439\u0434\u0438\u0442\u0435 \u0433\u043e\u0440\u043e\u0434 \u0438 \u043f\u043e\u0441\u043c\u043e\u0442\u0440\u0438\u0442\u0435 \u043f\u0440\u043e\u0433\u043d\u043e\u0437 \u043d\u0430 \u0431\u043b\u0438\u0436\u0430\u0439\u0448\u0438\u0435 \u0434\u043d\u0438',
+  city: '\u0413\u043e\u0440\u043e\u0434', country: '\u0421\u0442\u0440\u0430\u043d\u0430', allCountries: '\u0412\u0441\u0435 \u0441\u0442\u0440\u0430\u043d\u044b', searchPlaceholder: '\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0433\u043e\u0440\u043e\u0434...', notFound: '\u0413\u043e\u0440\u043e\u0434 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d',
+  current: '\u0421\u0435\u0439\u0447\u0430\u0441', feels: '\u041e\u0449\u0443\u0449\u0430\u0435\u0442\u0441\u044f \u043a\u0430\u043a', humidity: '\u0412\u043b\u0430\u0436\u043d\u043e\u0441\u0442\u044c', wind: '\u0412\u0435\u0442\u0435\u0440', precipitation: '\u041e\u0441\u0430\u0434\u043a\u0438', pressure: '\u0414\u0430\u0432\u043b\u0435\u043d\u0438\u0435',
+  updated: '\u041e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u043e', refresh: '\u041e\u0431\u043d\u043e\u0432\u0438\u0442\u044c', hourly: '\u0411\u043b\u0438\u0436\u0430\u0439\u0448\u0438\u0435 24 \u0447\u0430\u0441\u0430', daily: '\u041f\u0440\u043e\u0433\u043d\u043e\u0437 \u043d\u0430 14 \u0434\u043d\u0435\u0439', rainChance: '\u0412\u0435\u0440\u043e\u044f\u0442\u043d\u043e\u0441\u0442\u044c \u043e\u0441\u0430\u0434\u043a\u043e\u0432', high: '\u041c\u0430\u043a\u0441.', low: '\u041c\u0438\u043d.', sunrise: '\u0412\u043e\u0441\u0445\u043e\u0434', sunset: '\u0417\u0430\u043a\u0430\u0442', loading: '\u0417\u0430\u0433\u0440\u0443\u0436\u0430\u0435\u043c \u043f\u043e\u0433\u043e\u0434\u0443...', error: '\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0437\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u043f\u043e\u0433\u043e\u0434\u0443.',
+}
+const t = computed(() => translations[language.value] || translations.en)
 const countryOptions = [
   ['UZ', 'O‘zbekiston'], ['KZ', 'Qozog‘iston'], ['KG', 'Qirg‘iziston'], ['TJ', 'Tojikiston'],
   ['RU', 'Rossiya'], ['TR', 'Turkiya'], ['US', 'AQSh'], ['GB', 'Buyuk Britaniya'],
@@ -83,7 +89,10 @@ function weatherDescription(code) {
     ru: { 0: 'Ясно', 1: 'Преимущественно ясно', 2: 'Переменная облачность', 3: 'Облачно', 45: 'Туман', 48: 'Изморозь и туман', 51: 'Слабая морось', 53: 'Морось', 55: 'Сильная морось', 56: 'Ледяная морось', 57: 'Сильная ледяная морось', 61: 'Небольшой дождь', 63: 'Дождь', 65: 'Сильный дождь', 66: 'Ледяной дождь', 67: 'Сильный ледяной дождь', 71: 'Небольшой снег', 73: 'Снег', 75: 'Сильный снег', 77: 'Снежные зёрна', 80: 'Небольшой ливень', 81: 'Ливень', 82: 'Сильный ливень', 85: 'Снегопад', 86: 'Сильный снегопад', 95: 'Гроза', 96: 'Гроза с градом', 99: 'Сильная гроза с градом' },
     en: { 0: 'Clear sky', 1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast', 45: 'Fog', 48: 'Rime fog', 51: 'Light drizzle', 53: 'Drizzle', 55: 'Heavy drizzle', 56: 'Freezing drizzle', 57: 'Heavy freezing drizzle', 61: 'Light rain', 63: 'Rain', 65: 'Heavy rain', 66: 'Freezing rain', 67: 'Heavy freezing rain', 71: 'Light snow', 73: 'Snow', 75: 'Heavy snow', 77: 'Snow grains', 80: 'Light showers', 81: 'Showers', 82: 'Heavy showers', 85: 'Snow showers', 86: 'Heavy snow showers', 95: 'Thunderstorm', 96: 'Thunderstorm with hail', 99: 'Heavy thunderstorm with hail' },
   }
-  const words = descriptions[language] || descriptions.uz
+  descriptions.ru = {
+    0: '\u042f\u0441\u043d\u043e', 1: '\u041f\u0440\u0435\u0438\u043c\u0443\u0449\u0435\u0441\u0442\u0432\u0435\u043d\u043d\u043e \u044f\u0441\u043d\u043e', 2: '\u041f\u0435\u0440\u0435\u043c\u0435\u043d\u043d\u0430\u044f \u043e\u0431\u043b\u0430\u0447\u043d\u043e\u0441\u0442\u044c', 3: '\u041e\u0431\u043b\u0430\u0447\u043d\u043e', 45: '\u0422\u0443\u043c\u0430\u043d', 48: '\u0418\u043d\u0435\u0439\u043d\u044b\u0439 \u0442\u0443\u043c\u0430\u043d', 51: '\u0421\u043b\u0430\u0431\u0430\u044f \u043c\u043e\u0440\u043e\u0441\u044c', 53: '\u041c\u043e\u0440\u043e\u0441\u044c', 55: '\u0421\u0438\u043b\u044c\u043d\u0430\u044f \u043c\u043e\u0440\u043e\u0441\u044c', 56: '\u041b\u0435\u0434\u044f\u043d\u0430\u044f \u043c\u043e\u0440\u043e\u0441\u044c', 57: '\u0421\u0438\u043b\u044c\u043d\u0430\u044f \u043b\u0435\u0434\u044f\u043d\u0430\u044f \u043c\u043e\u0440\u043e\u0441\u044c', 61: '\u041d\u0435\u0431\u043e\u043b\u044c\u0448\u043e\u0439 \u0434\u043e\u0436\u0434\u044c', 63: '\u0414\u043e\u0436\u0434\u044c', 65: '\u0421\u0438\u043b\u044c\u043d\u044b\u0439 \u0434\u043e\u0436\u0434\u044c', 66: '\u041b\u0435\u0434\u044f\u043d\u043e\u0439 \u0434\u043e\u0436\u0434\u044c', 67: '\u0421\u0438\u043b\u044c\u043d\u044b\u0439 \u043b\u0435\u0434\u044f\u043d\u043e\u0439 \u0434\u043e\u0436\u0434\u044c', 71: '\u041d\u0435\u0431\u043e\u043b\u044c\u0448\u043e\u0439 \u0441\u043d\u0435\u0433', 73: '\u0421\u043d\u0435\u0433', 75: '\u0421\u0438\u043b\u044c\u043d\u044b\u0439 \u0441\u043d\u0435\u0433', 77: '\u0421\u043d\u0435\u0436\u043d\u044b\u0435 \u0437\u0435\u0440\u043d\u0430', 80: '\u041d\u0435\u0431\u043e\u043b\u044c\u0448\u043e\u0439 \u043b\u0438\u0432\u0435\u043d\u044c', 81: '\u041b\u0438\u0432\u0435\u043d\u044c', 82: '\u0421\u0438\u043b\u044c\u043d\u044b\u0439 \u043b\u0438\u0432\u0435\u043d\u044c', 85: '\u0421\u043d\u0435\u0433\u043e\u043f\u0430\u0434', 86: '\u0421\u0438\u043b\u044c\u043d\u044b\u0439 \u0441\u043d\u0435\u0433\u043e\u043f\u0430\u0434', 95: '\u0413\u0440\u043e\u0437\u0430', 96: '\u0413\u0440\u043e\u0437\u0430 \u0441 \u0433\u0440\u0430\u0434\u043e\u043c', 99: '\u0421\u0438\u043b\u044c\u043d\u0430\u044f \u0433\u0440\u043e\u0437\u0430 \u0441 \u0433\u0440\u0430\u0434\u043e\u043c',
+  }
+  const words = descriptions[language.value] || descriptions.en
   if (words[code] !== undefined) return words[code]
   if ([51, 53, 55, 56, 57].includes(code)) return words[53]
   if ([61, 63, 65, 66, 67].includes(code)) return words[63]
@@ -108,7 +117,7 @@ function weatherIcon(code, isDay = true) {
 
 function formatDay(value) {
   const [year, month, day] = value.split('-').map(Number)
-  return new Intl.DateTimeFormat(locale, { weekday: 'short', day: 'numeric', month: 'short' })
+  return new Intl.DateTimeFormat(currentLocale(), { weekday: 'short', day: 'numeric', month: 'short' })
     .format(new Date(year, month - 1, day))
 }
 
@@ -127,7 +136,7 @@ function searchCity() {
     searchLoading.value = true
     try {
       const { data } = await api.get('/weather/search/', {
-        params: { q: cityQuery.value.trim(), country: country.value, lang: language },
+        params: { q: cityQuery.value.trim(), country: country.value, lang: language.value },
       })
       if (requestId === searchRequestId) {
         suggestions.value = data.results || []
@@ -159,10 +168,10 @@ async function loadForecast() {
   error.value = ''
   try {
     const { data } = await api.get('/weather/forecast/', {
-      params: { lat: location.value.lat, lon: location.value.lon, lang: language },
+      params: { lat: location.value.lat, lon: location.value.lon, lang: language.value },
     })
     forecast.value = data
-    lastUpdated.value = new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }).format(new Date())
+    lastUpdated.value = new Intl.DateTimeFormat(currentLocale(), { hour: '2-digit', minute: '2-digit' }).format(new Date())
   } catch (requestError) {
     error.value = extractErrorMessage(requestError, t.value.error)
   } finally {
@@ -192,7 +201,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50 dark:bg-[#151b1a]">
+  <div class="min-h-screen bg-slate-50 dark:bg-[#111318]">
     <AppHeader />
     <main class="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
       <header class="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5">

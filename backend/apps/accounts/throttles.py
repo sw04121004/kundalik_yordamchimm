@@ -11,3 +11,14 @@ class RegisterThrottle(UserRateThrottle):
 
 class PasswordChangeThrottle(UserRateThrottle):
     scope = "auth_password_change"
+
+
+from rest_framework.throttling import AnonRateThrottle
+
+
+class PasswordResetThrottle(AnonRateThrottle):
+    scope = "auth_password_reset"
+
+
+class PasswordResetConfirmThrottle(AnonRateThrottle):
+    scope = "auth_password_reset_confirm"

@@ -35,6 +35,7 @@ Backend variables (values intentionally omitted):
 - `AI_MODEL` (optional)
 - `AI_API_BASE_URL` (optional)
 - `OPEN_METEO_API_KEY` (optional; enables the commercial Open-Meteo host)
+- `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `EMAIL_USE_TLS`, `DEFAULT_FROM_EMAIL` (SMTP settings required for password reset email)
 
 Frontend build variable: `VITE_API_BASE_URL` (backend origin only, without `/api`).
 

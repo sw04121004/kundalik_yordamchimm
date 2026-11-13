@@ -3,21 +3,21 @@
 @tailwind utilities;
 
 :root {
-  --brand-50: 232 248 245;
-  --brand-100: 204 240 234;
-  --brand-200: 160 224 214;
-  --brand-300: 106 203 188;
-  --brand-400: 53 181 163;
-  --brand-500: 15 157 138;
-  --brand-600: 13 135 119;
-  --brand-700: 11 112 99;
-  --brand-800: 10 91 81;
-  --brand-900: 8 70 63;
-  --warm-canvas: #faf8f5;
+  --brand-50: 238 246 255;
+  --brand-100: 219 235 254;
+  --brand-200: 191 223 254;
+  --brand-300: 147 203 253;
+  --brand-400: 96 174 250;
+  --brand-500: 59 143 245;
+  --brand-600: 37 111 232;
+  --brand-700: 30 89 207;
+  --brand-800: 31 73 166;
+  --brand-900: 31 64 131;
+  --warm-canvas: #f6f7f9;
   --warm-surface: #ffffff;
-  --warm-ink: #1f2937;
-  --warm-border: #ece7df;
-  --warm-shadow: 0 8px 24px rgb(48 43 35 / 0.07);
+  --warm-ink: #20242c;
+  --warm-border: #e3e8f0;
+  --warm-shadow: 0 8px 24px rgb(35 52 84 / 0.10);
   --accent-amber: #f5a524;
 }
 
@@ -35,8 +35,8 @@ body {
 
 /* Dark mode — deep navy background */
 html.dark body {
-  background: #151b1a;
-  color: #e8eeeb;
+  background: #111318;
+  color: #e7e9ed;
 }
 
 /* Shared warm surfaces, including pages that still use legacy utility classes. */
@@ -46,9 +46,9 @@ html.dark body {
   box-shadow: var(--warm-shadow);
 }
 html.dark .card, html.dark .glass-surface {
-  border-color: rgb(255 255 255 / 0.09);
-  background-color: #1b2422;
-  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+  border-color: rgb(255 255 255 / 0.1);
+  background-color: #1b202a;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.24);
 }
 button, a { -webkit-tap-highlight-color: transparent; }
 button:not(:disabled), a { transition: color 200ms ease, background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease; }
@@ -222,9 +222,9 @@ html.dark ::-webkit-scrollbar-thumb { background: rgb(var(--brand-700) / 0.4); }
     box-shadow: var(--warm-shadow);
   }
   html.dark .card {
-    background: #1d2523;
-    border-color: rgba(225, 239, 232, 0.1);
-    box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+    background: #1d222c;
+    border-color: rgba(225, 235, 255, 0.1);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.24);
   }
 
   /* ─ Glass surface (sidebar, modals, dropdowns) ─ */
@@ -235,9 +235,9 @@ html.dark ::-webkit-scrollbar-thumb { background: rgb(var(--brand-700) / 0.4); }
     box-shadow: var(--warm-shadow);
   }
   html.dark .glass-surface {
-    background: rgba(29, 37, 35, 0.97);
+    background: rgba(29, 34, 44, 0.97);
     backdrop-filter: blur(12px);
-    border-color: rgba(225, 239, 232, 0.1);
+    border-color: rgba(225, 235, 255, 0.1);
     box-shadow: 0 8px 24px rgb(0 0 0 / 0.22);
   }
 
@@ -335,7 +335,7 @@ html.dark [class~="dark:border-slate-800"] { border-color: #303a36; }
 }
 .finance-summary-income::after { background: var(--accent-amber); }
 .finance-summary-expense::after { background: #d97762; }
-html.dark .finance-summary { background: #1d2523; border-color: rgba(225, 239, 232, 0.1); }
+html.dark .finance-summary { background: #1d222c; border-color: rgba(225, 235, 255, 0.1); }
 .dashboard-page h2 > svg {
   width: 32px;
   height: 32px;

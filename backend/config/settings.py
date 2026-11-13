@@ -115,6 +115,14 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "uz"
 LANGUAGES = [("uz", "O'zbekcha"), ("ru", "Русский"), ("en", "English")]
+EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend" if DEBUG else "django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "").strip()
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True").lower() == "true"
+EMAIL_TIMEOUT = int(os.environ.get("EMAIL_TIMEOUT", "10"))
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "").strip()
 TIME_ZONE = "Asia/Tashkent"
 USE_I18N = True
 USE_TZ = True
@@ -146,6 +154,8 @@ REST_FRAMEWORK = {
         "auth_login": "10/min",
         "auth_register": "5/hour",
         "auth_password_change": "5/hour",
+        "auth_password_reset": "5/hour",
+        "auth_password_reset_confirm": "10/hour",
         "ai_per_minute": "10/min",
         "ai_per_day": "100/day",
         "weather_search": "30/min",

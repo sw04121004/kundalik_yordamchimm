@@ -10,7 +10,7 @@ defineProps({
 </script>
 
 <template>
-  <div class="relative min-h-screen bg-gradient-to-b from-brand-50/60 to-slate-50 dark:from-[#1d2925] dark:to-[#151b1a] overflow-hidden">
+  <div class="relative min-h-screen bg-gradient-to-b from-brand-50/60 to-slate-50 dark:from-[#1b2230] dark:to-[#111318] overflow-hidden">
     <div class="hidden dark:block absolute pointer-events-none w-72 h-72 -top-10 -right-10 rounded-full bg-brand-500/10 blur-3xl" aria-hidden="true"></div>
     <slot name="header" />
     <main class="relative max-w-2xl mx-auto px-4 sm:px-6 py-10 animate-fadeUp">

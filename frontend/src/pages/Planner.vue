@@ -55,7 +55,7 @@ function formatTime(t) { return t ? t.slice(0, 5) : '' }
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50 dark:bg-[#151b1a]">
+  <div class="min-h-screen bg-slate-50 dark:bg-[#111318]">
     <AppHeader />
 
     <main class="max-w-2xl mx-auto px-4 sm:px-6 py-10 animate-fadeUp">

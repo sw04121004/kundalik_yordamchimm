@@ -6,13 +6,24 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 from django.db import transaction
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import check_password, make_password
+from django.core.mail import send_mail
+from django.utils import timezone
+from datetime import timedelta
+import secrets
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
-from .throttles import LoginThrottle, PasswordChangeThrottle, RegisterThrottle
+from .throttles import LoginThrottle, PasswordChangeThrottle, RegisterThrottle, PasswordResetThrottle, PasswordResetConfirmThrottle
+from .models import PasswordResetCode
+UserModel = get_user_model()
 
 
 from .serializers import (
     ChangePasswordSerializer,
+    PasswordResetConfirmSerializer,
+    PasswordResetRequestSerializer,
     DeleteAccountSerializer,
     RegisterSerializer,
     UpdateProfileSerializer,
@@ -123,6 +134,72 @@ class DeleteAccountView(APIView):
             request.user.delete()
 
         return Response(status=204)
+
+
+class PasswordResetRequestView(APIView):
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [PasswordResetThrottle]
+
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        if settings.EMAIL_BACKEND.endswith("smtp.EmailBackend") and (not settings.EMAIL_HOST or not settings.DEFAULT_FROM_EMAIL):
+            return Response({"detail": "Email yuborish sozlanmagan. Administrator SMTP va yuboruvchi manzilini sozlashi kerak."}, status=503)
+
+        account = UserModel.objects.filter(email__iexact=serializer.validated_data["email"]).first()
+        generic_detail = "Agar email akkauntga tegishli bo'lsa, tiklash kodi yuborildi."
+        if account:
+            now = timezone.now()
+            PasswordResetCode.objects.filter(user=account, used_at__isnull=True).update(used_at=now)
+            code = f"{secrets.randbelow(1_000_000):06d}"
+            reset = PasswordResetCode.objects.create(
+                user=account,
+                code_hash=make_password(code),
+                expires_at=now + timedelta(minutes=10),
+            )
+            try:
+                send_mail(
+                    "Kundalik Yordamchi — parolni tiklash",
+                    f"Parolni tiklash kodi: {code}. Kod 10 daqiqa amal qiladi.",
+                    settings.DEFAULT_FROM_EMAIL,
+                    [account.email],
+                    fail_silently=False,
+                )
+            except Exception:
+                import logging
+                logging.getLogger(__name__).error("Password reset email delivery failed.")
+                reset.used_at = timezone.now()
+                reset.save(update_fields=["used_at"])
+                return Response({"detail": generic_detail}, status=202)
+        return Response({"detail": generic_detail}, status=202)
+
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = [permissions.AllowAny]
+    throttle_classes = [PasswordResetConfirmThrottle]
+
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        account = UserModel.objects.filter(email__iexact=serializer.validated_data["email"]).first()
+        now = timezone.now()
+        with transaction.atomic():
+            reset = None
+            if account:
+                reset = PasswordResetCode.objects.select_for_update().filter(
+                    user=account, used_at__isnull=True, expires_at__gt=now, attempts__lt=5
+                ).order_by("-created_at").first()
+            if not reset:
+                return Response({"detail": "Kod yaroqsiz yoki muddati tugagan. Yangi kod so'rang."}, status=400)
+            if not check_password(serializer.validated_data["code"], reset.code_hash):
+                reset.attempts += 1
+                reset.save(update_fields=["attempts"])
+                return Response({"detail": "Tasdiqlash kodi noto'g'ri."}, status=400)
+            account.set_password(serializer.validated_data["new_password"])
+            account.save(update_fields=["password"])
+            reset.used_at = now
+            reset.save(update_fields=["used_at"])
+        return Response({"detail": "Parol o'zgartirildi. Yangi parol bilan tizimga kiring."})
 
 
 class ChangePasswordView(APIView):

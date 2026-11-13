@@ -1,26 +1,54 @@
 import { ref, watch } from 'vue'
 
-const language = ref(['uz', 'ru', 'en'].includes(localStorage.getItem('qulay_language')) ? localStorage.getItem('qulay_language') : 'uz')
-const messages = {
+export const SUPPORTED_LANGUAGES = [
+  { code: 'uz', label: 'UZ - O\'zbek' }, { code: 'ru', label: 'RU - Russian' }, { code: 'en', label: 'EN - English' },
+  { code: 'kk', label: 'KK - Kazakh' }, { code: 'tr', label: 'TR - Turkish' }, { code: 'ar', label: 'AR - Arabic' },
+  { code: 'zh', label: 'ZH - Chinese' }, { code: 'fr', label: 'FR - French' }, { code: 'de', label: 'DE - German' },
+  { code: 'es', label: 'ES - Spanish' }, { code: 'hi', label: 'HI - Hindi' }, { code: 'ja', label: 'JA - Japanese' },
+  { code: 'ko', label: 'KO - Korean' }, { code: 'it', label: 'IT - Italian' }, { code: 'pt', label: 'PT - Portuguese' },
+]
+
+const supportedCodes = new Set(SUPPORTED_LANGUAGES.map((item) => item.code))
+const savedLanguage = localStorage.getItem('qulay_language')
+const language = ref(supportedCodes.has(savedLanguage) ? savedLanguage : 'uz')
+const common = {
   uz: {},
   ru: {
-    'Xizmatlar': 'Сервисы', 'AI Yordamchi': 'AI-помощник', 'Reja': 'Планировщик', 'Profil': 'Профиль', 'Chiqish': 'Выйти', 'Salom,': 'Здравствуйте,',
-    'Akkaunt menyusini ochish': 'Открыть меню аккаунта', 'Xush kelibsiz!': 'Добро пожаловать!', 'Hisobingizga kiring': 'Войдите в аккаунт', 'Foydalanuvchi nomi': 'Имя пользователя', 'Parol': 'Пароль', 'Kirilmoqda...': 'Входим...', 'Kirish': 'Войти', "Hisobingiz yo'qmi?": 'Нет аккаунта?', "Ro'yxatdan o'ting": 'Зарегистрироваться', 'Roʻyxatdan oʻting': 'Зарегистрироваться', 'Ro‘yxatdan o‘ting': 'Зарегистрироваться', 'Yangi hisob yarating': 'Создайте новый аккаунт', 'Ro‘yxatdan o‘tish': 'Регистрация', "Ro'yxatdan o'tish": 'Регистрация', 'Ism': 'Имя', 'Pochta manzili': 'Электронная почта', 'Parolni tasdiqlang': 'Подтвердите пароль', 'Yaratilmoqda...': 'Создаём...', 'Hisobingiz bormi?': 'Уже есть аккаунт?'
+    'Xizmatlar': '\u0421\u0435\u0440\u0432\u0438\u0441\u044b', 'AI Yordamchi': 'AI-\u043f\u043e\u043c\u043e\u0449\u043d\u0438\u043a', 'Reja': '\u041f\u043b\u0430\u043d\u0438\u0440\u043e\u0432\u0449\u0438\u043a', 'Profil': '\u041f\u0440\u043e\u0444\u0438\u043b\u044c', 'Chiqish': '\u0412\u044b\u0439\u0442\u0438', 'Salom,': '\u0417\u0434\u0440\u0430\u0432\u0441\u0442\u0432\u0443\u0439\u0442\u0435,',
+    'Akkaunt menyusini ochish': '\u041e\u0442\u043a\u0440\u044b\u0442\u044c \u043c\u0435\u043d\u044e \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u0430', 'Xush kelibsiz!': '\u0414\u043e\u0431\u0440\u043e \u043f\u043e\u0436\u0430\u043b\u043e\u0432\u0430\u0442\u044c!', 'Hisobingizga kiring': '\u0412\u043e\u0439\u0434\u0438\u0442\u0435 \u0432 \u0430\u043a\u043a\u0430\u0443\u043d\u0442',
+    'Foydalanuvchi nomi': '\u0418\u043c\u044f \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f', 'Parol': '\u041f\u0430\u0440\u043e\u043b\u044c', 'Kirilmoqda...': '\u0412\u0445\u043e\u0434\u0438\u043c...', 'Kirish': '\u0412\u043e\u0439\u0442\u0438', 'Parolni unutdingizmi?': '\u0417\u0430\u0431\u044b\u043b\u0438 \u043f\u0430\u0440\u043e\u043b\u044c?',
+    "Hisobingiz yo'qmi?": '\u041d\u0435\u0442 \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u0430?', "Ro'yxatdan o'ting": '\u0417\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u0442\u044c\u0441\u044f', "Ro'yxatdan o'tish": '\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044f', 'Yangi hisob yarating': '\u0421\u043e\u0437\u0434\u0430\u0439\u0442\u0435 \u043d\u043e\u0432\u044b\u0439 \u0430\u043a\u043a\u0430\u0443\u043d\u0442',
+    'Ism': '\u0418\u043c\u044f', 'Pochta manzili': '\u042d\u043b\u0435\u043a\u0442\u0440\u043e\u043d\u043d\u0430\u044f \u043f\u043e\u0447\u0442\u0430', 'Parolni tasdiqlang': '\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u0435 \u043f\u0430\u0440\u043e\u043b\u044c', 'Yaratilmoqda...': '\u0421\u043e\u0437\u0434\u0430\u0451\u043c...', 'Hisobingiz bormi?': '\u0423\u0436\u0435 \u0435\u0441\u0442\u044c \u0430\u043a\u043a\u0430\u0443\u043d\u0442?'
   },
   en: {
-    'Xizmatlar': 'Services', 'AI Yordamchi': 'AI Assistant', 'Reja': 'Planner', 'Profil': 'Profile', 'Chiqish': 'Log out', 'Salom,': 'Hello,',
-    'Akkaunt menyusini ochish': 'Open account menu', 'Xush kelibsiz!': 'Welcome!', 'Hisobingizga kiring': 'Sign in to your account', 'Foydalanuvchi nomi': 'Username', 'Parol': 'Password', 'Kirilmoqda...': 'Signing in...', 'Kirish': 'Sign in', "Hisobingiz yo'qmi?": 'Don’t have an account?', "Ro'yxatdan o'ting": 'Sign up', 'Roʻyxatdan oʻting': 'Sign up', 'Ro‘yxatdan o‘ting': 'Sign up', 'Yangi hisob yarating': 'Create a new account', 'Ro‘yxatdan o‘tish': 'Sign up', "Ro'yxatdan o'tish": 'Sign up', 'Ism': 'Name', 'Pochta manzili': 'Email address', 'Parolni tasdiqlang': 'Confirm password', 'Yaratilmoqda...': 'Creating...', 'Hisobingiz bormi?': 'Already have an account?'
-  }
+    'Xizmatlar': 'Services', 'AI Yordamchi': 'AI assistant', 'Reja': 'Planner', 'Profil': 'Profile', 'Chiqish': 'Log out', 'Salom,': 'Hello,', 'Akkaunt menyusini ochish': 'Open account menu', 'Xush kelibsiz!': 'Welcome!', 'Hisobingizga kiring': 'Sign in to your account',
+    'Foydalanuvchi nomi': 'Username', 'Parol': 'Password', 'Kirilmoqda...': 'Signing in...', 'Kirish': 'Sign in', 'Parolni unutdingizmi?': 'Forgot password?', "Hisobingiz yo'qmi?": 'No account yet?', "Ro'yxatdan o'ting": 'Sign up', "Ro'yxatdan o'tish": 'Create account', 'Yangi hisob yarating': 'Create a new account',
+    'Ism': 'Name', 'Pochta manzili': 'Email address', 'Parolni tasdiqlang': 'Confirm password', 'Yaratilmoqda...': 'Creating...', 'Hisobingiz bormi?': 'Already have an account?'
+  },
+  tr: { 'Xizmatlar': 'Hizmetler', 'AI Yordamchi': 'AI Asistan', 'Reja': 'Planlayici', 'Profil': 'Profil', 'Chiqish': 'Cikis', 'Kirish': 'Giris', 'Parol': 'Sifre', 'Parolni unutdingizmi?': 'Sifrenizi mi unuttunuz?', 'Foydalanuvchi nomi': 'Kullanici adi', 'Pochta manzili': 'E-posta adresi' },
+  kk: { 'Xizmatlar': '\u049a\u044b\u0437\u043c\u0435\u0442\u0442\u0435\u0440', 'AI Yordamchi': 'AI \u043a\u04e9\u043c\u0435\u043a\u0448\u0456\u0441\u0456', 'Reja': '\u0416\u043e\u0441\u043f\u0430\u0440', 'Profil': '\u041f\u0440\u043e\u0444\u0438\u043b\u044c', 'Chiqish': '\u0428\u044b\u0493\u0443', 'Kirish': '\u041a\u0456\u0440\u0443', 'Parol': '\u049a\u04b1\u043f\u0438\u044f\u0441\u04e9\u0437', 'Parolni unutdingizmi?': '\u049a\u04b1\u043f\u0438\u044f\u0441\u04e9\u0437\u0434\u0456 \u04b1\u043c\u044b\u0442\u0442\u044b\u04a3\u044b\u0437 \u0431\u0430?', 'Foydalanuvchi nomi': '\u041f\u0430\u0439\u0434\u0430\u043b\u0430\u043d\u0443\u0448\u044b \u0430\u0442\u044b', 'Pochta manzili': '\u042d\u043b\u0435\u043a\u0442\u0440\u043e\u043d\u0434\u044b\u049b \u043f\u043e\u0448\u0442\u0430' },
+  ar: { 'Xizmatlar': '\u0627\u0644\u062e\u062f\u0645\u0627\u062a', 'AI Yordamchi': '\u0645\u0633\u0627\u0639\u062f \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064a', 'Reja': '\u0627\u0644\u062e\u0637\u0629', 'Profil': '\u0627\u0644\u0645\u0644\u0641 \u0627\u0644\u0634\u062e\u0635\u064a', 'Chiqish': '\u062e\u0631\u0648\u062c', 'Kirish': '\u062f\u062e\u0648\u0644', 'Parol': '\u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631', 'Parolni unutdingizmi?': '\u0647\u0644 \u0646\u0633\u064a\u062a \u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631\u061f', 'Foydalanuvchi nomi': '\u0627\u0633\u0645 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645', 'Pochta manzili': '\u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a' },
+  zh: { 'Xizmatlar': '\u670d\u52a1', 'AI Yordamchi': 'AI \u52a9\u624b', 'Reja': '\u8ba1\u5212', 'Profil': '\u4e2a\u4eba\u8d44\u6599', 'Chiqish': '\u9000\u51fa', 'Kirish': '\u767b\u5f55', 'Parol': '\u5bc6\u7801', 'Parolni unutdingizmi?': '\u5fd8\u8bb0\u5bc6\u7801\uff1f', 'Foydalanuvchi nomi': '\u7528\u6237\u540d', 'Pochta manzili': '\u7535\u5b50\u90ae\u4ef6' },
+  fr: { 'Xizmatlar': 'Services', 'AI Yordamchi': 'Assistant IA', 'Reja': 'Planning', 'Profil': 'Profil', 'Chiqish': 'Deconnexion', 'Kirish': 'Connexion', 'Parol': 'Mot de passe', 'Parolni unutdingizmi?': 'Mot de passe oublie ?', 'Foydalanuvchi nomi': 'Nom utilisateur', 'Pochta manzili': 'Adresse e-mail' },
+  de: { 'Xizmatlar': 'Dienste', 'AI Yordamchi': 'KI-Assistent', 'Reja': 'Planer', 'Profil': 'Profil', 'Chiqish': 'Abmelden', 'Kirish': 'Anmelden', 'Parol': 'Passwort', 'Parolni unutdingizmi?': 'Passwort vergessen?', 'Foydalanuvchi nomi': 'Benutzername', 'Pochta manzili': 'E-Mail-Adresse' },
+  es: { 'Xizmatlar': 'Servicios', 'AI Yordamchi': 'Asistente IA', 'Reja': 'Planificador', 'Profil': 'Perfil', 'Chiqish': 'Cerrar sesion', 'Kirish': 'Iniciar sesion', 'Parol': 'Contrasena', 'Parolni unutdingizmi?': 'Olvidaste tu contrasena?', 'Foydalanuvchi nomi': 'Nombre de usuario', 'Pochta manzili': 'Correo electronico' },
+  hi: { 'Xizmatlar': '\u0938\u0947\u0935\u093e\u090f\u0901', 'AI Yordamchi': 'AI \u0938\u0939\u093e\u092f\u0915', 'Reja': '\u092f\u094b\u091c\u0928\u093e\u0915\u093e\u0930', 'Profil': '\u092a\u094d\u0930\u094b\u092b\u093e\u0907\u0932', 'Chiqish': '\u0932\u0949\u0917 \u0906\u0909\u091f', 'Kirish': '\u0932\u0949\u0917 \u0907\u0928', 'Parol': '\u092a\u093e\u0938\u0935\u0930\u094d\u0921', 'Parolni unutdingizmi?': '\u0915\u094d\u092f\u093e \u092a\u093e\u0938\u0935\u0930\u094d\u0921 \u092d\u0942\u0932 \u0917\u090f?', 'Foydalanuvchi nomi': '\u092f\u0942\u091c\u093c\u0930\u0928\u0947\u092e', 'Pochta manzili': '\u0908\u092e\u0947\u0932 \u092a\u0924\u093e' },
+  ja: { 'Xizmatlar': '\u30b5\u30fc\u30d3\u30b9', 'AI Yordamchi': 'AI\u30a2\u30b7\u30b9\u30bf\u30f3\u30c8', 'Reja': '\u30d7\u30e9\u30f3\u30ca\u30fc', 'Profil': '\u30d7\u30ed\u30d5\u30a3\u30fc\u30eb', 'Chiqish': '\u30ed\u30b0\u30a2\u30a6\u30c8', 'Kirish': '\u30ed\u30b0\u30a4\u30f3', 'Parol': '\u30d1\u30b9\u30ef\u30fc\u30c9', 'Parolni unutdingizmi?': '\u30d1\u30b9\u30ef\u30fc\u30c9\u3092\u304a\u5fd8\u308c\u3067\u3059\u304b\uff1f', 'Foydalanuvchi nomi': '\u30e6\u30fc\u30b6\u30fc\u540d', 'Pochta manzili': '\u30e1\u30fc\u30eb\u30a2\u30c9\u30ec\u30b9' },
+  ko: { 'Xizmatlar': '\uc11c\ube44\uc2a4', 'AI Yordamchi': 'AI \ub3c4\uc6b0\ubbf8', 'Reja': '\ud50c\ub798\ub108', 'Profil': '\ud504\ub85c\ud544', 'Chiqish': '\ub85c\uadf8\uc544\uc6c3', 'Kirish': '\ub85c\uadf8\uc778', 'Parol': '\ube44\ubc00\ubc88\ud638', 'Parolni unutdingizmi?': '\ube44\ubc00\ubc88\ud638\ub97c \uc78a\uc73c\uc168\ub098\uc694?', 'Foydalanuvchi nomi': '\uc0ac\uc6a9\uc790 \uc774\ub984', 'Pochta manzili': '\uc774\uba54\uc77c \uc8fc\uc18c' },
+  it: { 'Xizmatlar': 'Servizi', 'AI Yordamchi': 'Assistente IA', 'Reja': 'Pianificatore', 'Profil': 'Profilo', 'Chiqish': 'Esci', 'Kirish': 'Accedi', 'Parol': 'Password', 'Parolni unutdingizmi?': 'Password dimenticata?', 'Foydalanuvchi nomi': 'Nome utente', 'Pochta manzili': 'Indirizzo email' },
+  pt: { 'Xizmatlar': 'Servicos', 'AI Yordamchi': 'Assistente IA', 'Reja': 'Planejador', 'Profil': 'Perfil', 'Chiqish': 'Sair', 'Kirish': 'Entrar', 'Parol': 'Senha', 'Parolni unutdingizmi?': 'Esqueceu a senha?', 'Foydalanuvchi nomi': 'Nome de usuario', 'Pochta manzili': 'Email' },
 }
-export function setLanguage(value) {
-  if (!['uz', 'ru', 'en'].includes(value)) return
-  language.value = value
-  localStorage.setItem('qulay_language', value)
-  document.documentElement.lang = value
+const locales = { uz: 'uz-UZ', ru: 'ru-RU', en: 'en-US', kk: 'kk-KZ', tr: 'tr-TR', ar: 'ar', zh: 'zh-CN', fr: 'fr-FR', de: 'de-DE', es: 'es-ES', hi: 'hi-IN', ja: 'ja-JP', ko: 'ko-KR', it: 'it-IT', pt: 'pt-PT' }
+
+export function setLanguage(code) {
+  if (!supportedCodes.has(code)) return
+  language.value = code
+  localStorage.setItem('qulay_language', code)
+  document.documentElement.lang = code
+  document.documentElement.dir = code === 'ar' || code === 'fa' ? 'rtl' : 'ltr'
 }
 export function initLanguage() { setLanguage(language.value) }
 export function useI18n() {
-  const t = (key) => messages[language.value]?.[key] || key
-  return { language, setLanguage, t, locale: () => ({ uz: 'uz-UZ', ru: 'ru-RU', en: 'en-US' })[language.value] }
+  return { language, setLanguage, t: (key) => common[language.value]?.[key] || key, locale: () => locales[language.value] || 'en-US' }
 }
-watch(language, (value) => { document.documentElement.lang = value })
+watch(language, (code) => { document.documentElement.lang = code })

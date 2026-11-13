@@ -154,3 +154,17 @@ class WeatherEndpointTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("lat", response.data)
+
+    @patch("apps.services.weather.requests.get")
+    def test_geocoding_accepts_additional_two_letter_language(self, get):
+        cache.clear()
+        provider_response = Mock()
+        provider_response.raise_for_status.return_value = None
+        provider_response.json.return_value = {"results": []}
+        get.return_value = provider_response
+        self.client.force_authenticate(self.user)
+
+        response = self.client.get(reverse("weather-search"), {"q": "Paris", "lang": "fr"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(get.call_args.kwargs["params"]["language"], "fr")

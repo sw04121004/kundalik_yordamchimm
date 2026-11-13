@@ -4,10 +4,12 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../store/auth'
 import FormAlert from '../components/FormAlert.vue'
 import { Eye, EyeOff } from 'lucide-vue-next'
+import { useI18n } from '../i18n'
 import LanguageSwitcher from '../components/LanguageSwitcher.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
+const { t } = useI18n()
 
 const form = reactive({ username: '', email: '', password: '', password2: '', first_name: '' })
 const error = ref('')
@@ -57,7 +59,7 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-[#f4f6fb] dark:bg-[#0d1117] px-4 py-12">
+  <div class="min-h-screen flex items-center justify-center bg-[#f6f7f9] dark:bg-[#111318] px-4 py-12">
     <div class="absolute top-4 right-4"><LanguageSwitcher /></div>
     <div class="w-full max-w-md animate-fadeUp">
       <div class="text-center mb-8">
@@ -68,30 +70,30 @@ async function handleSubmit() {
           </div>
           <span class="font-bold text-xl text-slate-800 dark:text-slate-100 tracking-tight">Kundalik</span>
         </router-link>
-        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Ro'yxatdan o'tish</h1>
-        <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Yangi hisob yarating</p>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">{{ t("Ro'yxatdan o'tish") }}</h1>
+        <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">{{ t('Yangi hisob yarating') }}</p>
       </div>
 
       <div class="card p-6 sm:p-8">
         <FormAlert :message="error" class="mb-5" />
         <form class="space-y-4" @submit.prevent="handleSubmit">
           <div>
-            <label class="label">Foydalanuvchi nomi</label>
+            <label class="label">{{ t('Foydalanuvchi nomi') }}</label>
             <input v-model="form.username" type="text" class="input" placeholder="aziz_dev" />
             <p v-if="fieldErrors.username" class="text-red-500 text-sm mt-1">{{ fieldErrors.username }}</p>
           </div>
           <div>
-            <label class="label">Ism</label>
+            <label class="label">{{ t('Ism') }}</label>
             <input v-model="form.first_name" type="text" class="input" placeholder="Aziz" />
             <p v-if="fieldErrors.first_name" class="text-red-500 text-sm mt-1">{{ fieldErrors.first_name }}</p>
           </div>
           <div>
-            <label class="label">Pochta manzili</label>
+            <label class="label">{{ t('Pochta manzili') }}</label>
             <input v-model="form.email" type="email" class="input" placeholder="aziz@example.com" />
             <p v-if="fieldErrors.email" class="text-red-500 text-sm mt-1">{{ fieldErrors.email }}</p>
           </div>
           <div>
-            <label class="label">Parol</label>
+            <label class="label">{{ t('Parol') }}</label>
             <div class="relative">
               <input v-model="form.password" :type="showPassword ? 'text' : 'password'" class="input pr-10" placeholder="••••••••" minlength="8" />
               <p class="text-red-500 text-sm">{{ fieldErrors.password }}</p>
@@ -102,7 +104,7 @@ async function handleSubmit() {
             </div>
           </div>
           <div>
-            <label class="label">Parolni tasdiqlang</label>
+            <label class="label">{{ t('Parolni tasdiqlang') }}</label>
             <div class="relative">
               <input v-model="form.password2" :type="showPasswordConfirm ? 'text' : 'password'" class="input pr-10" placeholder="••••••••" />
               <p class="text-red-500 text-sm">{{ fieldErrors.password2 }}</p>
@@ -114,13 +116,13 @@ async function handleSubmit() {
           </div>
           <button type="submit" class="btn-primary w-full mt-4" :disabled="submitting">
             <span v-if="submitting" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-            {{ submitting ? 'Yaratilmoqda...' : "Ro'yxatdan o'tish" }}
+            {{ submitting ? t('Yaratilmoqda...') : t("Ro'yxatdan o'tish") }}
           </button>
         </form>
 
         <p class="text-center text-sm text-slate-500 dark:text-slate-400 mt-5">
-          Hisobingiz bormi?
-          <router-link :to="{ name: 'login' }" class="text-brand-600 dark:text-brand-400 font-semibold hover:underline ml-1">Kirish</router-link>
+          {{ t('Hisobingiz bormi?') }}
+          <router-link :to="{ name: 'login' }" class="text-brand-600 dark:text-brand-400 font-semibold hover:underline ml-1">{{ t('Kirish') }}</router-link>
         </p>
       </div>
     </div>

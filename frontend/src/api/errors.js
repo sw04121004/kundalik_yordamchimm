@@ -16,6 +16,7 @@ export function extractErrorMessage(error, fallback = SAFE_FALLBACK) {
   if (status === 403) return "Bu amalni bajarish uchun ruxsat yo'q."
   if (status === 404) return "So'ralgan ma'lumot topilmadi."
   if (status === 429) return "So'rovlar limiti tugadi. Birozdan so'ng qayta urinib ko'ring."
+  if (status === 503 && safePlainMessage(data?.detail)) return data.detail
   if (status >= 500) return "Serverda vaqtinchalik xatolik yuz berdi. Keyinroq qayta urinib ko'ring."
 
   if (status === 400 && data && typeof data === 'object') {
