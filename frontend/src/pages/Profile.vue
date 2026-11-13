@@ -5,9 +5,11 @@ import { useAuthStore } from '../store/auth'
 import AppHeader from '../components/AppHeader.vue'
 import FormAlert from '../components/FormAlert.vue'
 import { Eye, EyeOff } from 'lucide-vue-next'
+import { useI18n } from '../i18n'
 
 const router = useRouter()
 const auth = useAuthStore()
+const { t } = useI18n()
 
 const profileForm = reactive({
   first_name: '',
@@ -133,26 +135,26 @@ async function deleteAccount() {
           {{ (auth.user?.username || 'U').charAt(0).toUpperCase() }}
         </div>
         <div>
-          <h1 class="text-xl font-extrabold text-slate-800 dark:text-slate-100">Profil</h1>
+          <h1 class="text-xl font-extrabold text-slate-800 dark:text-slate-100">{{ t('Profil') }}</h1>
           <p class="text-sm text-slate-500 dark:text-slate-400">{{ auth.user?.username }}</p>
         </div>
       </div>
 
       <div class="card p-6 sm:p-7 mb-6">
-        <h2 class="font-bold text-slate-800 dark:text-slate-100 mb-4">Shaxsiy ma’lumotlar</h2>
+        <h2 class="font-bold text-slate-800 dark:text-slate-100 mb-4">{{ t('profile.personal') }}</h2>
         <FormAlert :message="profileError" />
         <FormAlert :message="profileSuccess" type="success" />
         <form class="space-y-4" @submit.prevent="saveProfile">
           <div>
-            <label class="label">Ism</label>
-            <input v-model="profileForm.first_name" type="text" class="input" placeholder="Ismingiz" />
+            <label class="label">{{ t('profile.name') }}</label>
+            <input v-model="profileForm.first_name" type="text" class="input" :placeholder="t('profile.name')" />
           </div>
           <div>
-            <label class="label">Email</label>
+            <label class="label">{{ t('profile.email') }}</label>
             <input v-model="profileForm.email" type="email" class="input" placeholder="email@example.com" />
           </div>
           <button type="submit" class="btn-primary" :disabled="profileSubmitting">
-            {{ profileSubmitting ? 'Saqlanmoqda...' : 'Saqlash' }}
+            {{ profileSubmitting ? '...' : t('profile.save') }}
           </button>
         </form>
       </div>
@@ -163,7 +165,7 @@ async function deleteAccount() {
         <FormAlert :message="passwordSuccess" type="success" />
         <form class="space-y-4" @submit.prevent="savePassword">
           <div>
-            <label class="label">Joriy parol</label>
+            <label class="label">{{ t('profile.currentPassword') }}</label>
             <div class="relative">
               <input v-model="passwordForm.old_password" :type="showOldPassword ? 'text' : 'password'" class="input pr-10" placeholder="••••••••" autocomplete="current-password" />
               <button type="button" :aria-label="showOldPassword ? 'Parolni yashirish' : 'Parolni ko‘rsatish'" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" @click="showOldPassword = !showOldPassword">
@@ -172,7 +174,7 @@ async function deleteAccount() {
             </div>
           </div>
           <div>
-            <label class="label">Yangi parol</label>
+            <label class="label">{{ t('profile.newPassword') }}</label>
             <div class="relative">
               <input v-model="passwordForm.new_password" :type="showNewPassword ? 'text' : 'password'" class="input pr-10" placeholder="••••••••" autocomplete="new-password" />
               <button type="button" :aria-label="showNewPassword ? 'Parolni yashirish' : 'Parolni ko‘rsatish'" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" @click="showNewPassword = !showNewPassword">
@@ -211,7 +213,7 @@ async function deleteAccount() {
         <FormAlert :message="deleteError" />
         <form class="space-y-4" @submit.prevent="deleteAccount">
           <div>
-            <label for="delete-account-password" class="label">Joriy parol</label>
+            <label for="delete-account-password" class="label">{{ t('profile.currentPassword') }}</label>
             <div class="relative">
               <input id="delete-account-password" v-model="deletePassword" :type="showDeletePassword ? 'text' : 'password'" class="input pr-10" autocomplete="current-password" required />
               <button type="button" :aria-label="showDeletePassword ? 'Parolni yashirish' : 'Parolni ko‘rsatish'" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" @click="showDeletePassword = !showDeletePassword">

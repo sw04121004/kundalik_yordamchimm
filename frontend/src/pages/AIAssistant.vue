@@ -6,10 +6,12 @@ import DOMPurify from 'dompurify'
 import { Bot } from 'lucide-vue-next'
 import AppHeader from '../components/AppHeader.vue'
 import { useAiStore, PURPOSES, purposeMeta } from '../store/ai'
+import { useI18n } from '../i18n'
 
 const aiStore = useAiStore()
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 
 const STARTER_PROMPTS = {
   kitchen: ["Uyda bor mahsulotlarimdan ovqat topib ber", "Bugungi kechki ovqat uchun menyu tuz"],
@@ -230,8 +232,8 @@ function autoResize(el) {
           <button class="btn-primary w-full text-sm justify-center" @click="startNew">+ Yangi suhbat</button>
         </div>
         <div class="flex-1 overflow-y-auto p-2 space-y-1">
-          <p v-if="aiStore.conversationsLoading" class="text-sm text-slate-400 px-3 py-4 text-center">Yuklanmoqda...</p>
-          <p v-else-if="!aiStore.conversations.length" class="text-sm text-slate-400 px-3 py-6 text-center">Hali suhbatlar yo'q.</p>
+          <p v-if="aiStore.conversationsLoading" class="text-sm text-slate-400 px-3 py-4 text-center">{{ t('dash.loading') }}...</p>
+          <p v-else-if="!aiStore.conversations.length" class="text-sm text-slate-400 px-3 py-6 text-center">{{ t('ai.chats') }}</p>
           <div
             v-for="conv in aiStore.conversations"
             :key="conv.id"
@@ -263,7 +265,7 @@ function autoResize(el) {
         <div v-if="sidebarOpen" class="md:hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm" @click.self="sidebarOpen = false">
           <div class="absolute left-0 top-0 bottom-0 w-72 bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-700/60 p-4 flex flex-col">
             <div class="flex items-center justify-between mb-4">
-              <h2 class="font-bold text-slate-800 dark:text-white">Suhbatlar</h2>
+              <h2 class="font-bold text-slate-800 dark:text-white">{{ t('ai.chats') }}</h2>
               <button class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500" @click="sidebarOpen = false">×</button>
             </div>
             <button class="btn-primary w-full text-sm justify-center mb-4" @click="startNew">+ Yangi suhbat</button>
@@ -299,8 +301,8 @@ function autoResize(el) {
           <div class="max-w-2xl w-full animate-fadeUp">
             <div class="text-center mb-8">
               <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-100 to-emerald-50 dark:from-brand-900/60 dark:to-emerald-950/50 border border-brand-200/70 dark:border-brand-700/50 text-brand-700 dark:text-brand-300 flex items-center justify-center mx-auto mb-4 animate-float"><Bot class="w-8 h-8" aria-hidden="true" /></div>
-              <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">AI Yordamchi</h1>
-              <p class="text-slate-500 dark:text-slate-400">Qaysi sohada yordam kerak?</p>
+              <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">{{ t('AI Yordamchi') }}</h1>
+              <p class="text-slate-500 dark:text-slate-400">{{ t('ai.need') }}</p>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
               <button
@@ -337,7 +339,7 @@ function autoResize(el) {
           <div class="flex-1 overflow-y-auto px-4 sm:px-5 py-5 space-y-4">
             
             <div v-if="!aiStore.current.messages.length" class="mt-8 mb-4 animate-fadeUp max-w-xl mx-auto w-full">
-              <p class="text-center text-slate-400 text-sm mb-6">Yoki quyidagilardan birini tanlang:</p>
+              <p class="text-center text-slate-400 text-sm mb-6">{{ t('ai.choose') }}</p>
               <div class="flex flex-wrap justify-center gap-2.5">
                 <button
                   v-for="(prompt, i) in (STARTER_PROMPTS[aiStore.current.purpose] || STARTER_PROMPTS['general'])"
@@ -374,7 +376,7 @@ function autoResize(el) {
                 <button
                   class="mt-2 text-xs font-medium text-brand-600 dark:text-brand-400 hover:underline"
                   @click="saveMessageAsPdf(msg.content)"
-                >PDF qilib saqlash</button>
+                >{{ t('ai.savePdf') }}</button>
               </div>
             </div>
 

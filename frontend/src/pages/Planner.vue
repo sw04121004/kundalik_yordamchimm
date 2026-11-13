@@ -1,11 +1,13 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { usePlannerStore } from '../store/planner'
+import { useI18n } from '../i18n'
 import AppHeader from '../components/AppHeader.vue'
 import FormAlert from '../components/FormAlert.vue'
 import { CalendarDays } from 'lucide-vue-next'
 
 const planner = usePlannerStore()
+const { t } = useI18n()
 const form = reactive({ title: '', due_date: '', due_time: '' })
 const submitting = ref(false)
 
@@ -71,8 +73,8 @@ function formatTime(t) { return t ? t.slice(0, 5) : '' }
           <CalendarDays class="w-6 h-6" aria-hidden="true" />
         </div>
         <div>
-          <h1 class="text-xl font-bold text-slate-900 dark:text-white">Reja / To-do</h1>
-          <p class="text-sm text-slate-500 dark:text-slate-400">Kunlik vazifalaringiz</p>
+          <h1 class="text-xl font-bold text-slate-900 dark:text-white">{{ t('planner.title') }}</h1>
+          <p class="text-sm text-slate-500 dark:text-slate-400">{{ t('planner.subtitle') }}</p>
         </div>
       </div>
 
@@ -84,7 +86,7 @@ function formatTime(t) { return t ? t.slice(0, 5) : '' }
             v-model="form.title"
             type="text"
             class="input"
-            placeholder="Yangi vazifa... (masalan: Ingliz tili 30 daqiqa)"
+            :placeholder="t('planner.new')"
           />
           <div class="grid grid-cols-2 gap-3">
             <input v-model="form.due_date" type="date" class="input" :min="today" />
@@ -92,7 +94,7 @@ function formatTime(t) { return t ? t.slice(0, 5) : '' }
           </div>
           <button type="submit" class="btn-primary w-full" :disabled="submitting">
             <span v-if="submitting" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-            {{ submitting ? "Qo'shilmoqda..." : "+ Vazifa qo'shish" }}
+            {{ submitting ? '...' : `+ ${t('planner.add')}` }}
           </button>
         </form>
       </div>
@@ -100,14 +102,14 @@ function formatTime(t) { return t ? t.slice(0, 5) : '' }
       <!-- Loading -->
       <div v-if="planner.loading" class="text-center py-12 text-slate-400">
         <div class="w-7 h-7 border-2 border-brand-500/30 border-t-brand-500 rounded-full animate-spin mx-auto mb-3"></div>
-        Yuklanmoqda...
+        {{ t('planner.loading') }}
       </div>
 
       <!-- Empty state -->
       <div v-else-if="!planner.tasks.length" class="text-center py-16 border-2 border-dashed border-slate-200 dark:border-slate-700/50 rounded-2xl">
         <div class="text-4xl mb-3 opacity-40">🗒️</div>
-        <p class="font-semibold text-slate-600 dark:text-slate-400">Hali vazifalar yo'q</p>
-        <p class="text-sm text-slate-400 mt-1">Birinchi vazifangizni qo'shing</p>
+        <p class="font-semibold text-slate-600 dark:text-slate-400">{{ t('planner.empty') }}</p>
+        <p class="text-sm text-slate-400 mt-1">{{ t('planner.first') }}</p>
       </div>
 
       <!-- Task groups -->

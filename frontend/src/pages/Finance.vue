@@ -6,8 +6,10 @@ import FormAlert from '../components/FormAlert.vue'
 import api from '../api/axios'
 import { extractErrorMessage } from '../api/errors'
 import { useAuthStore } from '../store/auth'
+import { useI18n } from '../i18n'
 
 const auth = useAuthStore()
+const { t } = useI18n()
 
 const categories = [
   { id: 'salary', name: 'Maosh / Daromad', icon: '💰', type: 'income' },
@@ -188,19 +190,19 @@ function getCatMeta(catId) {
       <!-- Summary Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="finance-summary finance-summary-primary">
-          <span class="text-xs uppercase tracking-wider text-slate-600 dark:text-slate-300">Balans</span>
+          <span class="text-xs uppercase tracking-wider text-slate-600 dark:text-slate-300">{{ t('finance.balance') }}</span>
           <div class="text-2xl font-bold mt-2 font-mono text-slate-900 dark:text-white">
             {{ formatSum(balance) }}
           </div>
         </div>
         <div class="finance-summary finance-summary-income">
-          <span class="text-xs uppercase tracking-wider text-slate-600 dark:text-slate-300">Jami Kirim</span>
+          <span class="text-xs uppercase tracking-wider text-slate-600 dark:text-slate-300">{{ t('finance.income') }}</span>
           <div class="text-2xl font-bold mt-2 font-mono text-slate-900 dark:text-white">
             +{{ formatSum(totalIncome) }}
           </div>
         </div>
         <div class="finance-summary finance-summary-expense">
-          <span class="text-xs uppercase tracking-wider text-slate-600 dark:text-slate-300">Jami Chiqim</span>
+          <span class="text-xs uppercase tracking-wider text-slate-600 dark:text-slate-300">{{ t('finance.expense') }}</span>
           <div class="text-2xl font-bold mt-2 font-mono text-slate-900 dark:text-white">
             -{{ formatSum(totalExpense) }}
           </div>
@@ -234,11 +236,11 @@ function getCatMeta(catId) {
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="label text-xs">Summa (so'mda)</label>
+              <label class="label text-xs">{{ t('finance.amount') }}</label>
               <input v-model="newTx.amount" type="number" min="0" max="1000000000000" step="1000" class="input font-mono" placeholder="100 000" required @input="validateTransactionAmount" />
             </div>
             <div>
-              <label class="label text-xs">Kategoriya</label>
+              <label class="label text-xs">{{ t('finance.category') }}</label>
               <select v-model="newTx.category" class="input">
                 <option v-for="c in categories" :key="c.id" :value="c.id">
                   {{ c.icon }} {{ c.name }}
@@ -248,8 +250,8 @@ function getCatMeta(catId) {
           </div>
 
           <div>
-            <label class="label text-xs">Izoh (ixtiyoriy)</label>
-            <input v-model="newTx.note" type="text" class="input" placeholder="Masalan: Tushlik va kofe" />
+            <label class="label text-xs">{{ t('finance.note') }}</label>
+            <input v-model="newTx.note" type="text" class="input" :placeholder="t('finance.noteHint')" />
           </div>
 
           <button type="submit" class="btn-primary w-full !py-2.5" :disabled="saving">

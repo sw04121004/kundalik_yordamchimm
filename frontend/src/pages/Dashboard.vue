@@ -8,11 +8,13 @@ import AppHeader from '../components/AppHeader.vue'
 import ServiceCard from '../components/ServiceCard.vue'
 import api from '../api/axios'
 import { Bot, CalendarDays, CloudSun, Layers, Search, Sparkles, Star, Sun, WalletCards } from 'lucide-vue-next'
+import { useI18n } from '../i18n'
 
 const servicesStore = useServicesStore()
 const aiStore = useAiStore()
 const auth = useAuthStore()
 const planner = usePlannerStore()
+const { t, language, locale } = useI18n()
 const search = ref('')
 const todayExpenses = ref(null)
 const displayedExpenses = ref(0)
@@ -78,10 +80,14 @@ onUnmounted(() => {
 
 const greeting = computed(() => {
   const h = new Date().getHours()
-  if (h < 6)  return { icon: '🌙', text: 'Xayrli tun' }
-  if (h < 12) return { icon: '☀️', text: 'Xayrli tong' }
-  if (h < 18) return { icon: '🌤️', text: 'Xayrli kun' }
-  return { icon: '🌇', text: 'Xayrli kech' }
+  const period = h < 6 ? 0 : h < 12 ? 1 : h < 18 ? 2 : 3
+  const words = {
+    uz: ['Xayrli tun', 'Xayrli tong', 'Xayrli kun', 'Xayrli kech'],
+    ru: ['Доброй ночи', 'Доброе утро', 'Добрый день', 'Добрый вечер'],
+    en: ['Good night', 'Good morning', 'Good afternoon', 'Good evening'],
+  }
+  const icons = ['🌙', '☀️', '🌤️', '🌇']
+  return { icon: icons[period], text: (words[language.value] || words.en)[period] }
 })
 
 const AI_ONLY_SLUGS = new Set(['oshxona-ai', 'uy-ai', 'oqish-ai', 'hujjat-ai'])
@@ -148,7 +154,7 @@ const timeBasedPrompts = computed(() => {
               {{ greeting.text }}<span v-if="auth.user?.first_name || auth.user?.username">, {{ auth.user.first_name || auth.user.username }}</span>!
             </h1>
           </div>
-          <p class="text-slate-500 dark:text-slate-400 text-sm sm:text-base mb-6 font-medium">Sizga bugun nimada yordam beramiz?</p>
+          <p class="text-slate-500 dark:text-slate-400 text-sm sm:text-base mb-6 font-medium">{{ t('dash.prompt') }}</p>
 
           <!-- Search Bar with glowing aura from Selected Theme -->
           <div class="relative w-full max-w-xl mx-auto group">
@@ -158,7 +164,7 @@ const timeBasedPrompts = computed(() => {
                 v-model="search"
                 type="text"
                 class="input !pl-11 !py-3 !rounded-2xl shadow-sm text-sm bg-white dark:bg-[#1d2523] border-slate-200 dark:border-white/10 focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-200"
-                placeholder="Masalan: foiz hisoblash, rasm o'lchamini o'zgartirish, maosh..."
+                :placeholder="t('dash.search')"
               />
               <button v-if="search" @click="search=''" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 focus:outline-none transition-transform hover:scale-125">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -171,7 +177,7 @@ const timeBasedPrompts = computed(() => {
         <section v-if="!isSearching" class="mb-10 animate-fadeUp">
           <div class="flex items-center gap-2 mb-3">
             <Bot class="w-5 h-5 text-brand-700 dark:text-brand-300" aria-hidden="true" />
-            <span class="text-sm font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Sizga bugun nimada yordam beray?</span>
+            <span class="text-sm font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider">{{ t('dash.ask') }}</span>
           </div>
           <div class="flex flex-wrap gap-2.5">
             <router-link
@@ -186,7 +192,7 @@ const timeBasedPrompts = computed(() => {
               :to="{ name: 'weather' }"
               class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 border border-brand-200/70 dark:border-brand-700/50 bg-brand-50/70 dark:bg-brand-900/20 text-brand-800 dark:text-brand-200 hover:-translate-y-0.5"
             >
-              <CloudSun class="w-4 h-4" aria-hidden="true" /> Ob-havo
+              <CloudSun class="w-4 h-4" aria-hidden="true" /> {{ t('weather.title') }}
             </router-link>
           </div>
         </section>
@@ -194,7 +200,7 @@ const timeBasedPrompts = computed(() => {
         <!-- Mening kunim (My Day widgets) reacting to Selected Theme -->
         <section v-if="!isSearching" class="mb-10 animate-fadeUp">
           <h2 class="text-sm font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-3.5 flex items-center gap-2">
-            <CalendarDays class="w-5 h-5 text-brand-700 dark:text-brand-300" aria-hidden="true" /> Mening kunim
+            <CalendarDays class="w-5 h-5 text-brand-700 dark:text-brand-300" aria-hidden="true" /> {{ t('dash.myDay') }}
           </h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
@@ -204,8 +210,8 @@ const timeBasedPrompts = computed(() => {
                 <div class="flex items-center gap-2.5">
                   <div class="w-10 h-10 rounded-lg bg-brand-50 dark:bg-brand-950/40 border border-brand-200/50 dark:border-brand-500/30 flex items-center justify-center text-brand-700 dark:text-brand-300 transition-transform duration-200 group-hover:scale-105"><CalendarDays class="w-5 h-5" aria-hidden="true" /></div>
                   <div>
-                    <p class="text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-brand-500 dark:group-hover:text-brand-300 transition-colors">Bugungi rejangiz</p>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Kunlik vazifalar</p>
+                    <p class="text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-brand-500 dark:group-hover:text-brand-300 transition-colors">{{ t('dash.plan') }}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">{{ t('dash.tasks') }}</p>
                   </div>
                 </div>
                 <span v-if="planner.todayTotal > 0" class="text-xs font-extrabold px-2.5 py-1 rounded-full bg-brand-100 text-brand-800 dark:bg-brand-950/60 dark:text-brand-300 border border-brand-200/60 dark:border-brand-500/30">
@@ -231,7 +237,7 @@ const timeBasedPrompts = computed(() => {
                   </li>
                 </ul>
               </template>
-              <p v-else class="text-sm text-slate-400 dark:text-slate-500 py-1">Bugunga reja yo'q. Yangi vazifa qo'shish uchun bosing →</p>
+              <p v-else class="text-sm text-slate-400 dark:text-slate-500 py-1">{{ t('dash.noPlan') }}</p>
             </router-link>
 
             <!-- Finance Widget -->
@@ -240,17 +246,17 @@ const timeBasedPrompts = computed(() => {
                 <div class="flex items-center gap-2.5">
                   <div class="w-10 h-10 rounded-lg bg-brand-50 dark:bg-brand-950/40 border border-brand-200/50 dark:border-brand-500/30 flex items-center justify-center text-brand-700 dark:text-brand-300 transition-transform duration-200 group-hover:scale-105"><WalletCards class="w-5 h-5" aria-hidden="true" /></div>
                   <div>
-                    <p class="text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-brand-500 dark:group-hover:text-brand-300 transition-colors">Mening pulim</p>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Moliya va byudjet</p>
+                    <p class="text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-brand-500 dark:group-hover:text-brand-300 transition-colors">{{ t('dash.money') }}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">{{ t('dash.budget') }}</p>
                   </div>
                 </div>
-                <span class="text-[11px] font-extrabold px-2.5 py-0.5 bg-brand-100 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 border border-brand-300/40 rounded-full animate-pulse">Yangi xizmat</span>
+                <span class="text-[11px] font-extrabold px-2.5 py-0.5 bg-brand-100 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 border border-brand-300/40 rounded-full animate-pulse">{{ t('dash.new') }}</span>
               </div>
               <div class="relative z-10 min-h-10 flex items-center">
-                <div v-if="expensesLoading" class="h-8 w-40 rounded-md bg-slate-200 dark:bg-slate-700 animate-pulse" aria-label="Yuklanmoqda"></div>
-                <p v-else class="text-3xl font-bold text-slate-900 dark:text-white tracking-tight"><span>{{ todayExpenses === null ? '—' : new Intl.NumberFormat('uz-UZ').format(displayedExpenses) }}</span> <span class="text-base font-normal text-slate-500 dark:text-slate-400">so'm</span></p>
+                <div v-if="expensesLoading" class="h-8 w-40 rounded-md bg-slate-200 dark:bg-slate-700 animate-pulse" :aria-label="t('dash.loading')"></div>
+                <p v-else class="text-3xl font-bold text-slate-900 dark:text-white tracking-tight"><span>{{ todayExpenses === null ? '—' : new Intl.NumberFormat(locale()).format(displayedExpenses) }}</span> <span class="text-base font-normal text-slate-500 dark:text-slate-400">{{ t('dash.currency') }}</span></p>
               </div>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 relative z-10 group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors">Bugungi xarajatlar. Byudjetni rejalashtirish uchun kiring →</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 relative z-10 group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors">{{ t('dash.expenses') }}</p>
             </router-link>
           </div>
         </section>
@@ -260,12 +266,12 @@ const timeBasedPrompts = computed(() => {
           <div class="flex items-center justify-between mb-4">
             <div>
               <h2 class="text-sm font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                <Bot class="w-5 h-5 text-brand-700 dark:text-brand-300" aria-hidden="true" /> AI Yordamchi
+                <Bot class="w-5 h-5 text-brand-700 dark:text-brand-300" aria-hidden="true" /> {{ t('dash.ai') }}
               </h2>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Kerakli AI yordamchini tanlang</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">{{ t('dash.chooseAi') }}</p>
             </div>
             <router-link :to="{ name: 'ai-assistant' }" class="text-xs font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition-colors flex items-center gap-1">
-              Barcha AI yordamchilar <span>→</span>
+              {{ t('dash.allAi') }} <span>→</span>
             </router-link>
           </div>
           
@@ -285,7 +291,7 @@ const timeBasedPrompts = computed(() => {
         <!-- Favorites (If Any) -->
         <section v-if="!isSearching && favoriteServices.length" class="mb-12 animate-fadeUp">
           <h2 class="text-sm font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <Star class="w-4 h-4 text-amber-600 dark:text-amber-400" aria-hidden="true" /> Sevimlilar
+            <Star class="w-4 h-4 text-amber-600 dark:text-amber-400" aria-hidden="true" /> {{ t('dash.favorites') }}
           </h2>
           <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 stagger-children">
             <ServiceCard v-for="svc in favoriteServices" :key="svc.id" v-bind="svc" />
@@ -297,14 +303,14 @@ const timeBasedPrompts = computed(() => {
         <!-- Search empty state -->
         <div v-if="isSearching && !hasResults" class="text-center py-20 animate-fadeUp">
           <div class="text-5xl mb-3 animate-bounceSoft">🔍</div>
-          <p class="font-bold text-slate-700 dark:text-slate-300 text-lg">Hech qanday xizmat topilmadi</p>
-          <p class="text-sm text-slate-400 mt-1">Boshqa so'z bilan qidirib ko'ring</p>
+          <p class="font-bold text-slate-700 dark:text-slate-300 text-lg">{{ t('dash.none') }}</p>
+          <p class="text-sm text-slate-400 mt-1">{{ t('dash.tryOther') }}</p>
         </div>
 
         <!-- All Services by Category (With dynamic selected theme lighting & rich animations) -->
         <div v-if="servicesStore.loading" class="text-center py-12 text-slate-400">
           <div class="inline-block w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mb-3"></div>
-          <p class="text-sm font-medium">Xizmatlar yuklanmoqda...</p>
+          <p class="text-sm font-medium">{{ t('dash.servicesLoading') }}</p>
         </div>
 
         
