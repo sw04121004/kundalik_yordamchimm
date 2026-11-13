@@ -135,6 +135,7 @@ const heroWords = computed(() =>
     </section>
 
     <footer class="border-t border-slate-100 dark:border-slate-800 py-8 text-center text-sm text-slate-400">
+      <nav class="mb-3 flex justify-center gap-5"><router-link to="/privacy" class="underline">Maxfiylik</router-link><router-link to="/terms" class="underline">Foydalanish shartlari</router-link><a href="https://github.com/sw04121004/kundalik_yordamchimm/issues" class="underline">Aloqa</a></nav>
       © 2026 Kundalik Yordamchi. Barcha xizmatlar bepul va reklamasiz.
     </footer>
   </div>

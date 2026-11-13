@@ -23,6 +23,8 @@ const routes = [
     component: () => import('../pages/Register.vue'),
     meta: { guestOnly: true },
   },
+  { path: '/privacy', name: 'privacy', component: () => import('../pages/Legal.vue') },
+  { path: '/terms', name: 'terms', component: () => import('../pages/Legal.vue') },
   {
     path: '/dashboard',
     name: 'dashboard',

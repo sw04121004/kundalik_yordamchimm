@@ -7,6 +7,9 @@ import './assets/main.css'
 import './assets/animations.css'
 import { initLanguage } from './i18n'
 initLanguage()
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}))
+}
 
 const app = createApp(App)
 

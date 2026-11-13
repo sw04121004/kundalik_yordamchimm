@@ -7,15 +7,15 @@ import {
 import AppHeader from '../components/AppHeader.vue'
 import api from '../api/axios'
 import { extractErrorMessage } from '../api/errors'
+import { useI18n } from '../i18n'
 
 const LOCATION_KEY = 'qulay_weather_location'
 const DEFAULT_LOCATION = {
   name: 'Toshkent', admin1: 'Toshkent shahri', country: "O'zbekiston",
   country_code: 'UZ', lat: 41.3111, lon: 69.2797,
 }
-const language = localStorage.getItem('qulay_language') || 'uz'
-const locale = { uz: 'uz-UZ', ru: 'ru-RU', en: 'en-US' }[language] || 'uz-UZ'
-const numberFormat = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 })
+const { language, locale: currentLocale } = useI18n()
+const numberFormat = computed(() => new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 1 }))
 const translations = {
   uz: {
     title: "Ob-havo", subtitle: "Shaharni qidiring va yaqin kunlar prognozini ko'ring",
@@ -51,7 +51,7 @@ const translations = {
     error: "Could not load weather information.",
   },
 }
-const t = translations[language] || translations.uz
+const t = computed(() => translations[language.value] || translations.uz)
 const countryOptions = [
   ['UZ', 'O‘zbekiston'], ['KZ', 'Qozog‘iston'], ['KG', 'Qirg‘iziston'], ['TJ', 'Tojikiston'],
   ['RU', 'Rossiya'], ['TR', 'Turkiya'], ['US', 'AQSh'], ['GB', 'Buyuk Britaniya'],
@@ -113,7 +113,7 @@ function formatDay(value) {
 }
 
 function formatNumber(value) {
-  return numberFormat.format(Number(value))
+  return numberFormat.value.format(Number(value))
 }
 
 function searchCity() {
@@ -134,7 +134,7 @@ function searchCity() {
         searched.value = true
       }
     } catch (requestError) {
-      if (requestId === searchRequestId) error.value = extractErrorMessage(requestError, t.error)
+      if (requestId === searchRequestId) error.value = extractErrorMessage(requestError, t.value.error)
     } finally {
       if (requestId === searchRequestId) searchLoading.value = false
     }
@@ -164,7 +164,7 @@ async function loadForecast() {
     forecast.value = data
     lastUpdated.value = new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }).format(new Date())
   } catch (requestError) {
-    error.value = extractErrorMessage(requestError, t.error)
+    error.value = extractErrorMessage(requestError, t.value.error)
   } finally {
     loading.value = false
   }
