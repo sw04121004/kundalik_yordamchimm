@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import (CategoryListView,FavoriteDeleteView,FavoriteListCreateView,ServiceListView,StatsView,UsageLogListCreateView,TransactionListCreateView,TransactionRetrieveUpdateDestroyView,LegacyTransactionImportView)
+from .views import (CategoryListView,FavoriteDeleteView,FavoriteListCreateView,ServiceListView,StatsView,UsageLogListCreateView,TransactionListCreateView,TransactionRetrieveUpdateDestroyView,LegacyTransactionImportView,WeatherSearchView,WeatherForecastView)
 
 urlpatterns = [
     path("categories/", CategoryListView.as_view(), name="category-list"),
@@ -12,4 +12,6 @@ urlpatterns = [
     path("transactions/", TransactionListCreateView.as_view(), name="transaction-list-create"),
     path("transactions/import-legacy/", LegacyTransactionImportView.as_view(), name="transaction-import-legacy"),
     path("transactions/<int:pk>/", TransactionRetrieveUpdateDestroyView.as_view(), name="transaction-detail"),
+    path("weather/search/", WeatherSearchView.as_view(), name="weather-search"),
+    path("weather/forecast/", WeatherForecastView.as_view(), name="weather-forecast"),
 ]

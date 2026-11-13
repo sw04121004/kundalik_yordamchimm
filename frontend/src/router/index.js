@@ -234,6 +234,12 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/tools/weather',
+    name: 'weather',
+    component: () => import('../pages/Weather.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/kitchen',
     name: 'kitchen',
     component: () => import('../pages/Kitchen.vue'),

@@ -7,7 +7,7 @@ import { usePlannerStore } from '../store/planner'
 import AppHeader from '../components/AppHeader.vue'
 import ServiceCard from '../components/ServiceCard.vue'
 import api from '../api/axios'
-import { Bot, CalendarDays, Layers, Search, Sparkles, Star, Sun, WalletCards } from 'lucide-vue-next'
+import { Bot, CalendarDays, CloudSun, Layers, Search, Sparkles, Star, Sun, WalletCards } from 'lucide-vue-next'
 
 const servicesStore = useServicesStore()
 const aiStore = useAiStore()
@@ -180,6 +180,12 @@ const timeBasedPrompts = computed(() => {
               class="inline-flex items-center px-4 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 cursor-pointer border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1d2523] text-slate-700 dark:text-slate-200 hover:border-brand-500/50 hover:text-brand-700 dark:hover:text-brand-300 hover:-translate-y-0.5"
             >
               {{ action.text }}
+            </router-link>
+            <router-link
+              :to="{ name: 'weather' }"
+              class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 border border-brand-200/70 dark:border-brand-700/50 bg-brand-50/70 dark:bg-brand-900/20 text-brand-800 dark:text-brand-200 hover:-translate-y-0.5"
+            >
+              <CloudSun class="w-4 h-4" aria-hidden="true" /> Ob-havo
             </router-link>
           </div>
         </section>

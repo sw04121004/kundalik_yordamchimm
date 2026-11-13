@@ -3,6 +3,45 @@ from decimal import Decimal
 from .models import Category, Favorite, Service, UsageLog, Transaction
 
 
+class WeatherSearchQuerySerializer(serializers.Serializer):
+    q = serializers.CharField(
+        min_length=2,
+        max_length=100,
+        trim_whitespace=True,
+        error_messages={
+            "required": "Shahar nomini kiriting.",
+            "min_length": "Shahar nomini kamida 2 ta harf bilan kiriting.",
+            "max_length": "Shahar nomi juda uzun.",
+        },
+    )
+    country = serializers.RegexField(r"^[A-Za-z]{2}$", required=False, allow_blank=True)
+    lang = serializers.ChoiceField(choices=("uz", "ru", "en"), default="uz")
+
+
+class WeatherForecastQuerySerializer(serializers.Serializer):
+    lat = serializers.FloatField(
+        min_value=-90,
+        max_value=90,
+        error_messages={
+            "required": "Kenglik koordinatasi talab qilinadi.",
+            "invalid": "Kenglik koordinatasi noto'g'ri.",
+            "min_value": "Kenglik -90 dan kam bo'lmasin.",
+            "max_value": "Kenglik 90 dan oshmasin.",
+        },
+    )
+    lon = serializers.FloatField(
+        min_value=-180,
+        max_value=180,
+        error_messages={
+            "required": "Uzunlik koordinatasi talab qilinadi.",
+            "invalid": "Uzunlik koordinatasi noto'g'ri.",
+            "min_value": "Uzunlik -180 dan kam bo'lmasin.",
+            "max_value": "Uzunlik 180 dan oshmasin.",
+        },
+    )
+    lang = serializers.ChoiceField(choices=("uz", "ru", "en"), default="uz")
+
+
 class ServiceSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source="category.name", read_only=True)
 

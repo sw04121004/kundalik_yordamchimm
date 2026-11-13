@@ -15,7 +15,11 @@ from .serializers import (
     UsageLogSerializer,
     TransactionSerializer,
     LegacyTransactionBatchSerializer,
+    WeatherForecastQuerySerializer,
+    WeatherSearchQuerySerializer,
 )
+from .throttles import WeatherForecastThrottle, WeatherSearchThrottle
+from .weather import get_forecast, search_locations
 
 
 class CategoryListView(generics.ListAPIView):
@@ -128,3 +132,28 @@ class LegacyTransactionImportView(APIView):
                 )
                 created += int(was_created)
         return Response({"created": created, "received": len(serializer.validated_data["transactions"])})
+
+
+class WeatherSearchView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    throttle_classes = [WeatherSearchThrottle]
+
+    def get(self, request):
+        serializer = WeatherSearchQuerySerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        query = serializer.validated_data
+        results = search_locations(
+            query["q"], query.get("country", ""), query["lang"]
+        )
+        return Response({"results": results})
+
+
+class WeatherForecastView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    throttle_classes = [WeatherForecastThrottle]
+
+    def get(self, request):
+        serializer = WeatherForecastQuerySerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        query = serializer.validated_data
+        return Response(get_forecast(query["lat"], query["lon"]))

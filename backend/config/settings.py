@@ -146,6 +146,8 @@ REST_FRAMEWORK = {
         "auth_password_change": "5/hour",
         "ai_per_minute": "10/min",
         "ai_per_day": "100/day",
+        "weather_search": "30/min",
+        "weather_forecast": "30/min",
     },
     "DEFAULT_RENDERER_CLASSES": (
         "rest_framework.renderers.JSONRenderer",

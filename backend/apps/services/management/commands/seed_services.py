@@ -352,6 +352,21 @@ CATEGORIES = [
             },
         ],
     },
+    {
+        "name": "Ob-havo",
+        "slug": "ob-havo",
+        "icon": "🌦️",
+        "order": 14,
+        "services": [
+            {
+                "name": "Ob-havo",
+                "slug": "ob-havo",
+                "description": "Shaharlar bo'yicha hozirgi ob-havo va 14 kunlik prognoz",
+                "icon": "🌤️",
+                "route": "/tools/weather",
+            },
+        ],
+    },
 ]
 
 
