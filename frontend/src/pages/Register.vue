@@ -40,15 +40,17 @@ async function handleSubmit() {
     router.push({ name: 'dashboard' })
   } else {
     // Backend may return field errors in result.errors
+    let hasFieldErrors = false
     if (result.errors) {
       Object.entries(result.errors).forEach(([key, msgs]) => {
         if (fieldErrors.hasOwnProperty(key)) {
           fieldErrors[key] = Array.isArray(msgs) ? msgs.join(' ') : msgs
+          hasFieldErrors = true
         }
       })
     }
     // Show generic error if no field-specific errors
-    error.value = result.message
+    error.value = hasFieldErrors ? '' : result.message
   }
 }
 </script>
@@ -89,7 +91,7 @@ async function handleSubmit() {
           <div>
             <label class="label">Parol</label>
             <div class="relative">
-              <input v-model="form.password" :type="showPassword ? 'text' : 'password'" class="input pr-10" placeholder="••••••••" />
+              <input v-model="form.password" :type="showPassword ? 'text' : 'password'" class="input pr-10" placeholder="••••••••" minlength="8" />
               <p class="text-red-500 text-sm">{{ fieldErrors.password }}</p>
               <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none">
                 <Eye v-if="!showPassword" class="w-5 h-5" />

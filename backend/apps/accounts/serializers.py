@@ -1,8 +1,45 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 User = get_user_model()
+
+_PASSWORD_MESSAGES = {
+    "uz": {
+        "password_too_short": "Parol kamida 8 belgidan iborat bo‘lishi kerak.",
+        "password_too_common": "Bu parol juda keng tarqalgan. Boshqa, murakkabroq parol tanlang.",
+        "password_entirely_numeric": "Parol faqat raqamlardan iborat bo‘lmasin.",
+        "password_too_similar": "Parol foydalanuvchi ma’lumotlariga juda o‘xshash bo‘lmasin.",
+    },
+    "ru": {
+        "password_too_short": "Пароль должен содержать не менее 8 символов.",
+        "password_too_common": "Этот пароль слишком распространён. Выберите более сложный пароль.",
+        "password_entirely_numeric": "Пароль не должен состоять только из цифр.",
+        "password_too_similar": "Пароль не должен быть слишком похож на данные пользователя.",
+    },
+    "en": {
+        "password_too_short": "The password must contain at least 8 characters.",
+        "password_too_common": "This password is too common. Choose a less predictable password.",
+        "password_entirely_numeric": "The password cannot consist only of numbers.",
+        "password_too_similar": "The password is too similar to the user's information.",
+    },
+}
+
+
+def _validate_password_for_request(password, user, request):
+    language = (request.headers.get("Accept-Language", "uz").split(",", 1)[0].split("-", 1)[0].lower())
+    messages = _PASSWORD_MESSAGES.get(language, _PASSWORD_MESSAGES["uz"])
+    try:
+        validate_password(password, user=user)
+    except DjangoValidationError as exc:
+        codes = {error.code for error in exc.error_list}
+        ordered = ("password_too_short", "password_too_common", "password_entirely_numeric", "password_too_similar")
+        raise serializers.ValidationError([messages[code] for code in ordered if code in codes] or [
+            "Parol xavfsizlik talablariga mos kelmadi." if language == "uz" else
+            "Пароль не соответствует требованиям безопасности." if language == "ru" else
+            "The password does not meet security requirements."
+        ]) from None
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -13,7 +50,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, validators=[validate_password])
+    password = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
 
     class Meta:
@@ -32,6 +69,16 @@ class RegisterSerializer(serializers.ModelSerializer):
     def validate_email(self, value):
         if value and User.objects.filter(email__iexact=value).exists():
             raise serializers.ValidationError("Bu email allaqachon ro‘yxatdan o‘tgan.")
+        return value
+
+    def validate_password(self, value):
+        request = self.context["request"]
+        validation_user = User(
+            username=self.initial_data.get("username", ""),
+            email=self.initial_data.get("email", ""),
+            first_name=self.initial_data.get("first_name", ""),
+        )
+        _validate_password_for_request(value, validation_user, request)
         return value
 
     def validate(self, attrs):
@@ -63,8 +110,13 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
 
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(write_only=True)
-    new_password = serializers.CharField(write_only=True, validators=[validate_password])
+    new_password = serializers.CharField(write_only=True)
     new_password2 = serializers.CharField(write_only=True)
+
+    def validate_new_password(self, value):
+        request = self.context["request"]
+        _validate_password_for_request(value, request.user, request)
+        return value
 
     def validate_old_password(self, value):
         user = self.context["request"].user
@@ -75,6 +127,7 @@ class ChangePasswordSerializer(serializers.Serializer):
     def validate(self, attrs):
         if attrs["new_password"] != attrs["new_password2"]:
             raise serializers.ValidationError({"new_password2": "Yangi parollar mos kelmadi."})
+        _validate_password_for_request(attrs["new_password"], self.context["request"].user, self.context["request"])
         return attrs
 
     def save(self, **kwargs):

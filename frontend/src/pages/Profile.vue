@@ -62,8 +62,8 @@ async function savePassword() {
     passwordError.value = 'Iltimos, barcha maydonlarni to‘ldiring.'
     return
   }
-  if (passwordForm.new_password.length < 6) {
-    passwordError.value = 'Yangi parol kamida 6 belgidan iborat bo‘lishi kerak.'
+  if (passwordForm.new_password.length < 8) {
+    passwordError.value = 'Yangi parol kamida 8 belgidan iborat bo‘lishi kerak.'
     return
   }
   if (passwordForm.new_password !== passwordForm.new_password2) {

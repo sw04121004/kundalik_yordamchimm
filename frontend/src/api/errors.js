@@ -1,32 +1,36 @@
-export function extractErrorMessage(error, fallback = "Xatolik yuz berdi. Qaytadan urinib ko'ring.") {
-  const data = error?.response?.data;
-  let rawMsg = error?.message || fallback;
+const SAFE_FALLBACK = "Xatolik yuz berdi. Qaytadan urinib ko'ring."
 
-  if (data) {
-    if (typeof data === 'string') {
-      rawMsg = data;
-    } else if (data.detail) {
-      rawMsg = data.detail;
-    } else {
-      const firstKey = Object.keys(data)[0];
-      if (firstKey) {
-        const value = data[firstKey];
-        rawMsg = Array.isArray(value) ? value[0] : value;
-      }
-    }
-  }
-  
-  if (typeof rawMsg !== 'string') return fallback;
+function safePlainMessage(value) {
+  return typeof value === 'string'
+    && value.length <= 300
+    && !/[<>]/.test(value)
+    && !/(traceback|stack trace|exception|internal server|django|sql error|request was throttled)/i.test(value)
+}
 
-  if (rawMsg.includes('401') || rawMsg.includes('Unauthorized') || rawMsg.includes('API_KEY')) {
-    return "Xizmat vaqtinchalik ishlamayapti (API ruxsat xatosi). Administratorga murojaat qiling.";
-  }
-  if (rawMsg.includes('Rate limit exceeded') || rawMsg.includes('limit tugagan')) {
-    return "So'rovlar limiti tugadi. Iltimos, birozdan so'ng qayta urinib ko'ring.";
-  }
-  if (rawMsg.includes('500') || rawMsg.includes('Internal Server Error')) {
-    return "Tizimda xatolik yuz berdi. Iltimos, birozdan so'ng qayta urinib ko'ring.";
-  }
+export function extractErrorMessage(error, fallback = SAFE_FALLBACK) {
+  const status = error?.response?.status
+  const data = error?.response?.data
 
-  return rawMsg;
+  if (!error?.response) return "Internetga ulanib bo'lmadi. Aloqani tekshirib, qayta urinib ko'ring."
+  if (status === 401) return "Sessiya tugagan. Qayta kiring."
+  if (status === 403) return "Bu amalni bajarish uchun ruxsat yo'q."
+  if (status === 404) return "So'ralgan ma'lumot topilmadi."
+  if (status === 429) return "So'rovlar limiti tugadi. Birozdan so'ng qayta urinib ko'ring."
+  if (status >= 500) return "Serverda vaqtinchalik xatolik yuz berdi. Keyinroq qayta urinib ko'ring."
+
+  if (status === 400 && data && typeof data === 'object') {
+    const values = data.detail ? [data.detail] : Object.values(data).flat(Infinity)
+    const message = values.find(safePlainMessage)
+    if (message) return message
+  }
+  return fallback
+}
+
+export function extractFieldErrors(error) {
+  const data = error?.response?.data
+  if (error?.response?.status !== 400 || !data || typeof data !== 'object') return {}
+  return Object.fromEntries(Object.entries(data).flatMap(([field, raw]) => {
+    const messages = (Array.isArray(raw) ? raw : [raw]).flat(Infinity).filter(safePlainMessage)
+    return messages.length ? [[field, messages.join(' ')]] : []
+  }))
 }

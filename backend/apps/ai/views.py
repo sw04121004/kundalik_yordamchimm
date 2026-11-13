@@ -17,6 +17,7 @@ from .services import (
     get_not_configured_message,
     is_configured,
 )
+from .throttles import AIRequestDailyThrottle, AIRequestMinuteThrottle
 
 
 class PurposeListView(APIView):
@@ -58,6 +59,7 @@ class ConversationDetailView(generics.RetrieveDestroyAPIView):
 
 class SendMessageView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+    throttle_classes = [AIRequestMinuteThrottle, AIRequestDailyThrottle]
 
     def post(self, request, pk):
         conversation = get_object_or_404(Conversation, pk=pk, user=request.user)
@@ -87,8 +89,8 @@ class SendMessageView(APIView):
         else:
             try:
                 reply_text = generate_reply(conversation.purpose, history)
-            except AIUnavailableError as exc:
-                reply_text = f"AI javobini olishda xatolik yuz berdi: {str(exc)}"
+            except AIUnavailableError:
+                reply_text = "AI xizmati vaqtincha javob bermayapti. Keyinroq qayta urinib ko'ring."
                 ai_ok = False
 
         assistant_message = Message.objects.create(

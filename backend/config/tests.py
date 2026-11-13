@@ -1,8 +1,9 @@
 from unittest.mock import patch
 
 from django.db import OperationalError
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, override_settings
 from django.urls import reverse
+from .startup import verify_production_database
 
 
 class HealthCheckTests(SimpleTestCase):
@@ -24,3 +25,21 @@ class HealthCheckTests(SimpleTestCase):
             {"status": "unavailable", "database": "unavailable"},
         )
         self.assertNotIn(b"private db detail", response.content)
+
+
+class ProductionStartupTests(SimpleTestCase):
+    @override_settings(DEBUG=False)
+    @patch("config.startup.connection")
+    def test_unavailable_database_fails_with_actionable_message(self, db_connection):
+        db_connection.cursor.side_effect = OperationalError("private database details")
+        with self.assertRaisesRegex(RuntimeError, "database could not be reached") as raised:
+            verify_production_database()
+
+        self.assertIn("connect timeout is 10 seconds", str(raised.exception))
+        self.assertNotIn("private database details", str(raised.exception))
+
+    @override_settings(DEBUG=True)
+    @patch("config.startup.connection")
+    def test_local_debug_does_not_probe_database_at_wsgi_startup(self, db_connection):
+        verify_production_database()
+        db_connection.cursor.assert_not_called()

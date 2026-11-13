@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import api from '../api/axios'
-import { extractErrorMessage } from '../api/errors'
+import { extractErrorMessage, extractFieldErrors } from '../api/errors'
 import { useAiStore } from './ai'
 import { usePlannerStore } from './planner'
 import { useServicesStore } from './services'
@@ -42,8 +42,8 @@ export const useAuthStore = defineStore('auth', {
         await this.fetchMe()
         return { success: true }
       } catch (error) {
-        const backendErrors = error.response?.data || null
-        const message = backendErrors ? "Ro‘yxatdan o‘tishda xatolik yuz berdi." : "Ro‘yxatdan o‘tishda xatolik yuz berdi."
+        const backendErrors = extractFieldErrors(error)
+        const message = extractErrorMessage(error, "Ro'yxatdan o'tishda xatolik yuz berdi.")
         return { success: false, message, errors: backendErrors }
       } finally {
         this.loading = false
@@ -58,8 +58,9 @@ export const useAuthStore = defineStore('auth', {
         await this.fetchMe()
         return { success: true }
       } catch (error) {
-        const backendMsg = error.response?.data ? Object.values(error.response.data).flat().join(' ') : null
-        const message = backendMsg || "Login yoki parol noto‘g‘ri."
+        const message = error.response?.status === 401
+          ? "Login yoki parol noto'g'ri."
+          : extractErrorMessage(error, "Login yoki parol noto'g'ri.")
         return { success: false, message }
       } finally {
         this.loading = false

@@ -102,10 +102,12 @@ DATABASES = {
         conn_max_age=600,
     )
 }
+if DATABASES["default"]["ENGINE"].endswith("postgresql"):
+    DATABASES["default"].setdefault("OPTIONS", {})["connect_timeout"] = 10
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 6}},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 8}},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
@@ -126,6 +128,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 
 REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": "config.api_errors.safe_api_exception_handler",
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
@@ -138,6 +141,11 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_THROTTLE_RATES": {
         "user": "100/min",
+        "auth_login": "10/min",
+        "auth_register": "5/hour",
+        "auth_password_change": "5/hour",
+        "ai_per_minute": "10/min",
+        "ai_per_day": "100/day",
     },
     "DEFAULT_RENDERER_CLASSES": (
         "rest_framework.renderers.JSONRenderer",

@@ -8,6 +8,7 @@ from rest_framework import serializers
 from django.db import transaction
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
+from .throttles import LoginThrottle, PasswordChangeThrottle, RegisterThrottle
 
 
 from .serializers import (
@@ -21,6 +22,7 @@ from .serializers import (
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [RegisterThrottle]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -68,6 +70,7 @@ class EmailOrUsernameTokenSerializer(TokenObtainPairSerializer):
 class LoginView(TokenObtainPairView):
     permission_classes = [permissions.AllowAny]
     serializer_class = EmailOrUsernameTokenSerializer
+    throttle_classes = [LoginThrottle]
 
 
 class MeView(generics.RetrieveUpdateAPIView):
@@ -124,6 +127,7 @@ class DeleteAccountView(APIView):
 
 class ChangePasswordView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+    throttle_classes = [PasswordChangeThrottle]
 
     def post(self, request):
         serializer = ChangePasswordSerializer(data=request.data, context={"request": request})

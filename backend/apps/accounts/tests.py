@@ -1,4 +1,7 @@
+from unittest.mock import patch
+
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -8,6 +11,7 @@ from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
 from apps.ai.models import Conversation, Message
 from apps.planner.models import Task
 from apps.services.models import Category, Favorite, Service, Transaction, UsageLog
+from apps.accounts.throttles import LoginThrottle, PasswordChangeThrottle, RegisterThrottle
 
 User = get_user_model()
 
@@ -53,6 +57,40 @@ class AccountAPITests(APITestCase):
 
 		self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 		self.assertFalse(User.objects.filter(username="new-user").exists())
+
+	def test_registration_enforces_eight_character_password_and_localizes_error(self):
+		response = self.client.post(
+			reverse("register"),
+			{"username": "short-pass", "password": "short7!", "password2": "short7!"},
+			format="json",
+			HTTP_ACCEPT_LANGUAGE="ru",
+		)
+
+		self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+		self.assertIn("8 символов", " ".join(response.data["password"]))
+		self.assertFalse(User.objects.filter(username="short-pass").exists())
+
+	def test_authentication_and_password_endpoints_are_throttled(self):
+		login_rates = {**LoginThrottle.THROTTLE_RATES, "auth_login": "1/min"}
+		register_rates = {**RegisterThrottle.THROTTLE_RATES, "auth_register": "1/min"}
+		password_rates = {**PasswordChangeThrottle.THROTTLE_RATES, "auth_password_change": "1/min"}
+		with patch.object(LoginThrottle, "THROTTLE_RATES", login_rates), patch.object(RegisterThrottle, "THROTTLE_RATES", register_rates), patch.object(PasswordChangeThrottle, "THROTTLE_RATES", password_rates):
+			cache.clear()
+			login_payload = {"username": self.user.username, "password": "StrongPass123!"}
+			self.assertEqual(self.client.post(reverse("login"), login_payload, format="json").status_code, status.HTTP_200_OK)
+			self.assertEqual(self.client.post(reverse("login"), login_payload, format="json").status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+
+			cache.clear()
+			register_payload = {"username": "throttle-user", "password": "StrongPass123!", "password2": "StrongPass123!"}
+			self.assertEqual(self.client.post(reverse("register"), register_payload, format="json").status_code, status.HTTP_201_CREATED)
+			register_payload["username"] = "another-throttle-user"
+			self.assertEqual(self.client.post(reverse("register"), register_payload, format="json").status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+
+			cache.clear()
+			self.client.force_authenticate(self.user)
+			password_payload = {"old_password": "StrongPass123!", "new_password": "NewStrongPass123!", "new_password2": "NewStrongPass123!"}
+			self.assertEqual(self.client.post(reverse("change-password"), password_payload, format="json").status_code, status.HTTP_200_OK)
+			self.assertEqual(self.client.post(reverse("change-password"), password_payload, format="json").status_code, status.HTTP_429_TOO_MANY_REQUESTS)
 
 	def test_login_accepts_username_or_email_in_username_field(self):
 		for login_value in (self.user.username, self.user.email):
