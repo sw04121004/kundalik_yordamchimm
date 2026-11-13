@@ -7,6 +7,7 @@
   .animate-bounce {
     animation: none !important;
   }
+  .stagger-children > * { animation: none !important; }
   .transition-all,
   .duration-200,
   .duration-300,
@@ -14,4 +15,8 @@
   .duration-500 {
     transition: none !important;
   }
+}
+
+@media (max-width: 430px) {
+  .stagger-children > * { animation-delay: 0ms !important; }
 }

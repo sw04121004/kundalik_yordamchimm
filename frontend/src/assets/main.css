@@ -39,6 +39,24 @@ html.dark body {
   color: #e8eeeb;
 }
 
+/* Shared warm surfaces, including pages that still use legacy utility classes. */
+.card, .glass-surface {
+  border-radius: 16px;
+  border-color: var(--warm-border);
+  box-shadow: var(--warm-shadow);
+}
+html.dark .card, html.dark .glass-surface {
+  border-color: rgb(255 255 255 / 0.09);
+  background-color: #1b2422;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+}
+button, a { -webkit-tap-highlight-color: transparent; }
+button:not(:disabled), a { transition: color 200ms ease, background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease; }
+@media (max-width: 430px) {
+  .card { padding: 1rem; }
+  .max-w-6xl, .max-w-5xl, .max-w-4xl { max-width: 100%; }
+}
+
 /* Page-level dynamic theme glow (left side emphasis) */
 body::before {
   content: '';
