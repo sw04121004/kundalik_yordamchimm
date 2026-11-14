@@ -72,6 +72,37 @@ html.dark body::before {
   background: transparent;
 }
 
+/* Bring back the soft, animated color wash used by the original welcome UI. */
+.landing-page, .dashboard-page { isolation: isolate; position: relative; }
+.landing-page::before, .dashboard-page::before {
+  content: '';
+  position: absolute;
+  inset: -18% -8% auto;
+  height: 680px;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 18% 32%, rgb(15 157 138 / .19), transparent 38%),
+    radial-gradient(ellipse at 82% 20%, rgb(245 165 36 / .15), transparent 34%),
+    radial-gradient(ellipse at 54% 65%, rgb(112 92 210 / .12), transparent 42%);
+  filter: blur(22px);
+  background-size: 140% 140%;
+  animation: colorDrift 18s ease-in-out infinite alternate;
+}
+html.dark .landing-page::before, html.dark .dashboard-page::before {
+  background:
+    radial-gradient(ellipse at 18% 32%, rgb(15 157 138 / .2), transparent 38%),
+    radial-gradient(ellipse at 82% 20%, rgb(245 165 36 / .12), transparent 34%),
+    radial-gradient(ellipse at 54% 65%, rgb(112 92 210 / .16), transparent 42%);
+}
+@keyframes colorDrift {
+  from { transform: translate3d(-1%, -1%, 0) scale(.98); }
+  to { transform: translate3d(1%, 2%, 0) scale(1.04); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-page::before, .dashboard-page::before { animation: none; }
+}
+
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #d9d2c8; border-radius: 999px; }

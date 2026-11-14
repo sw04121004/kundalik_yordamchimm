@@ -111,6 +111,12 @@ const isSearching = computed(() => search.value.trim().length > 0)
 const favoriteServices = computed(() => servicesStore.favorites.map(f => f.service))
 const aiShortcuts = PURPOSES.slice(0, 6)
 
+function promptText(index, fallback) {
+  const key = `prompt.${index}`
+  const translated = t(key)
+  return translated === key ? fallback : translated
+}
+
 const timeBasedPrompts = computed(() => {
   const hour = new Date().getHours()
   if (hour >= 6 && hour < 12) {
@@ -186,7 +192,7 @@ const timeBasedPrompts = computed(() => {
               :to="{ name: 'ai-assistant', query: { q: action.prompt, p: action.purpose } }"
               class="inline-flex items-center px-4 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 cursor-pointer border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1d2523] text-slate-700 dark:text-slate-200 hover:border-brand-500/50 hover:text-brand-700 dark:hover:text-brand-300 hover:-translate-y-0.5"
             >
-              {{ action.text }}
+              {{ promptText(i, action.text) }}
             </router-link>
             <router-link
               :to="{ name: 'weather' }"
@@ -215,7 +221,7 @@ const timeBasedPrompts = computed(() => {
                   </div>
                 </div>
                 <span v-if="planner.todayTotal > 0" class="text-xs font-extrabold px-2.5 py-1 rounded-full bg-brand-100 text-brand-800 dark:bg-brand-950/60 dark:text-brand-300 border border-brand-200/60 dark:border-brand-500/30">
-                  {{ planner.todayDone }}/{{ planner.todayTotal }} bajarildi
+                  {{ planner.todayDone }}/{{ planner.todayTotal }} {{ t('dash.done') }}
                 </span>
               </div>
 

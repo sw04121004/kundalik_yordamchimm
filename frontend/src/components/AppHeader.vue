@@ -51,7 +51,7 @@ onUnmounted(() => {
         <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white font-extrabold shadow-soft group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 animate-float">
           Q
         </div>
-        <span class="font-extrabold text-lg text-slate-800 dark:text-slate-100 hidden sm:inline">Kundalik Yordamchi</span>
+        <span class="font-extrabold text-lg text-slate-800 dark:text-slate-100 hidden sm:inline">{{ t('app.name') }}</span>
       </router-link>
 
       <nav class="hidden md:flex items-center gap-1">

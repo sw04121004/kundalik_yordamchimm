@@ -15,6 +15,9 @@ const DEFAULT_LOCATION = {
   country_code: 'UZ', lat: 41.3111, lon: 69.2797,
 }
 const { language, locale: currentLocale } = useI18n()
+// The weather API accepts only Uzbek, Russian and English. Other UI languages
+// use English weather descriptions until translations are available.
+const weatherApiLanguage = computed(() => ['uz', 'ru', 'en'].includes(language.value) ? language.value : 'en')
 const numberFormat = computed(() => new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 1 }))
 const translations = {
   uz: {
@@ -136,7 +139,7 @@ function searchCity() {
     searchLoading.value = true
     try {
       const { data } = await api.get('/weather/search/', {
-        params: { q: cityQuery.value.trim(), country: country.value, lang: language.value },
+        params: { q: cityQuery.value.trim(), country: country.value, lang: weatherApiLanguage.value },
       })
       if (requestId === searchRequestId) {
         suggestions.value = data.results || []
@@ -168,7 +171,7 @@ async function loadForecast() {
   error.value = ''
   try {
     const { data } = await api.get('/weather/forecast/', {
-      params: { lat: location.value.lat, lon: location.value.lon, lang: language.value },
+      params: { lat: location.value.lat, lon: location.value.lon, lang: weatherApiLanguage.value },
     })
     forecast.value = data
     lastUpdated.value = new Intl.DateTimeFormat(currentLocale(), { hour: '2-digit', minute: '2-digit' }).format(new Date())
