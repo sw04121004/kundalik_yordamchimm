@@ -9,18 +9,18 @@ import { useAuthStore } from '../store/auth'
 import { useI18n } from '../i18n'
 
 const auth = useAuthStore()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
-const categories = [
-  { id: 'salary', name: 'Maosh / Daromad', icon: '💰', type: 'income' },
-  { id: 'food', name: 'Oziq-ovqat va bozor', icon: '🛒', type: 'expense' },
-  { id: 'transport', name: 'Transport / Yonilg\'i', icon: '🚕', type: 'expense' },
-  { id: 'bills', name: 'Kommunal / Aloqa', icon: '⚡', type: 'expense' },
-  { id: 'fun', name: 'Hordiq va ko\'ngilochar', icon: '🎬', type: 'expense' },
-  { id: 'other', name: 'Boshqa xarajatlar', icon: '📦', type: 'expense' },
-]
+const categories = computed(() => [
+  { id: 'salary', name: t('finance.cat.salary'), icon: '💰', type: 'income' },
+  { id: 'food', name: t('finance.cat.food'), icon: '🛒', type: 'expense' },
+  { id: 'transport', name: t('finance.cat.transport'), icon: '🚕', type: 'expense' },
+  { id: 'bills', name: t('finance.cat.bills'), icon: '⚡', type: 'expense' },
+  { id: 'fun', name: t('finance.cat.fun'), icon: '🎬', type: 'expense' },
+  { id: 'other', name: t('finance.cat.other'), icon: '📦', type: 'expense' },
+])
+
 const MAX_TRANSACTION_AMOUNT = 1_000_000_000_000
-const AMOUNT_LIMIT_MESSAGE = 'Summa 1 trillion so‘mdan oshmasligi kerak.'
 
 const transactions = ref([])
 const loading = ref(false)
@@ -42,10 +42,10 @@ async function fetchTransactions() {
     transactions.value = data.map((transaction) => ({
       ...transaction,
       amount: Number(transaction.amount),
-      note: transaction.description || (transaction.type === 'income' ? 'Kirim' : 'Chiqim'),
+      note: transaction.description || (transaction.type === 'income' ? t('finance.typeIncome') : t('finance.typeExpense')),
     }))
   } catch (requestError) {
-    error.value = extractErrorMessage(requestError, 'Amallarni yuklab bo‘lmadi.')
+    error.value = extractErrorMessage(requestError, t('finance.loadError'))
   } finally {
     loading.value = false
   }
@@ -78,10 +78,9 @@ async function migrateLegacyTransactions() {
     for (let start = 0; start < payload.length; start += 500) {
       await api.post('/transactions/import-legacy/', { transactions: payload.slice(start, start + 500) })
     }
-    // Keep the original browser records as a recovery copy; marker only prevents repeat work.
     localStorage.setItem(markerKey, 'done')
   } catch (migrationError) {
-    error.value = `Eski moliya yozuvlarini ko‘chirish amalga oshmadi. Brauzer nusxasi saqlangan. ${extractErrorMessage(migrationError, '')}`.trim()
+    error.value = `${extractErrorMessage(migrationError, t('finance.loadError'))}`.trim()
   }
 }
 
@@ -99,8 +98,8 @@ function localDateISO() {
 
 function validateTransactionAmount() {
   if (Number(newTx.value.amount) > MAX_TRANSACTION_AMOUNT) {
-    error.value = AMOUNT_LIMIT_MESSAGE
-  } else if (error.value === AMOUNT_LIMIT_MESSAGE) {
+    error.value = t('finance.amountLimit')
+  } else if (error.value === t('finance.amountLimit')) {
     error.value = ''
   }
 }
@@ -109,7 +108,7 @@ async function addTransaction() {
   const num = Number(newTx.value.amount)
   if (isNaN(num) || num <= 0) return
   if (num > MAX_TRANSACTION_AMOUNT) {
-    error.value = AMOUNT_LIMIT_MESSAGE
+    error.value = t('finance.amountLimit')
     return
   }
 
@@ -127,13 +126,13 @@ async function addTransaction() {
     transactions.value.unshift({
       ...data,
       amount: Number(data.amount),
-      note: data.description || (data.type === 'income' ? 'Kirim' : 'Chiqim'),
+      note: data.description || (data.type === 'income' ? t('finance.typeIncome') : t('finance.typeExpense')),
     })
     window.dispatchEvent(new Event('finance-transactions-updated'))
     newTx.value.amount = ''
     newTx.value.note = ''
   } catch (requestError) {
-    error.value = extractErrorMessage(requestError, 'O‘tkazmani saqlab bo‘lmadi.')
+    error.value = extractErrorMessage(requestError, t('finance.saveError'))
   } finally {
     saving.value = false
   }
@@ -146,39 +145,39 @@ async function deleteTx(id) {
     transactions.value = transactions.value.filter((transaction) => transaction.id !== id)
     window.dispatchEvent(new Event('finance-transactions-updated'))
   } catch (requestError) {
-    error.value = extractErrorMessage(requestError, 'O‘tkazmani o‘chirib bo‘lmadi.')
+    error.value = extractErrorMessage(requestError, t('finance.deleteError'))
   }
 }
 
 const totalIncome = computed(() => {
   return transactions.value
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0)
+    .filter(item => item.type === 'income')
+    .reduce((sum, item) => sum + item.amount, 0)
 })
 
 const totalExpense = computed(() => {
   return transactions.value
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0)
+    .filter(item => item.type === 'expense')
+    .reduce((sum, item) => sum + item.amount, 0)
 })
 
 const balance = computed(() => totalIncome.value - totalExpense.value)
 
 function formatSum(val) {
-  return new Intl.NumberFormat('uz-UZ').format(val) + " so'm"
+  return new Intl.NumberFormat(locale()).format(val) + " " + t('common.currency')
 }
 
 function getCatMeta(catId) {
-  return categories.find(c => c.id === catId) || { name: 'Boshqa', icon: '💸' }
+  return categories.value.find(c => c.id === catId) || { name: t('finance.cat.other'), icon: '💸' }
 }
 </script>
 
 <template>
   <ToolShell
     icon="💰"
-    title="Mening pulim (Moliya Hisoblagich)"
-    description="Daromad va xarajatlaringizni nazorat qiling hamda byudjetni rejalashtiring"
-    hint="Kirim va chiqimlarni kiriting, umumiy balansingiz va xarajatlar tahlilini kuzatib boring"
+    :title="t('finance.title')"
+    :description="t('finance.description')"
+    :hint="t('finance.hint')"
   >
     <template #header>
       <AppHeader />
@@ -212,7 +211,7 @@ function getCatMeta(catId) {
       <!-- Add Transaction Form -->
       <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 space-y-4">
         <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-          <span>➕</span> Yangi o'tkazma qo'shish
+          <span>➕</span> {{ t('finance.addTitle') }}
         </h3>
         <form class="space-y-3" @submit.prevent="addTransaction">
           <div class="grid grid-cols-2 gap-3">
@@ -222,7 +221,7 @@ function getCatMeta(catId) {
               :class="newTx.type === 'expense' ? 'bg-rose-500 text-white shadow-sm' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'"
               @click="newTx.type = 'expense'"
             >
-              🔻 Chiqim (Xarajat)
+              {{ t('finance.typeExpense') }}
             </button>
             <button
               type="button"
@@ -230,7 +229,7 @@ function getCatMeta(catId) {
               :class="newTx.type === 'income' ? 'bg-emerald-500 text-white shadow-sm' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'"
               @click="newTx.type = 'income'"
             >
-              🟢 Kirim (Daromad)
+              {{ t('finance.typeIncome') }}
             </button>
           </div>
 
@@ -255,19 +254,19 @@ function getCatMeta(catId) {
           </div>
 
           <button type="submit" class="btn-primary w-full !py-2.5" :disabled="saving">
-            {{ saving ? 'Saqlanmoqda...' : '+ Saqlash' }}
+            {{ saving ? t('finance.saving') : t('finance.save') }}
           </button>
         </form>
       </div>
 
       <!-- Transactions History List -->
       <div>
-        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3">📋 Amallar tarixi</h3>
+        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3">{{ t('finance.history') }}</h3>
         <div v-if="loading" class="text-center text-slate-400 py-6 text-sm">
-          Ma’lumotlar yuklanmoqda...
+          {{ t('finance.historyLoading') }}
         </div>
         <div v-else-if="!transactions.length" class="text-center text-slate-400 py-6 text-sm">
-          Hali hech qanday o'tkazma kiritilmadi.
+          {{ t('finance.historyEmpty') }}
         </div>
         <div v-else class="space-y-2">
           <div
@@ -293,7 +292,7 @@ function getCatMeta(catId) {
               </span>
               <button
                 class="text-slate-300 hover:text-rose-500 transition text-sm"
-                title="O'chirish"
+                :title="t('finance.delete')"
                 @click="deleteTx(tx.id)"
               >
                 ✕

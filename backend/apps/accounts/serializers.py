@@ -5,6 +5,15 @@ from rest_framework import serializers
 
 User = get_user_model()
 
+
+def _get_language_from_request(request):
+    if not request:
+        return "uz"
+    accept = getattr(request, "headers", {}).get("Accept-Language", "uz") if hasattr(request, "headers") else request.META.get("HTTP_ACCEPT_LANGUAGE", "uz")
+    lang = accept.split(",", 1)[0].split("-", 1)[0].lower()
+    return lang if lang in ("uz", "ru", "en") else "uz"
+
+
 _PASSWORD_MESSAGES = {
     "uz": {
         "password_too_short": "Parol kamida 8 belgidan iborat bo‘lishi kerak.",
@@ -26,9 +35,42 @@ _PASSWORD_MESSAGES = {
     },
 }
 
+_REGISTER_MESSAGES = {
+    "uz": {
+        "username_taken": "Bu foydalanuvchi nomi allaqachon band.",
+        "email_taken": "Bu email allaqachon ro‘yxatdan o‘tgan.",
+        "password_mismatch": "Parollar mos kelmadi.",
+    },
+    "ru": {
+        "username_taken": "Пользователь с таким именем уже существует.",
+        "email_taken": "Этот адрес электронной почты уже зарегистрирован.",
+        "password_mismatch": "Пароли не совпадают.",
+    },
+    "en": {
+        "username_taken": "A user with that username already exists.",
+        "email_taken": "This email is already registered.",
+        "password_mismatch": "Passwords do not match.",
+    },
+}
+
+_AUTH_ACTION_MESSAGES = {
+    "uz": {
+        "current_password_wrong": "Joriy parol noto‘g‘ri.",
+        "new_passwords_mismatch": "Yangi parollar mos kelmadi.",
+    },
+    "ru": {
+        "current_password_wrong": "Неверный текущий пароль.",
+        "new_passwords_mismatch": "Новые пароли не совпадают.",
+    },
+    "en": {
+        "current_password_wrong": "Incorrect current password.",
+        "new_passwords_mismatch": "New passwords do not match.",
+    },
+}
+
 
 def _validate_password_for_request(password, user, request):
-    language = (request.headers.get("Accept-Language", "uz").split(",", 1)[0].split("-", 1)[0].lower())
+    language = _get_language_from_request(request)
     messages = _PASSWORD_MESSAGES.get(language, _PASSWORD_MESSAGES["uz"])
     try:
         validate_password(password, user=user)
@@ -59,20 +101,27 @@ class RegisterSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "email": {"required": False, "allow_blank": True},
             "first_name": {"required": False, "allow_blank": True},
+            "username": {
+                "validators": [],  # Avoid DRF's default English UniqueValidator
+            },
         }
 
     def validate_username(self, value):
+        request = self.context.get("request")
+        lang = _get_language_from_request(request)
         if User.objects.filter(username__iexact=value).exists():
-            raise serializers.ValidationError("Bu foydalanuvchi nomi allaqachon band.")
+            raise serializers.ValidationError(_REGISTER_MESSAGES[lang]["username_taken"])
         return value
 
     def validate_email(self, value):
+        request = self.context.get("request")
+        lang = _get_language_from_request(request)
         if value and User.objects.filter(email__iexact=value).exists():
-            raise serializers.ValidationError("Bu email allaqachon ro‘yxatdan o‘tgan.")
+            raise serializers.ValidationError(_REGISTER_MESSAGES[lang]["email_taken"])
         return value
 
     def validate_password(self, value):
-        request = self.context["request"]
+        request = self.context.get("request")
         validation_user = User(
             username=self.initial_data.get("username", ""),
             email=self.initial_data.get("email", ""),
@@ -82,8 +131,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
+        request = self.context.get("request")
+        lang = _get_language_from_request(request)
         if attrs["password"] != attrs["password2"]:
-            raise serializers.ValidationError({"password2": "Parollar mos kelmadi."})
+            raise serializers.ValidationError({"password2": _REGISTER_MESSAGES[lang]["password_mismatch"]})
         return attrs
 
     def create(self, validated_data):
@@ -101,10 +152,12 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
         fields = ("first_name", "email")
 
     def validate_email(self, value):
+        request = self.context.get("request")
+        lang = _get_language_from_request(request)
         if value:
             qs = User.objects.filter(email__iexact=value).exclude(pk=self.instance.pk)
             if qs.exists():
-                raise serializers.ValidationError("Bu email allaqachon ro‘yxatdan o‘tgan.")
+                raise serializers.ValidationError(_REGISTER_MESSAGES[lang]["email_taken"])
         return value
 
 
@@ -114,19 +167,23 @@ class ChangePasswordSerializer(serializers.Serializer):
     new_password2 = serializers.CharField(write_only=True)
 
     def validate_new_password(self, value):
-        request = self.context["request"]
+        request = self.context.get("request")
         _validate_password_for_request(value, request.user, request)
         return value
 
     def validate_old_password(self, value):
-        user = self.context["request"].user
+        request = self.context.get("request")
+        lang = _get_language_from_request(request)
+        user = request.user
         if not user.check_password(value):
-            raise serializers.ValidationError("Joriy parol noto‘g‘ri.")
+            raise serializers.ValidationError(_AUTH_ACTION_MESSAGES[lang]["current_password_wrong"])
         return value
 
     def validate(self, attrs):
+        request = self.context.get("request")
+        lang = _get_language_from_request(request)
         if attrs["new_password"] != attrs["new_password2"]:
-            raise serializers.ValidationError({"new_password2": "Yangi parollar mos kelmadi."})
+            raise serializers.ValidationError({"new_password2": _AUTH_ACTION_MESSAGES[lang]["new_passwords_mismatch"]})
         _validate_password_for_request(attrs["new_password"], self.context["request"].user, self.context["request"])
         return attrs
 
@@ -148,8 +205,10 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
     new_password2 = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
+        request = self.context.get("request")
+        lang = _get_language_from_request(request)
         if attrs["new_password"] != attrs["new_password2"]:
-            raise serializers.ValidationError({"new_password2": "Yangi parollar mos kelmadi."})
+            raise serializers.ValidationError({"new_password2": _AUTH_ACTION_MESSAGES[lang]["new_passwords_mismatch"]})
         user = User.objects.filter(email__iexact=attrs["email"]).first()
         _validate_password_for_request(attrs["new_password"], user, self.context["request"])
         return attrs
@@ -159,6 +218,8 @@ class DeleteAccountSerializer(serializers.Serializer):
     current_password = serializers.CharField(write_only=True, trim_whitespace=False)
 
     def validate_current_password(self, value):
-        if not self.context["request"].user.check_password(value):
-            raise serializers.ValidationError("Joriy parol noto‘g‘ri.")
+        request = self.context.get("request")
+        lang = _get_language_from_request(request)
+        if not request.user.check_password(value):
+            raise serializers.ValidationError(_AUTH_ACTION_MESSAGES[lang]["current_password_wrong"])
         return value

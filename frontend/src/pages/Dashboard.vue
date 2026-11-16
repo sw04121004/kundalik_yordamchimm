@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useServicesStore } from '../store/services'
-import { useAiStore, purposeMeta, PURPOSES } from '../store/ai'
+import { useAiStore, PURPOSES } from '../store/ai'
 import { useAuthStore } from '../store/auth'
 import { usePlannerStore } from '../store/planner'
 import AppHeader from '../components/AppHeader.vue'
@@ -87,7 +87,7 @@ const greeting = computed(() => {
     en: ['Good night', 'Good morning', 'Good afternoon', 'Good evening'],
   }
   const icons = ['🌙', '☀️', '🌤️', '🌇']
-  return { icon: icons[period], text: (words[language.value] || words.en)[period] }
+  return { icon: icons[period], text: (words[language.value] || words.uz)[period] }
 })
 
 const AI_ONLY_SLUGS = new Set(['oshxona-ai', 'uy-ai', 'oqish-ai', 'hujjat-ai'])
@@ -111,35 +111,75 @@ const isSearching = computed(() => search.value.trim().length > 0)
 const favoriteServices = computed(() => servicesStore.favorites.map(f => f.service))
 const aiShortcuts = PURPOSES.slice(0, 6)
 
-function promptText(index, fallback) {
-  const key = `prompt.${index}`
-  const translated = t(key)
-  return translated === key ? fallback : translated
-}
-
 const timeBasedPrompts = computed(() => {
   const hour = new Date().getHours()
+  const lang = ['uz', 'ru', 'en'].includes(language.value) ? language.value : 'uz'
   if (hour >= 6 && hour < 12) {
-    return [
-      { text: "☀️ Bugungi kunni rejalashtirish", purpose: "general", prompt: "Bugungi kunimni samarali o'tkazish uchun reja tuzishda yordam ber" },
-      { text: "🍳 Nonushta g'oyalari", purpose: "kitchen", prompt: "Tez va foydali nonushta uchun retsept tavsiya qil" },
-      { text: "💡 Kunlik motivatsiya", purpose: "ideas", prompt: "Bugungi kunim yaxshi o'tishi uchun menga motivatsiya bering" },
-      { text: "📅 Vazifalarni tekshirish", purpose: "general", prompt: "Bugun nimalar qilishim kerak?" }
-    ]
+    const texts = {
+      uz: [
+        { text: "☀️ Bugungi kunni rejalashtirish", purpose: "general", prompt: "Bugungi kunimni samarali o'tkazish uchun reja tuzishda yordam ber" },
+        { text: "🍳 Nonushta g'oyalari", purpose: "kitchen", prompt: "Tez va foydali nonushta uchun retsept tavsiya qil" },
+        { text: "💡 Kunlik motivatsiya", purpose: "ideas", prompt: "Bugungi kunim yaxshi o'tishi uchun menga motivatsiya bering" },
+        { text: "📅 Vazifalarni tekshirish", purpose: "general", prompt: "Bugun nimalar qilishim kerak?" }
+      ],
+      ru: [
+        { text: "☀️ План на сегодня", purpose: "general", prompt: "Помоги составить эффективный план на сегодня" },
+        { text: "🍳 Идеи для завтрака", purpose: "kitchen", prompt: "Посоветуй быстрый и полезный завтрак" },
+        { text: "💡 Мотивация на день", purpose: "ideas", prompt: "Дай совет и мотивацию для отличного дня" },
+        { text: "📅 Проверить задачи", purpose: "general", prompt: "Что мне нужно сделать сегодня?" }
+      ],
+      en: [
+        { text: "☀️ Plan today", purpose: "general", prompt: "Help me create an effective daily plan for today" },
+        { text: "🍳 Breakfast ideas", purpose: "kitchen", prompt: "Suggest a quick and healthy breakfast recipe" },
+        { text: "💡 Daily motivation", purpose: "ideas", prompt: "Give me some inspiration and tips for a productive day" },
+        { text: "📅 Check tasks", purpose: "general", prompt: "What should I focus on today?" }
+      ]
+    }
+    return texts[lang] || texts.uz
   } else if (hour >= 12 && hour < 18) {
-    return [
-      { text: "✅ Vazifalar holati", purpose: "general", prompt: "Bugungi ishlarimni tugatishga yordam bering" },
-      { text: "🥘 Tushlik uchun g'oya", purpose: "kitchen", prompt: "Tushlik uchun to'yimli va mazali ovqat tavsiya qiling" },
-      { text: "💰 Xarajatlarni hisoblash", purpose: "finance", prompt: "Bugungi xarajatlarimni ro'yxatga olishga yordam ber" },
-      { text: "🧠 Qisqa tanaffus", purpose: "ideas", prompt: "Ishdan chalg'ib, miyani dam oldirish uchun nima qilsam bo'ladi?" }
-    ]
+    const texts = {
+      uz: [
+        { text: "✅ Vazifalar holati", purpose: "general", prompt: "Bugungi ishlarimni tugatishga yordam bering" },
+        { text: "🥘 Tushlik uchun g'oya", purpose: "kitchen", prompt: "Tushlik uchun to'yimli va mazali ovqat tavsiya qiling" },
+        { text: "💰 Xarajatlarni hisoblash", purpose: "finance", prompt: "Bugungi xarajatlarimni ro'yxatga olishga yordam ber" },
+        { text: "🧠 Qisqa tanaffus", purpose: "ideas", prompt: "Ishdan chalg'ib, miyani dam oldirish uchun nima qilsam bo'ladi?" }
+      ],
+      ru: [
+        { text: "✅ Статус задач", purpose: "general", prompt: "Помоги завершить текущие дела на сегодня" },
+        { text: "🥘 Идея для обеда", purpose: "kitchen", prompt: "Посоветуй сытный и вкусный обед" },
+        { text: "💰 Учёт расходов", purpose: "finance", prompt: "Помоги записать и распределить сегодняшние траты" },
+        { text: "🧠 Короткий перерыв", purpose: "ideas", prompt: "Как отвлечься и разгрузить голову во время работы?" }
+      ],
+      en: [
+        { text: "✅ Task progress", purpose: "general", prompt: "Help me finish my tasks for today" },
+        { text: "🥘 Lunch idea", purpose: "kitchen", prompt: "Suggest a nutritious and tasty lunch option" },
+        { text: "💰 Expense tracking", purpose: "finance", prompt: "Help me organize and log today's expenses" },
+        { text: "🧠 Quick break", purpose: "ideas", prompt: "What can I do to take a refreshing mental break?" }
+      ]
+    }
+    return texts[lang] || texts.uz
   } else {
-    return [
-      { text: "🌙 Kunning sarhisobi", purpose: "general", prompt: "Bugun bajargan ishlarimni sarhisob qilishga yordam ber" },
-      { text: "📝 Ertangi kunni rejalashtirish", purpose: "general", prompt: "Ertangi kunimni samarali o'tkazish uchun reja tuzib ber" },
-      { text: "🍳 Kechki ovqat menyusi", purpose: "kitchen", prompt: "Uyquga zarar qilmaydigan yengil kechki ovqat uchun retseptlar bering" },
-      { text: "📚 Uyqu oldidan qiziqarli fakt", purpose: "study", prompt: "Uxlashdan oldin o'qish uchun qiziqarli va foydali hikoya yoki fakt aytib ber" }
-    ]
+    const texts = {
+      uz: [
+        { text: "🌙 Kunning sarhisobi", purpose: "general", prompt: "Bugun bajargan ishlarimni sarhisob qilishga yordam ber" },
+        { text: "📝 Ertangi kunni rejalashtirish", purpose: "general", prompt: "Ertangi kunimni samarali o'tkazish uchun reja tuzib ber" },
+        { text: "🍳 Kechki ovqat menyusi", purpose: "kitchen", prompt: "Uyquga zarar qilmaydigan yengil kechki ovqat uchun retseptlar bering" },
+        { text: "📚 Uyqu oldidan qiziqarli fakt", purpose: "study", prompt: "Uxlashdan oldin o'qish uchun qiziqarli va foydali hikoya yoki fakt aytib ber" }
+      ],
+      ru: [
+        { text: "🌙 Итоги дня", purpose: "general", prompt: "Помоги подвести итоги сегодняшнего дня" },
+        { text: "📝 План на завтра", purpose: "general", prompt: "Помоги спланировать завтрашний день для максимальной пользы" },
+        { text: "🍳 Меню на ужин", purpose: "kitchen", prompt: "Посоветуй лёгкий ужин, который не помешает сну" },
+        { text: "📚 Факт перед сном", purpose: "study", prompt: "Расскажи интересный и полезный факт или короткую историю" }
+      ],
+      en: [
+        { text: "🌙 Evening review", purpose: "general", prompt: "Help me summarize and reflect on today's achievements" },
+        { text: "📝 Plan for tomorrow", purpose: "general", prompt: "Help me structure tomorrow for a productive day" },
+        { text: "🍳 Dinner menu", purpose: "kitchen", prompt: "Suggest a light dinner recipe that won't disrupt sleep" },
+        { text: "📚 Bedtime story/fact", purpose: "study", prompt: "Tell me an interesting and educational fact before sleep" }
+      ]
+    }
+    return texts[lang] || texts.uz
   }
 })
 </script>
@@ -152,7 +192,7 @@ const timeBasedPrompts = computed(() => {
 
       <main class="max-w-5xl mx-auto px-4 sm:px-6 py-8">
 
-        <!-- Greeting + Search (Centered, Dynamic to Selected Theme) -->
+        <!-- Greeting + Search -->
         <section class="mb-10 animate-fadeUp text-center flex flex-col items-center">
           <div class="inline-flex items-center justify-center gap-3 mb-2 px-5 py-2 rounded-2xl bg-white dark:bg-[#1d2523] border border-slate-200 dark:border-white/10 shadow-sm">
             <Sun class="w-6 h-6 text-brand-700 dark:text-brand-300" aria-hidden="true" />
@@ -162,7 +202,7 @@ const timeBasedPrompts = computed(() => {
           </div>
           <p class="text-slate-500 dark:text-slate-400 text-sm sm:text-base mb-6 font-medium">{{ t('dash.prompt') }}</p>
 
-          <!-- Search Bar with glowing aura from Selected Theme -->
+          <!-- Search Bar -->
           <div class="relative w-full max-w-xl mx-auto group">
             <div class="relative">
               <Search class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" aria-hidden="true" />
@@ -192,7 +232,7 @@ const timeBasedPrompts = computed(() => {
               :to="{ name: 'ai-assistant', query: { q: action.prompt, p: action.purpose } }"
               class="inline-flex items-center px-4 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 cursor-pointer border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1d2523] text-slate-700 dark:text-slate-200 hover:border-brand-500/50 hover:text-brand-700 dark:hover:text-brand-300 hover:-translate-y-0.5"
             >
-              {{ promptText(i, action.text) }}
+              {{ action.text }}
             </router-link>
             <router-link
               :to="{ name: 'weather' }"
@@ -203,7 +243,7 @@ const timeBasedPrompts = computed(() => {
           </div>
         </section>
 
-        <!-- Mening kunim (My Day widgets) reacting to Selected Theme -->
+        <!-- Mening kunim (My Day widgets) -->
         <section v-if="!isSearching" class="mb-10 animate-fadeUp">
           <h2 class="text-sm font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-3.5 flex items-center gap-2">
             <CalendarDays class="w-5 h-5 text-brand-700 dark:text-brand-300" aria-hidden="true" /> {{ t('dash.myDay') }}
@@ -267,7 +307,7 @@ const timeBasedPrompts = computed(() => {
           </div>
         </section>
 
-        <!-- AI Shortcuts (Replaces large banner & history) -->
+        <!-- AI Shortcuts -->
         <section v-if="!isSearching" class="mb-12 animate-fadeUp">
           <div class="flex items-center justify-between mb-4">
             <div>
@@ -304,8 +344,6 @@ const timeBasedPrompts = computed(() => {
           </div>
         </section>
 
-
-
         <!-- Search empty state -->
         <div v-if="isSearching && !hasResults" class="text-center py-20 animate-fadeUp">
           <div class="text-5xl mb-3 animate-bounceSoft">🔍</div>
@@ -313,13 +351,12 @@ const timeBasedPrompts = computed(() => {
           <p class="text-sm text-slate-400 mt-1">{{ t('dash.tryOther') }}</p>
         </div>
 
-        <!-- All Services by Category (With dynamic selected theme lighting & rich animations) -->
+        <!-- All Services by Category -->
         <div v-if="servicesStore.loading" class="text-center py-12 text-slate-400">
           <div class="inline-block w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mb-3"></div>
           <p class="text-sm font-medium">{{ t('dash.servicesLoading') }}</p>
         </div>
 
-        
         <div v-else class="space-y-12">
           <section v-for="cat in filteredCategories" :key="cat.id" class="animate-fadeUp">
             <h2 class="text-sm font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-2.5 group">

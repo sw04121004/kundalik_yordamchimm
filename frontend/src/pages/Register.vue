@@ -26,14 +26,13 @@ const fieldErrors = reactive({
 
 async function handleSubmit() {
   error.value = ''
-  // Reset per-field errors
   Object.keys(fieldErrors).forEach(k => fieldErrors[k] = '')
   if (!form.username.trim() || !form.email.trim() || !form.password || !form.password2) {
-    error.value = "Iltimos, barcha maydonlarni to'ldiring."
+    error.value = t('register.fillAll')
     return
   }
   if (form.password !== form.password2) {
-    error.value = "Parollar mos kelmadi."
+    error.value = t('register.passwordMismatch')
     return
   }
   submitting.value = true
@@ -42,7 +41,6 @@ async function handleSubmit() {
   if (result.success) {
     router.push({ name: 'dashboard' })
   } else {
-    // Backend may return field errors in result.errors
     let hasFieldErrors = false
     if (result.errors) {
       Object.entries(result.errors).forEach(([key, msgs]) => {
@@ -52,7 +50,6 @@ async function handleSubmit() {
         }
       })
     }
-    // Show generic error if no field-specific errors
     error.value = hasFieldErrors ? '' : result.message
   }
 }
@@ -68,47 +65,47 @@ async function handleSubmit() {
             style="background: linear-gradient(135deg, rgb(var(--brand-500)), rgb(var(--brand-700)))">
             Q
           </div>
-          <span class="font-bold text-xl text-slate-800 dark:text-slate-100 tracking-tight">Kundalik</span>
+          <span class="font-bold text-xl text-slate-800 dark:text-slate-100 tracking-tight">{{ t('app.name') }}</span>
         </router-link>
-        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">{{ t("Ro'yxatdan o'tish") }}</h1>
-        <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">{{ t('Yangi hisob yarating') }}</p>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">{{ t('register.title') }}</h1>
+        <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">{{ t('register.subtitle') }}</p>
       </div>
 
       <div class="card p-6 sm:p-8">
         <FormAlert :message="error" class="mb-5" />
         <form class="space-y-4" @submit.prevent="handleSubmit">
           <div>
-            <label class="label">{{ t('Foydalanuvchi nomi') }}</label>
+            <label class="label">{{ t('register.username') }}</label>
             <input v-model="form.username" type="text" class="input" placeholder="aziz_dev" />
             <p v-if="fieldErrors.username" class="text-red-500 text-sm mt-1">{{ fieldErrors.username }}</p>
           </div>
           <div>
-            <label class="label">{{ t('Ism') }}</label>
+            <label class="label">{{ t('register.name') }}</label>
             <input v-model="form.first_name" type="text" class="input" placeholder="Aziz" />
             <p v-if="fieldErrors.first_name" class="text-red-500 text-sm mt-1">{{ fieldErrors.first_name }}</p>
           </div>
           <div>
-            <label class="label">{{ t('Pochta manzili') }}</label>
+            <label class="label">{{ t('register.email') }}</label>
             <input v-model="form.email" type="email" class="input" placeholder="aziz@example.com" />
             <p v-if="fieldErrors.email" class="text-red-500 text-sm mt-1">{{ fieldErrors.email }}</p>
           </div>
           <div>
-            <label class="label">{{ t('Parol') }}</label>
+            <label class="label">{{ t('register.password') }}</label>
             <div class="relative">
               <input v-model="form.password" :type="showPassword ? 'text' : 'password'" class="input pr-10" placeholder="••••••••" minlength="8" />
-              <p class="text-red-500 text-sm">{{ fieldErrors.password }}</p>
-              <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none">
+              <p v-if="fieldErrors.password" class="text-red-500 text-sm mt-1">{{ fieldErrors.password }}</p>
+              <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none" :aria-label="showPassword ? t('profile.password.hide') : t('profile.password.show')">
                 <Eye v-if="!showPassword" class="w-5 h-5" />
                 <EyeOff v-else class="w-5 h-5" />
               </button>
             </div>
           </div>
           <div>
-            <label class="label">{{ t('Parolni tasdiqlang') }}</label>
+            <label class="label">{{ t('register.confirmPassword') }}</label>
             <div class="relative">
               <input v-model="form.password2" :type="showPasswordConfirm ? 'text' : 'password'" class="input pr-10" placeholder="••••••••" />
-              <p class="text-red-500 text-sm">{{ fieldErrors.password2 }}</p>
-              <button type="button" @click="showPasswordConfirm = !showPasswordConfirm" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none">
+              <p v-if="fieldErrors.password2" class="text-red-500 text-sm mt-1">{{ fieldErrors.password2 }}</p>
+              <button type="button" @click="showPasswordConfirm = !showPasswordConfirm" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none" :aria-label="showPasswordConfirm ? t('profile.password.hide') : t('profile.password.show')">
                 <Eye v-if="!showPasswordConfirm" class="w-5 h-5" />
                 <EyeOff v-else class="w-5 h-5" />
               </button>
@@ -116,13 +113,13 @@ async function handleSubmit() {
           </div>
           <button type="submit" class="btn-primary w-full mt-4" :disabled="submitting">
             <span v-if="submitting" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-            {{ submitting ? t('Yaratilmoqda...') : t("Ro'yxatdan o'tish") }}
+            {{ submitting ? t('register.submitting') : t('register.submit') }}
           </button>
         </form>
 
         <p class="text-center text-sm text-slate-500 dark:text-slate-400 mt-5">
-          {{ t('Hisobingiz bormi?') }}
-          <router-link :to="{ name: 'login' }" class="text-brand-600 dark:text-brand-400 font-semibold hover:underline ml-1">{{ t('Kirish') }}</router-link>
+          {{ t('register.hasAccount') }}
+          <router-link :to="{ name: 'login' }" class="text-brand-600 dark:text-brand-400 font-semibold hover:underline ml-1">{{ t('register.login') }}</router-link>
         </p>
       </div>
     </div>

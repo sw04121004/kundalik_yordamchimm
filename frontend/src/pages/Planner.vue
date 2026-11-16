@@ -7,7 +7,7 @@ import FormAlert from '../components/FormAlert.vue'
 import { CalendarDays } from 'lucide-vue-next'
 
 const planner = usePlannerStore()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const form = reactive({ title: '', due_date: '', due_time: '' })
 const submitting = ref(false)
 
@@ -20,8 +20,14 @@ function todayISO() {
 const today = todayISO()
 
 async function addTask() {
-  if (!form.title.trim()) { planner.error = 'Vazifa nomini kiriting.'; return }
-  if (form.due_date && form.due_date < today) { planner.error = "O'tib ketgan sanaga qo'shib bo'lmaydi."; return }
+  if (!form.title.trim()) {
+    planner.error = t('planner.error.empty')
+    return
+  }
+  if (form.due_date && form.due_date < today) {
+    planner.error = t('planner.error.pastDate')
+    return
+  }
   submitting.value = true
   const result = await planner.createTask({
     title: form.title.trim(),
@@ -29,31 +35,34 @@ async function addTask() {
     due_time: form.due_time || null,
   })
   submitting.value = false
-  if (result.success) { form.title = ''; form.due_date = ''; form.due_time = '' }
+  if (result.success) {
+    form.title = ''
+    form.due_date = ''
+    form.due_time = ''
+  }
 }
 
 const groups = computed(() => {
   const todayList = [], upcoming = [], someday = []
-  for (const t of planner.tasks) {
-    if (!t.due_date) someday.push(t)
-    else if (t.due_date === today) todayList.push(t)
-    else if (t.due_date > today) upcoming.push(t)
-    else if (!t.is_done) todayList.push(t)
+  for (const item of planner.tasks) {
+    if (!item.due_date) someday.push(item)
+    else if (item.due_date === today) todayList.push(item)
+    else if (item.due_date > today) upcoming.push(item)
+    else if (!item.is_done) todayList.push(item)
   }
   return [
-    { label: '☀️ Bugun', items: todayList },
-    { label: '📅 Kelgusida', items: upcoming },
-    { label: '🗂️ Sanasiz', items: someday },
+    { label: `☀️ ${t('planner.today')}`, items: todayList },
+    { label: `📅 ${t('planner.upcoming')}`, items: upcoming },
+    { label: `🗂️ ${t('planner.someday')}`, items: someday },
   ].filter(g => g.items.length)
 })
 
-const UZ_MONTHS = ['yanvar','fevral','mart','aprel','may','iyun','iyul','avgust','sentabr','oktabr','noyabr','dekabr']
 function formatDate(d) {
   if (!d) return ''
-  const [, m, day] = d.split('-').map(Number)
-  return `${day}-${UZ_MONTHS[m - 1]}`
+  const [y, m, day] = d.split('-').map(Number)
+  return new Intl.DateTimeFormat(locale(), { day: 'numeric', month: 'short' }).format(new Date(y, m - 1, day))
 }
-function formatTime(t) { return t ? t.slice(0, 5) : '' }
+function formatTime(val) { return val ? val.slice(0, 5) : '' }
 </script>
 
 <template>
@@ -64,7 +73,7 @@ function formatTime(t) { return t ? t.slice(0, 5) : '' }
       <!-- Back -->
       <router-link :to="{ name: 'dashboard' }" class="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors mb-6">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-        Orqaga
+        {{ t('planner.back') }}
       </router-link>
 
       <!-- Title -->
@@ -118,7 +127,7 @@ function formatTime(t) { return t ? t.slice(0, 5) : '' }
           <h2 class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">{{ group.label }}</h2>
           <div class="card divide-y divide-slate-100 dark:divide-slate-800/80 overflow-hidden">
             <div
-              v-for="(task, idx) in group.items"
+              v-for="task in group.items"
               :key="task.id"
               class="flex items-center gap-3 px-4 py-3.5 group/task transition-colors hover:bg-slate-50 dark:hover:bg-white/[0.02]"
               :class="task.is_done ? 'opacity-60' : ''"

@@ -6,11 +6,13 @@ import AppHeader from '../components/AppHeader.vue'
 import FormAlert from '../components/FormAlert.vue'
 import { useAuthStore } from '../store/auth'
 import { useAiStore } from '../store/ai'
+import { useI18n } from '../i18n'
 
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
 const aiStore = useAiStore()
+const { t } = useI18n()
 
 const docText = ref('')
 
@@ -56,9 +58,9 @@ async function askDocAI(type) {
 <template>
   <ToolShell
     icon="📄"
-    title="Hujjat va Matn Ishlovchisi (Hujjat AI)"
-    description="Hujjatlarni tahlil qilish, qisqartirish va tahrirlash"
-    hint="Matnni joylang va statistikani ko'ring hamda AI bilan tahlil qiling"
+    :title="t('docai.title')"
+    :description="t('docai.description')"
+    :hint="t('docai.hint')"
   >
     <template #header>
       <AppHeader />
@@ -69,7 +71,7 @@ async function askDocAI(type) {
 
       <!-- Textarea Input -->
       <div>
-        <label class="label">Hujjat matnini kiriting</label>
+        <label class="label">{{ t('docai.inputLabel') }}</label>
         <textarea
           v-model="docText"
           rows="6"
@@ -81,15 +83,15 @@ async function askDocAI(type) {
       <!-- Live Stats Bar -->
       <div class="grid grid-cols-3 gap-3 text-center">
         <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800">
-          <span class="text-xs text-slate-400 uppercase font-semibold">So'zlar</span>
+          <span class="text-xs text-slate-400 uppercase font-semibold">{{ t('docai.words') }}</span>
           <div class="text-lg font-bold text-slate-800 dark:text-slate-100 font-mono">{{ wordCount }}</div>
         </div>
         <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800">
-          <span class="text-xs text-slate-400 uppercase font-semibold">Belgilar</span>
+          <span class="text-xs text-slate-400 uppercase font-semibold">{{ t('docai.chars') }}</span>
           <div class="text-lg font-bold text-slate-800 dark:text-slate-100 font-mono">{{ charCount }}</div>
         </div>
         <div class="p-3 rounded-xl bg-slate-100 dark:bg-slate-800">
-          <span class="text-xs text-slate-400 uppercase font-semibold">O'qish vaqti</span>
+          <span class="text-xs text-slate-400 uppercase font-semibold">{{ t('docai.readTime') }}</span>
           <div class="text-lg font-bold text-slate-800 dark:text-slate-100 font-mono">~{{ readTime }} min</div>
         </div>
       </div>
@@ -97,28 +99,28 @@ async function askDocAI(type) {
       <!-- Quick Actions -->
       <div class="flex flex-wrap gap-2">
         <button class="btn-secondary text-xs !py-2" @click="cleanDoc">
-          🧹 Matnni tozalash
+          {{ t('docai.clean') }}
         </button>
         <button
           class="btn-primary text-xs !py-2"
           :disabled="!docText.trim()"
           @click="askDocAI('summarize')"
         >
-          📝 AI bilan xulosalash
+          {{ t('docai.summarize') }}
         </button>
         <button
           class="btn-primary text-xs !py-2"
           :disabled="!docText.trim()"
           @click="askDocAI('grammar')"
         >
-          ✍️ Grammatikani tekshirish
+          {{ t('docai.grammar') }}
         </button>
         <button
           class="btn-primary text-xs !py-2"
           :disabled="!docText.trim()"
           @click="askDocAI('translate')"
         >
-          🌐 Tarjima qilish
+          {{ t('docai.translate') }}
         </button>
       </div>
     </div>

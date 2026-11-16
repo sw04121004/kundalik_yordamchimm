@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../store/auth'
 import AppHeader from '../components/AppHeader.vue'
@@ -31,7 +31,7 @@ async function saveProfile() {
   const result = await auth.updateProfile(profileForm)
   profileSubmitting.value = false
   if (result.success) {
-    profileSuccess.value = 'Profil muvaffaqiyatli yangilandi.'
+    profileSuccess.value = t('profile.saved')
   } else {
     profileError.value = result.message
   }
@@ -54,22 +54,23 @@ const deletePassword = ref('')
 const deleteConfirmation = ref('')
 const deleteError = ref('')
 const deleteSubmitting = ref(false)
-const DELETE_CONFIRMATION_TEXT = "O'chirish"
+
+const deleteConfirmWord = computed(() => t('profile.danger.dialog.confirmWord'))
 
 async function savePassword() {
   passwordError.value = ''
   passwordSuccess.value = ''
 
   if (!passwordForm.old_password || !passwordForm.new_password || !passwordForm.new_password2) {
-    passwordError.value = 'Iltimos, barcha maydonlarni to‘ldiring.'
+    passwordError.value = t('profile.password.fillAll')
     return
   }
   if (passwordForm.new_password.length < 8) {
-    passwordError.value = 'Yangi parol kamida 8 belgidan iborat bo‘lishi kerak.'
+    passwordError.value = t('profile.password.minLength')
     return
   }
   if (passwordForm.new_password !== passwordForm.new_password2) {
-    passwordError.value = 'Yangi parollar mos kelmadi.'
+    passwordError.value = t('profile.password.mismatch')
     return
   }
 
@@ -78,7 +79,7 @@ async function savePassword() {
   passwordSubmitting.value = false
 
   if (result.success) {
-    passwordSuccess.value = 'Parol muvaffaqiyatli o‘zgartirildi.'
+    passwordSuccess.value = t('profile.password.changed')
     passwordForm.old_password = ''
     passwordForm.new_password = ''
     passwordForm.new_password2 = ''
@@ -99,11 +100,13 @@ function closeDeleteDialog() {
 async function deleteAccount() {
   deleteError.value = ''
   if (!deletePassword.value) {
-    deleteError.value = 'Joriy parolni kiriting.'
+    deleteError.value = t('profile.danger.dialog.noPassword')
     return
   }
-  if (deleteConfirmation.value !== DELETE_CONFIRMATION_TEXT) {
-    deleteError.value = `Tasdiqlash uchun ${DELETE_CONFIRMATION_TEXT} deb yozing.`
+  const expected = deleteConfirmWord.value.toLowerCase()
+  const entered = deleteConfirmation.value.trim().toLowerCase()
+  if (entered !== expected && entered !== "o'chirish" && entered !== "o‘chirish" && entered !== "delete" && entered !== "удалить") {
+    deleteError.value = t('profile.danger.dialog.wrongConfirm')
     return
   }
 
@@ -127,7 +130,7 @@ async function deleteAccount() {
         :to="{ name: 'dashboard' }"
         class="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-brand-600 transition mb-6"
       >
-        ← Orqaga
+        ← {{ t('profile.back') }}
       </router-link>
 
       <div class="flex items-center gap-3 mb-6">
@@ -135,7 +138,7 @@ async function deleteAccount() {
           {{ (auth.user?.username || 'U').charAt(0).toUpperCase() }}
         </div>
         <div>
-          <h1 class="text-xl font-extrabold text-slate-800 dark:text-slate-100">{{ t('Profil') }}</h1>
+          <h1 class="text-xl font-extrabold text-slate-800 dark:text-slate-100">{{ t('profile.title') }}</h1>
           <p class="text-sm text-slate-500 dark:text-slate-400">{{ auth.user?.username }}</p>
         </div>
       </div>
@@ -160,75 +163,75 @@ async function deleteAccount() {
       </div>
 
       <div class="card p-6 sm:p-7">
-        <h2 class="font-bold text-slate-800 dark:text-slate-100 mb-4">Parolni o‘zgartirish</h2>
+        <h2 class="font-bold text-slate-800 dark:text-slate-100 mb-4">{{ t('profile.password.title') }}</h2>
         <FormAlert :message="passwordError" />
         <FormAlert :message="passwordSuccess" type="success" />
         <form class="space-y-4" @submit.prevent="savePassword">
           <div>
-            <label class="label">{{ t('profile.currentPassword') }}</label>
+            <label class="label">{{ t('profile.password.current') }}</label>
             <div class="relative">
               <input v-model="passwordForm.old_password" :type="showOldPassword ? 'text' : 'password'" class="input pr-10" placeholder="••••••••" autocomplete="current-password" />
-              <button type="button" :aria-label="showOldPassword ? 'Parolni yashirish' : 'Parolni ko‘rsatish'" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" @click="showOldPassword = !showOldPassword">
+              <button type="button" :aria-label="showOldPassword ? t('profile.password.hide') : t('profile.password.show')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" @click="showOldPassword = !showOldPassword">
                 <Eye v-if="!showOldPassword" class="w-5 h-5" /><EyeOff v-else class="w-5 h-5" />
               </button>
             </div>
           </div>
           <div>
-            <label class="label">{{ t('profile.newPassword') }}</label>
+            <label class="label">{{ t('profile.password.new') }}</label>
             <div class="relative">
               <input v-model="passwordForm.new_password" :type="showNewPassword ? 'text' : 'password'" class="input pr-10" placeholder="••••••••" autocomplete="new-password" />
-              <button type="button" :aria-label="showNewPassword ? 'Parolni yashirish' : 'Parolni ko‘rsatish'" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" @click="showNewPassword = !showNewPassword">
+              <button type="button" :aria-label="showNewPassword ? t('profile.password.hide') : t('profile.password.show')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" @click="showNewPassword = !showNewPassword">
                 <Eye v-if="!showNewPassword" class="w-5 h-5" /><EyeOff v-else class="w-5 h-5" />
               </button>
             </div>
           </div>
           <div>
-            <label class="label">Yangi parolni tasdiqlang</label>
+            <label class="label">{{ t('profile.password.confirm') }}</label>
             <div class="relative">
               <input v-model="passwordForm.new_password2" :type="showPasswordConfirm ? 'text' : 'password'" class="input pr-10" placeholder="••••••••" autocomplete="new-password" />
-              <button type="button" :aria-label="showPasswordConfirm ? 'Parolni yashirish' : 'Parolni ko‘rsatish'" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" @click="showPasswordConfirm = !showPasswordConfirm">
+              <button type="button" :aria-label="showPasswordConfirm ? t('profile.password.hide') : t('profile.password.show')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" @click="showPasswordConfirm = !showPasswordConfirm">
                 <Eye v-if="!showPasswordConfirm" class="w-5 h-5" /><EyeOff v-else class="w-5 h-5" />
               </button>
             </div>
           </div>
           <button type="submit" class="btn-primary" :disabled="passwordSubmitting">
-            {{ passwordSubmitting ? 'O‘zgartirilmoqda...' : 'Parolni o‘zgartirish' }}
+            {{ passwordSubmitting ? t('profile.password.submitting') : t('profile.password.submit') }}
           </button>
         </form>
       </div>
 
       <section class="card p-6 sm:p-7 mt-6 border border-red-200 dark:border-red-900/60">
-        <h2 class="font-bold text-red-700 dark:text-red-400 mb-2">Xavfli zona</h2>
-        <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Akkaunt va unga tegishli reja, AI suhbatlari, moliya yozuvlari hamda sevimlilar butunlay o‘chiriladi.</p>
+        <h2 class="font-bold text-red-700 dark:text-red-400 mb-2">{{ t('profile.danger.title') }}</h2>
+        <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">{{ t('profile.danger.description') }}</p>
         <button type="button" class="btn-secondary !border-red-300 !text-red-700 hover:!bg-red-50 dark:!border-red-900 dark:!text-red-400 dark:hover:!bg-red-950/30" @click="showDeleteDialog = true">
-          Akkauntni o‘chirish
+          {{ t('profile.danger.button') }}
         </button>
       </section>
     </main>
 
     <div v-if="showDeleteDialog" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 px-4 py-8" @click.self="closeDeleteDialog" @keydown.esc.stop="closeDeleteDialog" tabindex="-1">
       <section role="dialog" aria-modal="true" aria-labelledby="delete-account-title" class="card w-full max-w-md p-6 sm:p-7 shadow-2xl">
-        <h2 id="delete-account-title" class="text-lg font-extrabold text-red-700 dark:text-red-400 mb-2">Akkauntni o‘chirish</h2>
-        <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Bu amalni qaytarib bo‘lmaydi. Davom etish uchun joriy parolni kiriting va <strong>{{ DELETE_CONFIRMATION_TEXT }}</strong> deb yozing.</p>
+        <h2 id="delete-account-title" class="text-lg font-extrabold text-red-700 dark:text-red-400 mb-2">{{ t('profile.danger.dialog.title') }}</h2>
+        <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">{{ t('profile.danger.dialog.warning') }}</p>
         <FormAlert :message="deleteError" />
         <form class="space-y-4" @submit.prevent="deleteAccount">
           <div>
-            <label for="delete-account-password" class="label">{{ t('profile.currentPassword') }}</label>
+            <label for="delete-account-password" class="label">{{ t('profile.password.current') }}</label>
             <div class="relative">
               <input id="delete-account-password" v-model="deletePassword" :type="showDeletePassword ? 'text' : 'password'" class="input pr-10" autocomplete="current-password" required />
-              <button type="button" :aria-label="showDeletePassword ? 'Parolni yashirish' : 'Parolni ko‘rsatish'" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" @click="showDeletePassword = !showDeletePassword">
+              <button type="button" :aria-label="showDeletePassword ? t('profile.password.hide') : t('profile.password.show')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" @click="showDeletePassword = !showDeletePassword">
                 <Eye v-if="!showDeletePassword" class="w-5 h-5" /><EyeOff v-else class="w-5 h-5" />
               </button>
             </div>
           </div>
           <div>
-            <label for="delete-account-confirmation" class="label">Tasdiqlash matni</label>
-            <input id="delete-account-confirmation" v-model="deleteConfirmation" type="text" class="input" :placeholder="DELETE_CONFIRMATION_TEXT" autocomplete="off" required />
+            <label for="delete-account-confirmation" class="label">{{ t('profile.danger.dialog.confirmLabel') }}</label>
+            <input id="delete-account-confirmation" v-model="deleteConfirmation" type="text" class="input" :placeholder="deleteConfirmWord" autocomplete="off" required />
           </div>
           <div class="flex justify-end gap-3">
-            <button type="button" class="btn-secondary" :disabled="deleteSubmitting" @click="closeDeleteDialog">Bekor qilish</button>
+            <button type="button" class="btn-secondary" :disabled="deleteSubmitting" @click="closeDeleteDialog">{{ t('profile.danger.dialog.cancel') }}</button>
             <button type="submit" class="btn-primary !bg-red-600 hover:!bg-red-700" :disabled="deleteSubmitting">
-              {{ deleteSubmitting ? 'O‘chirilmoqda...' : 'O‘chirish' }}
+              {{ deleteSubmitting ? t('profile.danger.dialog.submitting') : t('profile.danger.dialog.submit') }}
             </button>
           </div>
         </form>

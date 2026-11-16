@@ -6,16 +6,18 @@ import AppHeader from '../components/AppHeader.vue'
 import FormAlert from '../components/FormAlert.vue'
 import { useAuthStore } from '../store/auth'
 import { useAiStore } from '../store/ai'
+import { useI18n } from '../i18n'
 
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
 const aiStore = useAiStore()
+const { t } = useI18n()
 
 const flashcards = ref([
   { id: 1, front: 'Apple', back: 'Olma' },
   { id: 2, front: 'Knowledge', back: 'Bilim / Ilm' },
-  { id: 3, front: 'Perseverance', back: 'Matonat / Qat\'iyat' },
+  { id: 3, front: 'Perseverance', back: "Matonat / Qat'iyat" },
 ])
 
 const newFront = ref('')
@@ -53,7 +55,7 @@ async function askStudyAI() {
   aiStore.error = ''
   const res = await aiStore.startConversation('study')
   if (res.success && aiStore.current) {
-    await aiStore.sendMessage(aiStore.current.id, "Manga ingliz tili grammatikasi va lug'at boyligimni oshirish uchun samarali mashqlar tavsiya eting.")
+    await aiStore.sendMessage(aiStore.current.id, "Menga ingliz tili grammatikasi va lug'at boyligimni oshirish uchun samarali mashqlar tavsiya eting.")
     router.push({ name: 'ai-assistant' })
   }
 }
@@ -62,9 +64,9 @@ async function askStudyAI() {
 <template>
   <ToolShell
     icon="📚"
-    title="O'qish va Ta'lim Yordamchisi"
-    description="Flashcard (yodlash kartalari) va AI yordamida bilimingizni oshiring"
-    hint="So'zlarni tez va samarali yodlash uchun kartochkalarni bosing"
+    :title="t('study.title')"
+    :description="t('study.description')"
+    :hint="t('study.hint')"
   >
     <template #header>
       <AppHeader />
@@ -80,7 +82,7 @@ async function askStudyAI() {
           @click="isFlipped = !isFlipped"
         >
           <span class="text-xs uppercase tracking-wider opacity-75 mb-2">
-            {{ isFlipped ? 'Javob / Tarjima' : 'Savol / So\'z' }} (Kartochka {{ currentIndex + 1 }}/{{ flashcards.length }})
+            {{ isFlipped ? 'Javob / Tarjima' : "Savol / So'z" }} ({{ currentIndex + 1 }}/{{ flashcards.length }})
           </span>
           <span class="text-2xl font-bold">
             {{ isFlipped ? flashcards[currentIndex].back : flashcards[currentIndex].front }}
@@ -89,31 +91,31 @@ async function askStudyAI() {
         </div>
 
         <button class="btn-primary !px-6 !py-2 text-sm" @click="nextCard">
-          Keyingi kartochka ➔
+          {{ t('study.nextCard') }}
         </button>
       </div>
 
       <!-- Add New Flashcard Form -->
       <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 space-y-3">
         <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-          <span>➕</span> Yangi yodlash kartasi qo'shish
+          <span>➕</span> {{ t('study.addCard') }}
         </h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <input v-model="newFront" type="text" class="input" placeholder="Savol yoki So'z (masalan: Hello)" />
           <input v-model="newBack" type="text" class="input" placeholder="Javob yoki Tarjima (masalan: Salom)" />
         </div>
         <button class="btn-secondary w-full !py-2.5 text-sm" @click="addCard">
-          + Kartochka qo'shish
+          + {{ t('study.addCard') }}
         </button>
       </div>
 
       <!-- Study AI Banner -->
       <div class="p-4 rounded-xl bg-brand-50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-900/30 flex items-center justify-between gap-3">
         <span class="text-sm font-medium text-brand-800 dark:text-brand-300">
-          🎓 Imtihonga tayyorgarlik yoki mavzuni tushunishda AI'dan yordam oling.
+          🎓 {{ t('study.banner') }}
         </span>
         <button class="btn-primary text-xs shrink-0" @click="askStudyAI">
-          O'qish AI →
+          {{ t('study.askAi') }}
         </button>
       </div>
     </div>

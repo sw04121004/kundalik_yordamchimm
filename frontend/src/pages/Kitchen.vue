@@ -6,16 +6,18 @@ import AppHeader from '../components/AppHeader.vue'
 import FormAlert from '../components/FormAlert.vue'
 import { useAuthStore } from '../store/auth'
 import { useAiStore } from '../store/ai'
+import { useI18n } from '../i18n'
 
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
 const aiStore = useAiStore()
+const { t } = useI18n()
 
 const availableIngredients = [
   'Tuxum 🥚', 'Kartoshka 🥔', 'Piyoz 🧅', 'Pomidor 🍅',
-  'Go\'sht 🥩', 'Sut 🥛', 'Un 🌾', 'Pishloq 🧀',
-  'Sabzi 🥕', 'Guruch 🍚', 'Sarimsoq 🧄', 'Ko\'katlar 🌿'
+  "Go'sht 🥩", 'Sut 🥛', 'Un 🌾', 'Pishloq 🧀',
+  'Sabzi 🥕', 'Guruch 🍚', 'Sarimsoq 🧄', "Ko'katlar 🌿"
 ]
 
 const selectedIngredients = ref([])
@@ -55,11 +57,11 @@ const convUnit = ref('stakan')
 const convResult = computed(() => {
   const q = Number(convQty.value) || 0
   if (convUnit.value === 'stakan') {
-    return `${q * 200} ml (suyuqlik) / ${q * 130} g (un) / ${q * 200} g (shakar)`
+    return `${q * 200} ml / ${q * 130} g / ${q * 200} g`
   } else if (convUnit.value === 'osh_qoshiq') {
-    return `${q * 15} ml (suyuqlik) / ${q * 15} g (shakar) / ${q * 10} g (un)`
+    return `${q * 15} ml / ${q * 15} g / ${q * 10} g`
   } else if (convUnit.value === 'choy_qoshiq') {
-    return `${q * 5} ml (suyuqlik) / ${q * 5} g (shakar) / ${q * 3} g (un)`
+    return `${q * 5} ml / ${q * 5} g / ${q * 3} g`
   }
   return ''
 })
@@ -68,9 +70,9 @@ const convResult = computed(() => {
 <template>
   <ToolShell
     icon="🍳"
-    title="Oshxona AI va Retseptlar Yordamchisi"
-    description="Masalliqlaringizga qarab retseptlar toping va oshxona o'lchovlarini hisoblang"
-    hint="Bordir masalliqlaringizni tanlang va AI sizga eng mos retseptni tavsiya etadi"
+    :title="t('kitchen.title')"
+    :description="t('kitchen.description')"
+    :hint="t('kitchen.hint')"
   >
     <template #header>
       <AppHeader />
@@ -82,7 +84,7 @@ const convResult = computed(() => {
       <!-- Ingredient selector card -->
       <div class="p-5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50 shadow-sm space-y-4">
         <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-          <span>🧺</span> Sizda qaysi masalliqlar bor?
+          <span>🧺</span> {{ t('kitchen.haveIngredients') }}
         </h3>
         <div class="flex flex-wrap gap-2">
           <button
@@ -102,14 +104,14 @@ const convResult = computed(() => {
           class="btn-primary w-full !py-3 flex items-center justify-center gap-2"
           @click="askKitchenAI"
         >
-          <span>🤖</span> AI'dan retsept so'rash →
+          <span>🤖</span> {{ t('kitchen.askAi') }}
         </button>
       </div>
 
       <!-- Quick Kitchen Unit Converter -->
       <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 space-y-3">
         <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-          <span>⚖️</span> Oshxona o'lchov kalkulyatori
+          <span>⚖️</span> {{ t('kitchen.calcTitle') }}
         </h3>
         <div class="grid grid-cols-2 gap-3">
           <div>

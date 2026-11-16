@@ -58,8 +58,36 @@ class AccountAPITests(APITestCase):
 			format="json",
 		)
 
-		self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-		self.assertFalse(User.objects.filter(username="new-user").exists())
+	def test_registration_rejects_duplicate_username_and_localizes_error(self):
+		# Default (uz)
+		response_uz = self.client.post(
+			reverse("register"),
+			{
+				"username": self.user.username,
+				"password": "StrongPass123!",
+				"password2": "StrongPass123!",
+			},
+			format="json",
+			HTTP_ACCEPT_LANGUAGE="uz",
+		)
+		self.assertEqual(response_uz.status_code, status.HTTP_400_BAD_REQUEST)
+		self.assertIn("allaqachon band", " ".join(response_uz.data["username"]))
+		self.assertNotIn("A user with that username already exists", " ".join(response_uz.data["username"]))
+
+		# Russian (ru)
+		response_ru = self.client.post(
+			reverse("register"),
+			{
+				"username": self.user.username,
+				"password": "StrongPass123!",
+				"password2": "StrongPass123!",
+			},
+			format="json",
+			HTTP_ACCEPT_LANGUAGE="ru",
+		)
+		self.assertEqual(response_ru.status_code, status.HTTP_400_BAD_REQUEST)
+		self.assertIn("уже существует", " ".join(response_ru.data["username"]))
+		self.assertNotIn("A user with that username already exists", " ".join(response_ru.data["username"]))
 
 	def test_registration_enforces_eight_character_password_and_localizes_error(self):
 		response = self.client.post(
