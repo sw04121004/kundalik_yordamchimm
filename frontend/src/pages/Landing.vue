@@ -52,13 +52,13 @@ const heroWords = computed(() =>
     <!-- Header -->
     <header class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <LanguageSwitcher />
         <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white font-extrabold shadow-soft">
           Q
         </div>
         <span class="font-extrabold text-lg text-slate-800 dark:text-slate-100">{{ language === 'ru' ? 'Ежедневный помощник' : language === 'en' ? 'Daily Assistant' : 'Kundalik Yordamchi' }}</span>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-3">
+        <LanguageSwitcher />
         <router-link :to="{ name: 'login' }" class="btn-secondary !px-4 !py-2 text-sm">{{ copy.login }}</router-link>
         <router-link :to="{ name: 'register' }" class="btn-primary !px-4 !py-2 text-sm">{{ copy.register }}</router-link>
       </div>
