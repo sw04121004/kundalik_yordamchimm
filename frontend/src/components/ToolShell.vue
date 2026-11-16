@@ -1,5 +1,8 @@
 <script setup>
 import { Sparkles } from 'lucide-vue-next'
+import { useI18n } from '../i18n'
+
+const { t } = useI18n()
 
 defineProps({
   icon: { type: String, default: '⚙️' },
@@ -18,7 +21,7 @@ defineProps({
         :to="{ name: 'dashboard' }"
         class="inline-flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400 hover:text-brand-600 transition mb-6"
       >
-        ← Orqaga
+        ← {{ t('common.back') }}
       </router-link>
 
       <div class="flex items-center gap-3 mb-2">

@@ -53,8 +53,17 @@ class PlannerAPITests(APITestCase):
 		self.assertFalse(task.is_done)
 
 	def test_blank_title_is_rejected(self):
-		response = self.client.post(self.list_url, {"title": "   "}, format="json")
+		response = self.client.post(self.list_url, {"title": "   "}, format="json", HTTP_ACCEPT_LANGUAGE="uz")
 		self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+		self.assertEqual(response.data["title"][0], "Vazifa nomi bo'sh bo'lishi mumkin emas.")
+
+		response_ru = self.client.post(self.list_url, {"title": "   "}, format="json", HTTP_ACCEPT_LANGUAGE="ru")
+		self.assertEqual(response_ru.status_code, status.HTTP_400_BAD_REQUEST)
+		self.assertEqual(response_ru.data["title"][0], "Название задачи не может быть пустым.")
+
+		response_en = self.client.post(self.list_url, {"title": "   "}, format="json", HTTP_ACCEPT_LANGUAGE="en")
+		self.assertEqual(response_en.status_code, status.HTTP_400_BAD_REQUEST)
+		self.assertEqual(response_en.data["title"][0], "Task title cannot be empty.")
 
 	def test_date_filter_returns_only_matching_tasks(self):
 		Task.objects.create(user=self.user, title="Today", due_date="2026-11-06")

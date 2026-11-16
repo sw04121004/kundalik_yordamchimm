@@ -205,7 +205,7 @@ function handleKeydown(e) {
 }
 
 async function removeConversation(id) {
-  if (!confirm("Ushbu suhbatni o'chirmoqchimisiz?")) return
+  if (!confirm(t('ai.deleteConfirm'))) return
   await aiStore.deleteConversation(id)
 }
 
@@ -229,7 +229,7 @@ function autoResize(el) {
       <!-- Sidebar desktop -->
       <aside class="hidden md:flex md:w-72 shrink-0 flex-col card overflow-hidden">
         <div class="p-4 border-b border-slate-100 dark:border-white/5">
-          <button class="btn-primary w-full text-sm justify-center" @click="startNew">+ Yangi suhbat</button>
+          <button class="btn-primary w-full text-sm justify-center" @click="startNew">{{ t('ai.newChat') }}</button>
         </div>
         <div class="flex-1 overflow-y-auto p-2 space-y-1">
           <p v-if="aiStore.conversationsLoading" class="text-sm text-slate-400 px-3 py-4 text-center">{{ t('dash.loading') }}...</p>
@@ -268,7 +268,7 @@ function autoResize(el) {
               <h2 class="font-bold text-slate-800 dark:text-white">{{ t('ai.chats') }}</h2>
               <button class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500" @click="sidebarOpen = false">×</button>
             </div>
-            <button class="btn-primary w-full text-sm justify-center mb-4" @click="startNew">+ Yangi suhbat</button>
+            <button class="btn-primary w-full text-sm justify-center mb-4" @click="startNew">{{ t('ai.newChat') }}</button>
             <div class="flex-1 overflow-y-auto space-y-1">
               <div
                 v-for="conv in aiStore.conversations"
@@ -291,9 +291,9 @@ function autoResize(el) {
         <div class="md:hidden flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-white/5">
           <button class="text-sm font-semibold text-slate-600 dark:text-slate-300 flex items-center gap-1.5" @click="sidebarOpen = true">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
-            Suhbatlar
+            {{ t('ai.chats') }}
           </button>
-          <button class="text-sm font-semibold text-brand-600 dark:text-brand-400" @click="startNew">+ Yangi</button>
+          <button class="text-sm font-semibold text-brand-600 dark:text-brand-400" @click="startNew">{{ t('ai.new') }}</button>
         </div>
 
         <!-- Purpose picker -->
@@ -301,7 +301,7 @@ function autoResize(el) {
           <div class="max-w-2xl w-full animate-fadeUp">
             <div class="text-center mb-8">
               <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-100 to-emerald-50 dark:from-brand-900/60 dark:to-emerald-950/50 border border-brand-200/70 dark:border-brand-700/50 text-brand-700 dark:text-brand-300 flex items-center justify-center mx-auto mb-4 animate-float"><Bot class="w-8 h-8" aria-hidden="true" /></div>
-              <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">{{ t('AI Yordamchi') }}</h1>
+              <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">{{ t('nav.ai') }}</h1>
               <p class="text-slate-500 dark:text-slate-400">{{ t('ai.need') }}</p>
             </div>
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
@@ -332,7 +332,7 @@ function autoResize(el) {
           <!-- AI not configured warning -->
           <div v-if="!aiStore.aiConfigured" class="mx-4 sm:mx-5 mt-4 flex gap-2.5 p-3.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/40 text-amber-800 dark:text-amber-200 text-xs font-medium">
             <span class="shrink-0">⚠️</span>
-            <p>AI hozircha ulanmagan. Administrator backend/.env da <code class="bg-amber-100 dark:bg-amber-900/50 px-1 py-0.5 rounded font-mono">AI_API_KEY</code> ni to'ldirishi kerak.</p>
+            <p>{{ t('ai.notConnected') }}</p>
           </div>
 
           <!-- Messages -->
@@ -397,7 +397,7 @@ function autoResize(el) {
 
           <!-- Input Area -->
           <div class="px-4 sm:px-5 py-3 border-t border-slate-100 dark:border-white/5 bg-white dark:bg-[#1d2523] relative">
-            <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">AI tashqi modeldan javob oladi; javoblar xato yoki eskirgan bo‘lishi mumkin va jonli manbalar avtomatik tekshirilmaydi.</p>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">{{ t('ai.disclaimer') }}</p>
             <p v-if="isRecording" class="text-xs text-red-500 mb-2" role="status">🔴 Ovoz yozilmoqda · {{ formatDuration(recordingTime) }} · gapni matnga aylantiryapti</p>
             <p v-else-if="voiceError" class="text-xs text-amber-600 dark:text-amber-400 mb-2" role="alert">{{ voiceError }}</p>
             <p v-else class="text-[10px] text-slate-400 mb-2">Mikrofon gapirganingizni matnga aylantiradi; yuborishdan oldin matnni tekshiring.</p>
@@ -419,7 +419,7 @@ function autoResize(el) {
                 v-model="draft"
                 rows="1"
                 class="w-full bg-transparent border-none resize-none focus:ring-0 outline-none text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 max-h-40 py-2 leading-relaxed"
-                placeholder="Xabaringizni yozing..."
+                :placeholder="t('ai.inputPlaceholder')"
                 @keydown="handleKeydown"
                 @input="autoResize($event.target)"
               ></textarea>

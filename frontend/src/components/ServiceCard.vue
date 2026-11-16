@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { Star, Wrench } from 'lucide-vue-next'
 import { useServicesStore } from '../store/services'
+import { useI18n } from '../i18n'
 
 const props = defineProps({
   icon: { type: String, default: '⚙️' },
@@ -13,6 +14,7 @@ const props = defineProps({
   showFavorite: { type: Boolean, default: true },
 })
 
+const { t } = useI18n()
 const servicesStore = useServicesStore()
 const isFavorite = computed(() => props.slug ? servicesStore.isFavorite(props.slug) : false)
 const target = computed(() => props.route || props.to || '#')
@@ -34,7 +36,7 @@ function toggleFavorite(event) {
       v-if="showFavorite && slug"
       class="absolute top-3 right-3 w-8 h-8 rounded-lg flex items-center justify-center transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 z-10 hover:bg-slate-100 dark:hover:bg-white/10"
       :class="isFavorite ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400 dark:text-slate-500'"
-      :title="isFavorite ? 'Sevimlilardan olib tashlash' : 'Sevimlilarga qo\'shish'"
+      :title="isFavorite ? t('common.favRemove') : t('common.favAdd')"
       @click="toggleFavorite"
     >
       <Star class="w-4 h-4" :fill="isFavorite ? 'currentColor' : 'none'" aria-hidden="true" />

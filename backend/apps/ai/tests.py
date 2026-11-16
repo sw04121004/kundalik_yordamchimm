@@ -118,3 +118,19 @@ class AIAPITests(APITestCase):
 			cache.clear()
 			self.assertEqual(self.client.post(url, {"content": "Kunlik limit bir"}, format="json").status_code, status.HTTP_201_CREATED)
 			self.assertEqual(self.client.post(url, {"content": "Kunlik limit ikki"}, format="json").status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+
+	def test_ai_message_validation_is_localized(self):
+		self.client.force_authenticate(self.user)
+		list_url = reverse("ai-conversation-list")
+		res_uz = self.client.post(list_url, {"purpose": "invalid_purpose"}, format="json", HTTP_ACCEPT_LANGUAGE="uz")
+		self.assertEqual(res_uz.status_code, status.HTTP_400_BAD_REQUEST)
+		self.assertEqual(res_uz.data["purpose"][0], "Noto'g'ri maqsad tanlandi.")
+
+		res_ru = self.client.post(list_url, {"purpose": "invalid_purpose"}, format="json", HTTP_ACCEPT_LANGUAGE="ru")
+		self.assertEqual(res_ru.status_code, status.HTTP_400_BAD_REQUEST)
+		self.assertEqual(res_ru.data["purpose"][0], "Выбрана неверная цель.")
+
+		res_en = self.client.post(list_url, {"purpose": "invalid_purpose"}, format="json", HTTP_ACCEPT_LANGUAGE="en")
+		self.assertEqual(res_en.status_code, status.HTTP_400_BAD_REQUEST)
+		self.assertEqual(res_en.data["purpose"][0], "Invalid purpose selected.")
+

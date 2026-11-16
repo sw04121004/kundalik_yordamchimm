@@ -125,11 +125,28 @@ class LegacyTransactionImportSerializer(serializers.Serializer):
     date = serializers.DateField()
 
 
+def _get_lang_from_context(context):
+    request = context.get("request") if context else None
+    if not request:
+        return "uz"
+    accept = getattr(request, "headers", {}).get("Accept-Language", "uz") if hasattr(request, "headers") else request.META.get("HTTP_ACCEPT_LANGUAGE", "uz")
+    lang = accept.split(",", 1)[0].split("-", 1)[0].lower()
+    return lang if lang in ("uz", "ru", "en") else "uz"
+
+
+_DUPLICATE_ID_MESSAGES = {
+    "uz": "Import ichida takrorlangan yozuv IDsi bor.",
+    "ru": "В импорте обнаружен повторяющийся ID записи.",
+    "en": "Duplicate record ID found in import data.",
+}
+
+
 class LegacyTransactionBatchSerializer(serializers.Serializer):
     transactions = LegacyTransactionImportSerializer(many=True, allow_empty=True, max_length=500)
 
     def validate_transactions(self, items):
         ids = [item["legacy_id"] for item in items]
         if len(ids) != len(set(ids)):
-            raise serializers.ValidationError("Import ichida takrorlangan yozuv IDsi bor.")
+            lang = _get_lang_from_context(self.context)
+            raise serializers.ValidationError(_DUPLICATE_ID_MESSAGES[lang])
         return items

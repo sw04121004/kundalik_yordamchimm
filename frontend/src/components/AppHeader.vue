@@ -65,7 +65,7 @@ onUnmounted(() => {
             class="absolute inset-0 rounded-lg bg-brand-50 dark:bg-white/5 -z-10"
             :style="{ boxShadow: 'inset 0 0 0 1px rgb(var(--brand-500) / 0.25), 0 0 16px -4px rgb(var(--brand-500) / 0.35)' }"
           ></span>
-          {{ t('Xizmatlar') }}
+          {{ t('nav.services') }}
         </router-link>
         <router-link
           :to="{ name: 'ai-assistant' }"
@@ -77,7 +77,7 @@ onUnmounted(() => {
             class="absolute inset-0 rounded-lg bg-brand-50 dark:bg-white/5 -z-10"
             :style="{ boxShadow: 'inset 0 0 0 1px rgb(var(--brand-500) / 0.25), 0 0 16px -4px rgb(var(--brand-500) / 0.35)' }"
           ></span>
-          🤖 {{ t('AI Yordamchi') }}
+          🤖 {{ t('nav.ai') }}
         </router-link>
         <router-link
           :to="{ name: 'planner' }"
@@ -89,14 +89,14 @@ onUnmounted(() => {
             class="absolute inset-0 rounded-lg bg-brand-50 dark:bg-white/5 -z-10"
             :style="{ boxShadow: 'inset 0 0 0 1px rgb(var(--brand-500) / 0.25), 0 0 16px -4px rgb(var(--brand-500) / 0.35)' }"
           ></span>
-          📅 {{ t('Reja') }}
+          📅 {{ t('nav.planner') }}
         </router-link>
       </nav>
 
       <div class="flex items-center gap-2 sm:gap-3">
         <LanguageSwitcher />
         <span v-if="auth.user" class="hidden lg:block text-sm text-slate-500 dark:text-slate-400">
-          {{ t('Salom,') }} <span class="font-semibold text-slate-700 dark:text-slate-200">{{ auth.user.first_name || auth.user.username }}</span>
+          {{ t('nav.greeting') }} <span class="font-semibold text-slate-700 dark:text-slate-200">{{ auth.user.first_name || auth.user.username }}</span>
         </span>
         <ThemeSwitcher />
         <div ref="accountMenuRef" class="relative">
@@ -104,7 +104,7 @@ onUnmounted(() => {
             ref="accountButtonRef"
             type="button"
             class="w-9 h-9 rounded-full bg-brand-100 dark:bg-white/5 text-brand-700 dark:text-brand-300 font-bold flex items-center justify-center hover:bg-brand-200 dark:hover:bg-white/10 transition-all duration-200 hover:scale-105 active:scale-95"
-            :aria-label="t('Akkaunt menyusini ochish')"
+            :aria-label="t('nav.openMenu')"
             aria-haspopup="menu"
             :aria-expanded="menuOpen"
             aria-controls="account-menu"
@@ -124,13 +124,13 @@ onUnmounted(() => {
                 :to="{ name: 'ai-assistant' }"
                 class="md:hidden w-full text-left px-3 py-2 rounded-lg hover:bg-brand-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300 font-medium transition-colors duration-200 flex items-center gap-1.5"
               >
-                🤖 {{ t('AI Yordamchi') }}
+                🤖 {{ t('nav.ai') }}
               </router-link>
               <router-link
                 :to="{ name: 'planner' }"
                 class="md:hidden w-full text-left px-3 py-2 rounded-lg hover:bg-brand-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300 font-medium transition-colors duration-200 flex items-center gap-1.5"
               >
-                📅 {{ t('Reja') }}
+                📅 {{ t('nav.planner') }}
               </router-link>
               <router-link
                 :to="{ name: 'profile' }"
@@ -138,7 +138,7 @@ onUnmounted(() => {
                 class="w-full text-left px-3 py-2 rounded-lg hover:bg-brand-50 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300 font-medium transition-colors duration-200 flex items-center gap-1.5"
               >
                 <UserRound class="w-4 h-4" aria-hidden="true" />
-                {{ t('Profil') }}
+                {{ t('nav.profile') }}
               </router-link>
               <button
                 type="button"
@@ -147,7 +147,7 @@ onUnmounted(() => {
                 @click="handleLogout"
               >
                 <LogOut class="inline w-4 h-4 mr-2" aria-hidden="true" />
-                {{ t('Chiqish') }}
+                {{ t('nav.logout') }}
               </button>
             </div>
           </transition>

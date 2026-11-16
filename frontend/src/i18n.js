@@ -29,6 +29,8 @@ const uz = {
   "common.copy": "Nusxalash",
   "common.copied": "Nusxalandi",
   "common.currency": "so'm",
+  "common.favAdd": "Sevimlilarga qo'shish",
+  "common.favRemove": "Sevimlilardan olib tashlash",
 
   // Navigatsiya / AppHeader
   "nav.services": "Xizmatlar",
@@ -356,6 +358,8 @@ const ru = {
   "common.copy": "Копировать",
   "common.copied": "Скопировано",
   "common.currency": "сум",
+  "common.favAdd": "Добавить в избранное",
+  "common.favRemove": "Удалить из избранного",
 
   // Navigatsiya
   "nav.services": "Сервисы",
@@ -683,6 +687,8 @@ const en = {
   "common.copy": "Copy",
   "common.copied": "Copied",
   "common.currency": "UZS",
+  "common.favAdd": "Add to favorites",
+  "common.favRemove": "Remove from favorites",
 
   // Navigation
   "nav.services": "Services",

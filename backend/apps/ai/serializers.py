@@ -35,7 +35,32 @@ class ConversationDetailSerializer(serializers.ModelSerializer):
         fields = ("id", "title", "purpose", "created_at", "updated_at", "messages")
 
 
+def _get_lang_from_context(context):
+    request = context.get("request") if context else None
+    if not request:
+        return "uz"
+    accept = getattr(request, "headers", {}).get("Accept-Language", "uz") if hasattr(request, "headers") else request.META.get("HTTP_ACCEPT_LANGUAGE", "uz")
+    lang = accept.split(",", 1)[0].split("-", 1)[0].lower()
+    return lang if lang in ("uz", "ru", "en") else "uz"
+
+
+_AI_MESSAGES = {
+    "invalid_purpose": {
+        "uz": "Noto'g'ri maqsad tanlandi.",
+        "ru": "Выбрана неверная цель.",
+        "en": "Invalid purpose selected.",
+    },
+    "empty_content": {
+        "uz": "Xabar bo'sh bo'lishi mumkin emas.",
+        "ru": "Сообщение не может быть пустым.",
+        "en": "Message cannot be empty.",
+    },
+}
+
+
 class ConversationCreateSerializer(serializers.ModelSerializer):
+    purpose = serializers.CharField(max_length=50, default="general")
+
     class Meta:
         model = Conversation
         fields = ("id", "title", "purpose", "created_at", "updated_at")
@@ -43,7 +68,8 @@ class ConversationCreateSerializer(serializers.ModelSerializer):
 
     def validate_purpose(self, value):
         if value not in VALID_PURPOSES:
-            raise serializers.ValidationError("Noto'g'ri maqsad tanlandi.")
+            lang = _get_lang_from_context(self.context)
+            raise serializers.ValidationError(_AI_MESSAGES["invalid_purpose"][lang])
         return value
 
 
@@ -52,5 +78,6 @@ class SendMessageSerializer(serializers.Serializer):
 
     def validate_content(self, value):
         if not value or not value.strip():
-            raise serializers.ValidationError("Xabar bo'sh bo'lishi mumkin emas.")
+            lang = _get_lang_from_context(self.context)
+            raise serializers.ValidationError(_AI_MESSAGES["empty_content"][lang])
         return value.strip()
