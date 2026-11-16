@@ -3,7 +3,9 @@ import { ref, onMounted } from 'vue'
 import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
 import { useServicesStore } from '../../store/services'
+import { useI18n } from '../../i18n'
 
+const { t } = useI18n()
 const servicesStore = useServicesStore()
 onMounted(() => servicesStore.logUsage('matnni-tozalash'))
 
@@ -67,8 +69,8 @@ function reset() {
       </div>
 
       <div class="flex gap-3 pt-2">
-        <button class="btn-primary flex-1" @click="clean">Tozalash</button>
-        <button class="btn-secondary" @click="reset">Bekor qilish</button>
+        <button class="btn-primary flex-1" @click="clean">{{ t('common.clear') }}</button>
+        <button class="btn-secondary" @click="reset">{{ t('common.cancel') }}</button>
       </div>
     </div>
   </ToolShell>

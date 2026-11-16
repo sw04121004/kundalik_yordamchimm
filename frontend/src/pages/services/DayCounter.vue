@@ -5,7 +5,9 @@ import AppHeader from '../../components/AppHeader.vue'
 import ResultBox from '../../components/ResultBox.vue'
 import FormAlert from '../../components/FormAlert.vue'
 import { useServicesStore } from '../../store/services'
+import { useI18n } from '../../i18n'
 
+const { t } = useI18n()
 const servicesStore = useServicesStore()
 onMounted(() => servicesStore.logUsage('kun-hisoblagich'))
 
@@ -96,7 +98,7 @@ function reset() {
         </div>
       </div>
 
-      <button class="btn-secondary w-full" @click="reset">Tozalash</button>
+      <button class="btn-secondary w-full" @click="reset">{{ t('common.clear') }}</button>
 
       <ResultBox label="Yangi sana" :value="result" />
     </div>

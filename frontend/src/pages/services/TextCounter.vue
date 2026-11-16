@@ -3,7 +3,9 @@ import { ref, computed, onMounted } from 'vue'
 import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
 import { useServicesStore } from '../../store/services'
+import { useI18n } from '../../i18n'
 
+const { t } = useI18n()
 const servicesStore = useServicesStore()
 onMounted(() => servicesStore.logUsage('soz-belgi-sanagich'))
 
@@ -39,7 +41,7 @@ function reset() {
         ></textarea>
       </div>
 
-      <button class="btn-secondary w-full" @click="reset">Tozalash</button>
+      <button class="btn-secondary w-full" @click="reset">{{ t('common.clear') }}</button>
 
       <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-2">
         <div class="rounded-xl bg-brand-50 px-3 py-3 text-center">

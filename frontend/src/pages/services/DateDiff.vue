@@ -4,7 +4,9 @@ import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
 import FormAlert from '../../components/FormAlert.vue'
 import { useServicesStore } from '../../store/services'
+import { useI18n } from '../../i18n'
 
+const { t } = useI18n()
 const servicesStore = useServicesStore()
 onMounted(() => servicesStore.logUsage('sana-farqi'))
 
@@ -137,7 +139,7 @@ function reset() {
         <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Ish kunlarini sanash (shanba-yakshanbani chiqarish)</span>
       </label>
 
-      <button class="btn-secondary w-full" @click="reset">Tozalash</button>
+      <button class="btn-secondary w-full" @click="reset">{{ t('common.clear') }}</button>
 
       <transition name="page-fade">
         <div v-if="result" class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 animate-resultPop">

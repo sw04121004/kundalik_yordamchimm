@@ -3,9 +3,11 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
 import { useServicesStore } from '../../store/services'
+import { useI18n } from '../../i18n'
 import { RefreshCw } from 'lucide-vue-next'
 import { fetchOfficialCurrencyRates } from '../../api/currencyRates'
 
+const { t } = useI18n()
 const servicesStore = useServicesStore()
 const rates = ref([])
 const loadingRates = ref(true)
@@ -106,7 +108,7 @@ function swap() {
         </div>
       </div>
 
-      <button class="btn-secondary w-full" @click="reset">Tozalash</button>
+      <button class="btn-secondary w-full" @click="reset">{{ t('common.clear') }}</button>
 
       <div v-if="result !== null" class="mt-5 rounded-xl bg-gradient-to-br from-brand-50 to-brand-100/60 dark:from-slate-700 dark:to-slate-700/60 border border-brand-100 dark:border-slate-600 px-5 py-4">
         <p class="text-xs font-medium text-brand-600 dark:text-brand-300 uppercase tracking-wide">Natija ({{ to }})</p>

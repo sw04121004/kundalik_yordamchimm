@@ -5,7 +5,9 @@ import AppHeader from '../../components/AppHeader.vue'
 import ResultBox from '../../components/ResultBox.vue'
 import FormAlert from '../../components/FormAlert.vue'
 import { useServicesStore } from '../../store/services'
+import { useI18n } from '../../i18n'
 
+const { t } = useI18n()
 const servicesStore = useServicesStore()
 onMounted(() => servicesStore.logUsage('foiz-hisoblagich'))
 
@@ -71,7 +73,7 @@ function reset() {
         <input v-model="percent" type="number" class="input" placeholder="masalan: 15" />
       </div>
 
-      <button class="btn-secondary w-full" @click="reset">Tozalash</button>
+      <button class="btn-secondary w-full" @click="reset">{{ t('common.clear') }}</button>
 
       <ResultBox :value="result" />
     </div>

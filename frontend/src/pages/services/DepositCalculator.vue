@@ -2,6 +2,9 @@
 import { ref, computed } from 'vue'
 import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
+import { useI18n } from '../../i18n'
+
+const { t } = useI18n()
 
 const depositAmount = ref('')
 const annualRate = ref('')
@@ -36,7 +39,7 @@ const result = computed(() => {
 })
 
 function formatMoney(val) {
-  return (val || 0).toLocaleString('uz-UZ') + ' so\'m'
+  return `${(val || 0).toLocaleString('uz-UZ')} ${t('common.currency')}`
 }
 </script>
 

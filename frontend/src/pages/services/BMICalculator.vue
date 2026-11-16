@@ -4,7 +4,9 @@ import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
 import FormAlert from '../../components/FormAlert.vue'
 import { useServicesStore } from '../../store/services'
+import { useI18n } from '../../i18n'
 
+const { t } = useI18n()
 const servicesStore = useServicesStore()
 onMounted(() => servicesStore.logUsage('bmi-hisoblagich'))
 
@@ -93,7 +95,7 @@ function reset() {
         </div>
       </div>
 
-      <button class="btn-secondary w-full" @click="reset">Tozalash</button>
+      <button class="btn-secondary w-full" @click="reset">{{ t('common.clear') }}</button>
 
       <transition name="page-fade">
         <div v-if="result" class="mt-5 rounded-xl border px-5 py-4 text-center animate-resultPop" :class="[result.bg || 'bg-slate-50', 'border-transparent dark:bg-slate-700/60']">

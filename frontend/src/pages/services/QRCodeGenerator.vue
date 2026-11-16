@@ -4,7 +4,9 @@ import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
 import FormAlert from '../../components/FormAlert.vue'
 import { useServicesStore } from '../../store/services'
+import { useI18n } from '../../i18n'
 
+const { t } = useI18n()
 const servicesStore = useServicesStore()
 onMounted(() => servicesStore.logUsage('qr-kod-generatori'))
 
@@ -66,7 +68,7 @@ function reset() {
 
       <div class="flex gap-3 pt-2">
         <button class="btn-primary flex-1" @click="generate">Yaratish</button>
-        <button class="btn-secondary" @click="reset">Tozalash</button>
+        <button class="btn-secondary" @click="reset">{{ t('common.clear') }}</button>
       </div>
 
       <transition name="page-fade">

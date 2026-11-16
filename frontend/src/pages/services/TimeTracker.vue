@@ -2,6 +2,9 @@
 import { ref, onUnmounted } from 'vue'
 import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
+import { useI18n } from '../../i18n'
+
+const { t } = useI18n()
 
 const isRunning = ref(false)
 const seconds = ref(0)
@@ -66,7 +69,7 @@ onUnmounted(() => clearInterval(timer))
           {{ isRunning ? '⏸ To\'xtatish' : '▶ Boshlash' }}
         </button>
         <button class="btn-secondary !px-5" @click="resetTimer">
-          Tozalash
+          {{ t('common.clear') }}
         </button>
       </div>
 

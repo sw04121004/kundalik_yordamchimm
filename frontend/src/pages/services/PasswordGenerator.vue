@@ -4,7 +4,9 @@ import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
 import FormAlert from '../../components/FormAlert.vue'
 import { useServicesStore } from '../../store/services'
+import { useI18n } from '../../i18n'
 
+const { t } = useI18n()
 const servicesStore = useServicesStore()
 onMounted(() => servicesStore.logUsage('parol-generatori'))
 
@@ -129,7 +131,7 @@ onMounted(generate)
         <div class="flex items-center justify-between gap-3">
           <p class="text-lg font-extrabold text-brand-800 font-mono break-all">{{ password }}</p>
           <button class="shrink-0 btn-secondary !px-3 !py-2 text-sm" @click="copyPassword">
-            {{ copied ? '✓ Nusxalandi' : 'Nusxalash' }}
+            {{ copied ? '✓ ' + t('common.copied') : t('common.copy') }}
           </button>
         </div>
         <p class="text-xs mt-2 font-semibold" :class="strengthLabel(password).color">

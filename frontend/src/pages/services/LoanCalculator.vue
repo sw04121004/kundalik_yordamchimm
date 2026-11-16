@@ -2,7 +2,9 @@
 import { ref, computed } from 'vue'
 import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
+import { useI18n } from '../../i18n'
 
+const { t } = useI18n()
 const amount = ref('')
 const rate = ref('')
 const months = ref('')
@@ -22,7 +24,7 @@ const totalPayment = computed(() => monthlyPayment.value === null ? null : month
 const totalInterest = computed(() => totalPayment.value === null ? null : Math.max(0, totalPayment.value - Number(amount.value)))
 
 function formatMoney(val) {
-  return (val || 0).toLocaleString('uz-UZ') + ' so\'m'
+  return `${(val || 0).toLocaleString('uz-UZ')} ${t('common.currency')}`
 }
 </script>
 

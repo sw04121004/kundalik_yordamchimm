@@ -3,7 +3,9 @@ import { ref, onMounted } from 'vue'
 import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
 import { useServicesStore } from '../../store/services'
+import { useI18n } from '../../i18n'
 
+const { t } = useI18n()
 const servicesStore = useServicesStore()
 onMounted(() => servicesStore.logUsage('harf-ozgartirish'))
 
@@ -57,7 +59,7 @@ function reset() {
         <button class="btn-secondary" @click="toTitleCase">Har Bir So‘z</button>
         <button class="btn-secondary" @click="toSentenceCase">Gap boshi</button>
         <button class="btn-secondary" @click="invertCase">tEsKaRi</button>
-        <button class="btn-secondary" @click="reset">Tozalash</button>
+        <button class="btn-secondary" @click="reset">{{ t('common.clear') }}</button>
       </div>
     </div>
   </ToolShell>

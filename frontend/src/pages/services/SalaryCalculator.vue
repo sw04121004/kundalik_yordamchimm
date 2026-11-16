@@ -1,8 +1,11 @@
 <script setup>
 import { ref, computed } from 'vue'
 import ToolShell from '../../components/ToolShell.vue'
-import FormAlert from '../../components/FormAlert.vue' // FormAlert ni import qilamiz
+import AppHeader from '../../components/AppHeader.vue'
+import FormAlert from '../../components/FormAlert.vue'
+import { useI18n } from '../../i18n'
 
+const { t } = useI18n()
 const salary = ref(5000000)
 const taxRate = ref('')
 const pensionRate = ref('')
@@ -45,6 +48,7 @@ function formatMoney(amount) {
 
 <template>
   <ToolShell title="Oylik maosh hisoblagich" icon="💵" description="O‘zbekiston soliq rezidenti uchun taxminiy sof maosh (imtiyozlarsiz)">
+    <template #header><AppHeader /></template>
     <div class="space-y-6">
       <FormAlert :message="error" />
       <p class="rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/40 p-3 text-xs text-amber-800 dark:text-amber-200">Soliq va INPS stavkalari saytdan jonli olinmaydi. Amaldagi stavkalarni rasmiy manbadan tekshirib kiriting; imtiyozlar va alohida holatlar hisobga olinmaydi.</p>
