@@ -136,3 +136,14 @@ export const useAuthStore = defineStore('auth', {
     },
   },
 })
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('auth-session-expired', () => {
+    try {
+      const auth = useAuthStore()
+      auth.clearSession()
+    } catch {
+      // pinia might not be ready yet
+    }
+  })
+}

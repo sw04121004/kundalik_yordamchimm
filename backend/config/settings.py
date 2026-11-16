@@ -171,10 +171,9 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=10),
-    # Keep a user signed in on this browser for about three years. A token
-    # expiry never deletes the account; they can sign in again with the same credentials.
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1095),
-    "ROTATE_REFRESH_TOKENS": False,
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 

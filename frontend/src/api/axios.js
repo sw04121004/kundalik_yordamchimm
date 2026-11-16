@@ -30,6 +30,15 @@ function processQueue(error, token = null) {
   queue = []
 }
 
+export function handleSessionExpired() {
+  localStorage.removeItem('qulay_access')
+  localStorage.removeItem('qulay_refresh')
+  window.dispatchEvent(new CustomEvent('auth-session-expired'))
+  if (!window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/register')) {
+    window.location.href = '/login'
+  }
+}
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -43,8 +52,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       const refresh = localStorage.getItem('qulay_refresh')
       if (!refresh) {
-        localStorage.removeItem('qulay_access')
-        localStorage.removeItem('qulay_refresh')
+        handleSessionExpired()
         return Promise.reject(error)
       }
 
@@ -71,9 +79,7 @@ api.interceptors.response.use(
         return api(originalRequest)
       } catch (refreshError) {
         processQueue(refreshError, null)
-        localStorage.removeItem('qulay_access')
-        localStorage.removeItem('qulay_refresh')
-        window.location.href = '/login'
+        handleSessionExpired()
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false

@@ -188,6 +188,12 @@ class AccountAPITests(APITestCase):
 
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 		self.assertIn("access", response.data)
+		self.assertIn("refresh", response.data)
+		# Old refresh is now blacklisted after rotation
+		old_reuse = self.client.post(
+			reverse("token_refresh"), {"refresh": login.data["refresh"]}, format="json"
+		)
+		self.assertEqual(old_reuse.status_code, status.HTTP_401_UNAUTHORIZED)
 
 	def test_logout_blacklists_only_the_authenticated_users_refresh_token(self):
 		other_user = User.objects.create_user(username="other-audit-user", password="StrongPass123!")
