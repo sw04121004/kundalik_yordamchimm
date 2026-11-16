@@ -271,30 +271,30 @@ function getCatMeta(catId) {
         </div>
         <div v-else class="space-y-2">
           <div
-            v-for="t in transactions"
-            :key="t.id"
+            v-for="tx in transactions"
+            :key="tx.id"
             class="flex items-center justify-between p-3.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50 shadow-sm"
           >
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-xl shrink-0">
-                {{ getCatMeta(t.category).icon }}
+                {{ getCatMeta(tx.category).icon }}
               </div>
               <div>
-                <p class="text-sm font-bold text-slate-800 dark:text-slate-100">{{ t.note }}</p>
-                <p class="text-xs text-slate-400">{{ getCatMeta(t.category).name }} · {{ t.date }}</p>
+                <p class="text-sm font-bold text-slate-800 dark:text-slate-100">{{ tx.note }}</p>
+                <p class="text-xs text-slate-400">{{ getCatMeta(tx.category).name }} · {{ tx.date }}</p>
               </div>
             </div>
             <div class="flex items-center gap-3">
               <span
                 class="font-mono font-bold text-sm"
-                :class="t.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-800 dark:text-slate-100'"
+                :class="tx.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-800 dark:text-slate-100'"
               >
-                {{ t.type === 'income' ? '+' : '-' }}{{ formatSum(t.amount) }}
+                {{ tx.type === 'income' ? '+' : '-' }}{{ formatSum(tx.amount) }}
               </span>
               <button
                 class="text-slate-300 hover:text-rose-500 transition text-sm"
                 title="O'chirish"
-                @click="deleteTx(t.id)"
+                @click="deleteTx(tx.id)"
               >
                 ✕
               </button>
