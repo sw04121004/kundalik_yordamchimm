@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
@@ -21,6 +21,7 @@ User = get_user_model()
 
 class AccountAPITests(APITestCase):
 	def setUp(self):
+		cache.clear()
 		self.user = User.objects.create_user(
 			username="audit-user",
 			email="audit@example.com",
@@ -284,7 +285,7 @@ class AccountAPITests(APITestCase):
 			status.HTTP_401_UNAUTHORIZED,
 		)
 
-	@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+	@override_settings(EMAIL_PROVIDER="smtp", EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 	@patch("apps.accounts.views.send_mail")
 	def test_email_password_reset_code_is_hashed_one_time_and_changes_password(self, send_mail_mock):
 		request = self.client.post(reverse("password-reset-request"), {"email": self.user.email}, format="json")
@@ -303,9 +304,51 @@ class AccountAPITests(APITestCase):
 		self.assertIsNotNone(PasswordResetCode.objects.get(pk=reset.pk).used_at)
 		self.assertEqual(self.client.post(reverse("password-reset-confirm"), payload, format="json").status_code, status.HTTP_400_BAD_REQUEST)
 
-	@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+	@override_settings(EMAIL_PROVIDER="smtp", EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 	def test_password_reset_does_not_disclose_unknown_email(self):
 		known = self.client.post(reverse("password-reset-request"), {"email": self.user.email}, format="json")
 		unknown = self.client.post(reverse("password-reset-request"), {"email": "missing@example.com"}, format="json")
 		self.assertEqual(known.status_code, unknown.status_code)
 		self.assertEqual(known.data["detail"], unknown.data["detail"])
+
+	@override_settings(EMAIL_PROVIDER="brevo", BREVO_API_KEY="")
+	def test_password_reset_unconfigured_returns_503(self):
+		res_uz = self.client.post(reverse("password-reset-request"), {"email": self.user.email}, format="json", HTTP_ACCEPT_LANGUAGE="uz")
+		self.assertEqual(res_uz.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+		self.assertIn("Email yuborish sozlanmagan", res_uz.data["detail"])
+
+		cache.clear()
+		res_ru = self.client.post(reverse("password-reset-request"), {"email": "missing@example.com"}, format="json", HTTP_ACCEPT_LANGUAGE="ru")
+		self.assertEqual(res_ru.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+		self.assertIn("Отправка email не настроена", res_ru.data["detail"])
+
+		cache.clear()
+		res_en = self.client.post(reverse("password-reset-request"), {"email": self.user.email}, format="json", HTTP_ACCEPT_LANGUAGE="en")
+		self.assertEqual(res_en.status_code, status.HTTP_503_SERVICE_UNAVAILABLE)
+		self.assertIn("Email sending is not configured", res_en.data["detail"])
+
+	@override_settings(EMAIL_PROVIDER="brevo", BREVO_API_KEY="test-brevo-key-123", EMAIL_FROM="noreply@qulay.uz", EMAIL_FROM_NAME="Qulay.uz")
+	@patch("apps.accounts.views.requests.post")
+	def test_password_reset_sends_via_brevo_api(self, mock_post):
+		mock_response = MagicMock()
+		mock_response.status_code = 201
+		mock_post.return_value = mock_response
+
+		res = self.client.post(reverse("password-reset-request"), {"email": self.user.email}, format="json", HTTP_ACCEPT_LANGUAGE="uz")
+		self.assertEqual(res.status_code, status.HTTP_202_ACCEPTED)
+		self.assertEqual(res.data["detail"], "Agar email akkauntga tegishli bo'lsa, tiklash kodi yuborildi.")
+
+		mock_post.assert_called_once()
+		call_kwargs = mock_post.call_args.kwargs
+		self.assertEqual(call_kwargs["headers"]["api-key"], "test-brevo-key-123")
+		self.assertEqual(call_kwargs["json"]["to"], [{"email": self.user.email}])
+		self.assertIn("Qulay.uz", call_kwargs["json"]["subject"])
+
+	@override_settings(EMAIL_PROVIDER="brevo", BREVO_API_KEY="test-brevo-key-123")
+	@patch("apps.accounts.views.requests.post")
+	def test_password_reset_brevo_failure_gracefully_returns_202(self, mock_post):
+		mock_post.side_effect = Exception("Brevo connection failed")
+
+		res = self.client.post(reverse("password-reset-request"), {"email": self.user.email}, format="json")
+		self.assertEqual(res.status_code, status.HTTP_202_ACCEPTED)
+		self.assertEqual(res.data["detail"], "Agar email akkauntga tegishli bo'lsa, tiklash kodi yuborildi.")

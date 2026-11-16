@@ -12,12 +12,15 @@ from django.contrib.auth.hashers import check_password, make_password
 from django.core.mail import send_mail
 from django.utils import timezone
 from datetime import timedelta
+import logging
+import requests
 import secrets
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from .throttles import LoginThrottle, PasswordChangeThrottle, RegisterThrottle, PasswordResetThrottle, PasswordResetConfirmThrottle
 from .models import PasswordResetCode
 UserModel = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 from .serializers import (
@@ -136,6 +139,106 @@ class DeleteAccountView(APIView):
         return Response(status=204)
 
 
+_EMAIL_NOT_CONFIGURED = {
+    "uz": "Email yuborish sozlanmagan. Administrator pochta xizmatini sozlashi kerak.",
+    "ru": "Отправка email не настроена. Администратору необходимо настроить почтовый сервис.",
+    "en": "Email sending is not configured. The administrator needs to configure the email service.",
+}
+
+_EMAIL_SENT_DETAIL = {
+    "uz": "Agar email akkauntga tegishli bo'lsa, tiklash kodi yuborildi.",
+    "ru": "Если email принадлежит аккаунту, код для восстановления был отправлен.",
+    "en": "If the email is associated with an account, a reset code has been sent.",
+}
+
+_RESET_EMAIL_TEMPLATES = {
+    "uz": {
+        "subject": "Qulay.uz — parolni tiklash kodi",
+        "text": "Parolni tiklash kodi: {code}. Kod 10 daqiqa amal qiladi.",
+        "html": "<p>Parolni tiklash kodi: <strong>{code}</strong>.</p><p>Kod 10 daqiqa amal qiladi.</p>",
+    },
+    "ru": {
+        "subject": "Qulay.uz — код восстановления пароля",
+        "text": "Код восстановления пароля: {code}. Код действителен 10 минут.",
+        "html": "<p>Код восстановления пароля: <strong>{code}</strong>.</p><p>Код действителен 10 минут.</p>",
+    },
+    "en": {
+        "subject": "Qulay.uz — password reset code",
+        "text": "Password reset code: {code}. The code is valid for 10 minutes.",
+        "html": "<p>Password reset code: <strong>{code}</strong>.</p><p>The code is valid for 10 minutes.</p>",
+    },
+}
+
+
+def _get_lang_from_request(request):
+    if not request:
+        return "uz"
+    accept = getattr(request, "headers", {}).get("Accept-Language", "uz") if hasattr(request, "headers") else request.META.get("HTTP_ACCEPT_LANGUAGE", "uz")
+    lang = accept.split(",", 1)[0].split("-", 1)[0].lower()
+    return lang if lang in ("uz", "ru", "en") else "uz"
+
+
+def is_email_configured():
+    provider = getattr(settings, "EMAIL_PROVIDER", "brevo").lower().strip()
+    if provider == "brevo":
+        return bool(getattr(settings, "BREVO_API_KEY", "").strip())
+    if provider == "smtp":
+        if getattr(settings, "EMAIL_BACKEND", "").endswith("smtp.EmailBackend"):
+            return bool(getattr(settings, "EMAIL_HOST", "").strip() and (getattr(settings, "DEFAULT_FROM_EMAIL", "").strip() or getattr(settings, "EMAIL_FROM", "").strip()))
+        return True
+    if provider in ("console", "locmem") or getattr(settings, "EMAIL_BACKEND", "").endswith(("console.EmailBackend", "locmem.EmailBackend")):
+        return True
+    return bool(getattr(settings, "BREVO_API_KEY", "").strip() or getattr(settings, "EMAIL_HOST", "").strip())
+
+
+def send_brevo_email(to_email, subject, text_content, html_content=None):
+    sender_email = getattr(settings, "EMAIL_FROM", "") or getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@qulay.uz") or "noreply@qulay.uz"
+    sender_name = getattr(settings, "EMAIL_FROM_NAME", "Qulay.uz") or "Qulay.uz"
+    payload = {
+        "sender": {"name": sender_name, "email": sender_email},
+        "to": [{"email": to_email}],
+        "subject": subject,
+        "textContent": text_content,
+    }
+    if html_content:
+        payload["htmlContent"] = html_content
+    res = requests.post(
+        "https://api.brevo.com/v3/smtp/email",
+        headers={
+            "accept": "application/json",
+            "api-key": getattr(settings, "BREVO_API_KEY", ""),
+            "content-type": "application/json",
+        },
+        json=payload,
+        timeout=getattr(settings, "EMAIL_TIMEOUT", 10),
+    )
+    if res.status_code not in (200, 201, 202):
+        logger.error(f"Brevo API error: status={res.status_code}, response={res.text}")
+        raise RuntimeError(f"Brevo API failed with status {res.status_code}")
+    return True
+
+
+def send_password_reset_email(to_email, code, lang="uz"):
+    template = _RESET_EMAIL_TEMPLATES.get(lang, _RESET_EMAIL_TEMPLATES["uz"])
+    subject = template["subject"]
+    text_content = template["text"].format(code=code)
+    html_content = template["html"].format(code=code)
+    provider = getattr(settings, "EMAIL_PROVIDER", "brevo").lower().strip()
+
+    if provider == "brevo":
+        return send_brevo_email(to_email, subject, text_content, html_content)
+    else:
+        from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "") or getattr(settings, "EMAIL_FROM", "noreply@qulay.uz")
+        send_mail(
+            subject,
+            text_content,
+            from_email,
+            [to_email],
+            fail_silently=False,
+        )
+        return True
+
+
 class PasswordResetRequestView(APIView):
     permission_classes = [permissions.AllowAny]
     throttle_classes = [PasswordResetThrottle]
@@ -143,11 +246,15 @@ class PasswordResetRequestView(APIView):
     def post(self, request):
         serializer = PasswordResetRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        if settings.EMAIL_BACKEND.endswith("smtp.EmailBackend") and (not settings.EMAIL_HOST or not settings.DEFAULT_FROM_EMAIL):
-            return Response({"detail": "Email yuborish sozlanmagan. Administrator SMTP va yuboruvchi manzilini sozlashi kerak."}, status=503)
+
+        lang = _get_lang_from_request(request)
+
+        if not is_email_configured():
+            return Response({"detail": _EMAIL_NOT_CONFIGURED[lang]}, status=503)
 
         account = UserModel.objects.filter(email__iexact=serializer.validated_data["email"]).first()
-        generic_detail = "Agar email akkauntga tegishli bo'lsa, tiklash kodi yuborildi."
+        generic_detail = _EMAIL_SENT_DETAIL[lang]
+
         if account:
             now = timezone.now()
             PasswordResetCode.objects.filter(user=account, used_at__isnull=True).update(used_at=now)
@@ -158,19 +265,13 @@ class PasswordResetRequestView(APIView):
                 expires_at=now + timedelta(minutes=10),
             )
             try:
-                send_mail(
-                    "Kundalik Yordamchi — parolni tiklash",
-                    f"Parolni tiklash kodi: {code}. Kod 10 daqiqa amal qiladi.",
-                    settings.DEFAULT_FROM_EMAIL,
-                    [account.email],
-                    fail_silently=False,
-                )
+                send_password_reset_email(account.email, code, lang=lang)
             except Exception:
-                import logging
-                logging.getLogger(__name__).error("Password reset email delivery failed.")
+                logger.error("Password reset email delivery failed.", exc_info=True)
                 reset.used_at = timezone.now()
                 reset.save(update_fields=["used_at"])
                 return Response({"detail": generic_detail}, status=202)
+
         return Response({"detail": generic_detail}, status=202)
 
 

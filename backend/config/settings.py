@@ -123,6 +123,10 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True").lower() == "true"
 EMAIL_TIMEOUT = int(os.environ.get("EMAIL_TIMEOUT", "10"))
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "").strip()
+EMAIL_PROVIDER = os.environ.get("EMAIL_PROVIDER", "brevo").lower().strip()
+BREVO_API_KEY = os.environ.get("BREVO_API_KEY", "").strip()
+EMAIL_FROM = os.environ.get("EMAIL_FROM", os.environ.get("DEFAULT_FROM_EMAIL", "noreply@qulay.uz")).strip()
+EMAIL_FROM_NAME = os.environ.get("EMAIL_FROM_NAME", "Qulay.uz").strip()
 TIME_ZONE = "Asia/Tashkent"
 USE_I18N = True
 USE_TZ = True
