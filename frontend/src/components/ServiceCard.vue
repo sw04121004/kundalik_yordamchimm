@@ -42,8 +42,11 @@ function toggleFavorite(event) {
       <Star class="w-4 h-4" :fill="isFavorite ? 'currentColor' : 'none'" aria-hidden="true" />
     </button>
 
-    <div class="service-card-icon w-11 h-11 rounded-full bg-brand-50 dark:bg-brand-900/30 border border-brand-100 dark:border-brand-800/70 flex items-center justify-center text-brand-700 dark:text-brand-300 transition-transform duration-200 group-hover:scale-105 shrink-0">
-      <Wrench class="w-5 h-5" aria-hidden="true" />
+    <div class="service-card-icon w-11 h-11 rounded-full bg-brand-50 dark:bg-brand-900/30 border border-brand-100 dark:border-brand-800/70 flex items-center justify-center text-brand-700 dark:text-brand-300 transition-transform duration-200 group-hover:scale-105 shrink-0 text-xl">
+      <slot name="icon">
+        <span v-if="icon" aria-hidden="true">{{ icon }}</span>
+        <Wrench v-else class="w-5 h-5" aria-hidden="true" />
+      </slot>
     </div>
 
     <div class="pr-4 relative z-10">
