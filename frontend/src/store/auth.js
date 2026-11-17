@@ -136,10 +136,12 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async deleteAccount(currentPassword) {
+    async deleteAccount(currentPassword, confirmation = '') {
       this.loading = true
       try {
-        await api.delete('/auth/account/', { data: { current_password: currentPassword } })
+        const payload = { current_password: currentPassword }
+        if (confirmation) payload.confirmation = confirmation
+        await api.delete('/auth/account/', { data: payload })
         this.clearSession()
         return { success: true }
       } catch (error) {

@@ -285,6 +285,42 @@ class AccountAPITests(APITestCase):
 			status.HTTP_401_UNAUTHORIZED,
 		)
 
+	def test_account_deletion_confirmation_normalization(self):
+		url = reverse("account-delete")
+		# 1. Noto'g'ri tasdiqlash so'zi rad etiladi
+		self.client.force_authenticate(self.user)
+		res = self.client.delete(url, {"current_password": "StrongPass123!", "confirmation": "bekor-qil"}, format="json")
+		self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+		self.assertIn("confirmation", res.data)
+		self.assertTrue(User.objects.filter(pk=self.user.pk).exists())
+
+		# 2. Noto'g'ri parol bo'lsa rad etiladi
+		res_bad_pw = self.client.delete(url, {"current_password": "wrong-password", "confirmation": "o'chirish"}, format="json")
+		self.assertEqual(res_bad_pw.status_code, status.HTTP_400_BAD_REQUEST)
+		self.assertIn("current_password", res_bad_pw.data)
+		self.assertTrue(User.objects.filter(pk=self.user.pk).exists())
+
+		# 3. Har xil apostrof turlari va uchala til so'zi (uz/ru/en) qabul qilinadi
+		confirmation_variants = [
+			"o'chirish",
+			"O'chirish",
+			"o’chirish",
+			"Oʻchirish",
+			"oʼchirish",
+			"O‘chirish",
+			"ochirish",
+			"Delete",
+			"delete",
+			"Удалить",
+			"удалить",
+		]
+		for idx, word in enumerate(confirmation_variants):
+			u = User.objects.create_user(username=f"del-var-{idx}", password="StrongPass123!")
+			self.client.force_authenticate(u)
+			resp = self.client.delete(url, {"current_password": "StrongPass123!", "confirmation": word}, format="json")
+			self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+			self.assertFalse(User.objects.filter(pk=u.pk).exists())
+
 	@override_settings(EMAIL_PROVIDER="smtp", EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 	@patch("apps.accounts.views.send_mail")
 	def test_email_password_reset_code_is_hashed_one_time_and_changes_password(self, send_mail_mock):

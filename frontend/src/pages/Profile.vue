@@ -88,6 +88,17 @@ async function savePassword() {
   }
 }
 
+function normalizeConfirm(text) {
+  if (!text) return ''
+  return String(text)
+    .trim()
+    .toLowerCase()
+    .replace(/[\u2019\u02BB\u02BC\u2018`´′]/g, "'")
+    .replace(/\s+/g, ' ')
+}
+
+const ALLOWED_CONFIRM_WORDS = new Set(["o'chirish", "ochirish", "удалить", "delete"])
+
 function closeDeleteDialog() {
   if (deleteSubmitting.value) return
   showDeleteDialog.value = false
@@ -103,15 +114,14 @@ async function deleteAccount() {
     deleteError.value = t('profile.danger.dialog.noPassword')
     return
   }
-  const expected = deleteConfirmWord.value.toLowerCase()
-  const entered = deleteConfirmation.value.trim().toLowerCase()
-  if (entered !== expected && entered !== "o'chirish" && entered !== "o‘chirish" && entered !== "delete" && entered !== "удалить") {
+  const normalized = normalizeConfirm(deleteConfirmation.value)
+  if (!ALLOWED_CONFIRM_WORDS.has(normalized)) {
     deleteError.value = t('profile.danger.dialog.wrongConfirm')
     return
   }
 
   deleteSubmitting.value = true
-  const result = await auth.deleteAccount(deletePassword.value)
+  const result = await auth.deleteAccount(deletePassword.value, deleteConfirmation.value)
   deleteSubmitting.value = false
   if (result.success) {
     await router.replace({ name: 'landing' })
@@ -210,7 +220,7 @@ async function deleteAccount() {
     </main>
 
     <div v-if="showDeleteDialog" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 px-4 py-8" @click.self="closeDeleteDialog" @keydown.esc.stop="closeDeleteDialog" tabindex="-1">
-      <section role="dialog" aria-modal="true" aria-labelledby="delete-account-title" class="card w-full max-w-md p-6 sm:p-7 shadow-2xl">
+      <section role="dialog" aria-modal="true" aria-labelledby="delete-account-title" translate="no" class="card notranslate w-full max-w-md p-6 sm:p-7 shadow-2xl animate-scaleIn">
         <h2 id="delete-account-title" class="text-lg font-extrabold text-red-700 dark:text-red-400 mb-2">{{ t('profile.danger.dialog.title') }}</h2>
         <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">{{ t('profile.danger.dialog.warning') }}</p>
         <FormAlert :message="deleteError" />
@@ -218,7 +228,18 @@ async function deleteAccount() {
           <div>
             <label for="delete-account-password" class="label">{{ t('profile.password.current') }}</label>
             <div class="relative">
-              <input id="delete-account-password" v-model="deletePassword" :type="showDeletePassword ? 'text' : 'password'" class="input pr-10" autocomplete="current-password" required />
+              <input
+                id="delete-account-password"
+                v-model="deletePassword"
+                :type="showDeletePassword ? 'text' : 'password'"
+                class="input pr-10"
+                autocomplete="current-password"
+                autocapitalize="off"
+                autocorrect="off"
+                spellcheck="false"
+                required
+                @input="deleteError = ''"
+              />
               <button type="button" :aria-label="showDeletePassword ? t('profile.password.hide') : t('profile.password.show')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" @click="showDeletePassword = !showDeletePassword">
                 <Eye v-if="!showDeletePassword" class="w-5 h-5" /><EyeOff v-else class="w-5 h-5" />
               </button>
@@ -226,11 +247,27 @@ async function deleteAccount() {
           </div>
           <div>
             <label for="delete-account-confirmation" class="label">{{ t('profile.danger.dialog.confirmLabel') }}</label>
-            <input id="delete-account-confirmation" v-model="deleteConfirmation" type="text" class="input" :placeholder="deleteConfirmWord" autocomplete="off" required />
+            <input
+              id="delete-account-confirmation"
+              v-model="deleteConfirmation"
+              type="text"
+              class="input"
+              :placeholder="deleteConfirmWord"
+              autocomplete="off"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+              required
+              @input="deleteError = ''"
+            />
           </div>
-          <div class="flex justify-end gap-3">
+          <div class="flex justify-end gap-3 pt-2">
             <button type="button" class="btn-secondary" :disabled="deleteSubmitting" @click="closeDeleteDialog">{{ t('profile.danger.dialog.cancel') }}</button>
-            <button type="submit" class="btn-primary !bg-red-600 hover:!bg-red-700" :disabled="deleteSubmitting">
+            <button
+              type="submit"
+              class="btn-primary !bg-red-600 hover:!bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              :disabled="deleteSubmitting || !deletePassword || !deleteConfirmation.trim()"
+            >
               {{ deleteSubmitting ? t('profile.danger.dialog.submitting') : t('profile.danger.dialog.submit') }}
             </button>
           </div>

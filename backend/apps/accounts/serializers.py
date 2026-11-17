@@ -57,16 +57,30 @@ _AUTH_ACTION_MESSAGES = {
     "uz": {
         "current_password_wrong": "Joriy parol noto‘g‘ri.",
         "new_passwords_mismatch": "Yangi parollar mos kelmadi.",
+        "confirmation_invalid": "Tasdiqlash uchun «O'chirish» deb yozing.",
     },
     "ru": {
         "current_password_wrong": "Неверный текущий пароль.",
         "new_passwords_mismatch": "Новые пароли не совпадают.",
+        "confirmation_invalid": "Для подтверждения введите «Удалить».",
     },
     "en": {
         "current_password_wrong": "Incorrect current password.",
         "new_passwords_mismatch": "New passwords do not match.",
+        "confirmation_invalid": "Type \"Delete\" to confirm.",
     },
 }
+
+ALLOWED_CONFIRMATION_WORDS = {"o'chirish", "ochirish", "удалить", "delete"}
+
+
+def normalize_confirmation_word(text: str) -> str:
+    if not text:
+        return ""
+    import re
+    normalized = re.sub(r"[\’\ʻ\ʼ\‘\`\´\′]", "'", str(text).strip().lower())
+    normalized = re.sub(r"\s+", " ", normalized)
+    return normalized
 
 
 def _validate_password_for_request(password, user, request):
@@ -216,6 +230,7 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
 class DeleteAccountSerializer(serializers.Serializer):
     current_password = serializers.CharField(write_only=True, trim_whitespace=False)
+    confirmation = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     def validate_current_password(self, value):
         request = self.context.get("request")
@@ -223,3 +238,13 @@ class DeleteAccountSerializer(serializers.Serializer):
         if not request.user.check_password(value):
             raise serializers.ValidationError(_AUTH_ACTION_MESSAGES[lang]["current_password_wrong"])
         return value
+
+    def validate(self, attrs):
+        conf = attrs.get("confirmation")
+        if conf is not None and conf != "":
+            normalized = normalize_confirmation_word(conf)
+            if normalized not in ALLOWED_CONFIRMATION_WORDS:
+                request = self.context.get("request")
+                lang = _get_language_from_request(request)
+                raise serializers.ValidationError({"confirmation": _AUTH_ACTION_MESSAGES[lang]["confirmation_invalid"]})
+        return attrs
