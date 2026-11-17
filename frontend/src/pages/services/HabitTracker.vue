@@ -1,22 +1,43 @@
-﻿<script setup>
-import { ref, watch } from 'vue'
+<script setup>
+import { ref, computed, watch, onMounted } from 'vue'
 import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
+import { useAuthStore } from '../../store/auth'
+import { useI18n } from '../../i18n'
 
-const getSavedHabits = () => {
-  const saved = localStorage.getItem('qulay_habits')
-  if (saved) return JSON.parse(saved)
-  return [
-    { id: 1, name: 'Kitob o\'qish (20 daqiqa)', icon: '📖', days: [true, true, true, false, true, false, false], history: [] },
-    { id: 2, name: 'Ertalabki badantarbiya', icon: '🏃', days: [true, false, true, true, true, false, false], history: [] },
-    { id: 3, name: '2 litr suv ichish', icon: '💧', days: [true, true, true, true, false, false, false], history: [] },
-  ]
+const auth = useAuthStore()
+const { t } = useI18n()
+
+const storageKey = computed(() => {
+  return auth.user?.id ? `qulay_habits_${auth.user.id}` : 'qulay_habits_guest'
+})
+
+const habits = ref([])
+
+function loadHabits() {
+  const saved = localStorage.getItem(storageKey.value)
+  if (saved) {
+    try {
+      habits.value = JSON.parse(saved)
+      return
+    } catch (e) {
+      habits.value = []
+    }
+  } else {
+    habits.value = []
+  }
 }
 
-const habits = ref(getSavedHabits())
+onMounted(() => {
+  loadHabits()
+})
+
+watch(() => auth.user?.id, () => {
+  loadHabits()
+})
 
 watch(habits, (newVal) => {
-  localStorage.setItem('qulay_habits', JSON.stringify(newVal))
+  localStorage.setItem(storageKey.value, JSON.stringify(newVal))
 }, { deep: true })
 
 const newHabitName = ref('')
@@ -29,7 +50,7 @@ function addHabit() {
     name: newHabitName.value.trim(),
     icon: '✨',
     days: [false, false, false, false, false, false, false],
-    history: [{ date: new Date().toISOString().slice(0,10), action: 'Yaratildi' }]
+    history: [{ date: new Date().toISOString().slice(0,10), action: t('Yaratildi') || 'Yaratildi' }]
   })
   newHabitName.value = ''
 }
@@ -37,8 +58,8 @@ function addHabit() {
 function toggleDay(habit, idx) {
   habit.days[idx] = !habit.days[idx]
   if (!habit.history) habit.history = []
-  const status = habit.days[idx] ? 'Bajarildi' : 'Bekor qilindi'
-  habit.history.unshift({ date: new Date().toISOString().slice(0,10), action: `${weekDays[idx]} kuni ${status}` })
+  const status = habit.days[idx] ? (t('Bajarildi') || 'Bajarildi') : (t('Bekor qilindi') || 'Bekor qilindi')
+  habit.history.unshift({ date: new Date().toISOString().slice(0,10), action: `${weekDays[idx]}: ${status}` })
 }
 
 function removeHabit(id) {
@@ -47,13 +68,13 @@ function removeHabit(id) {
 </script>
 
 <template>
-  <ToolShell icon="🗓" title="Odatlar taqvimi" description="Kunlik foydali odatlarni shakllantiring va haftalik natijalarni kuzating" hint="Yangi odat qo'shing va haftaning har bir kunida bajarganingizni belgilab boring. Ma'lumotlar xotirada saqlanadi.">
+  <ToolShell icon="🗓" :title="t('Odatlar taqvimi')" :description="t('Kunlik foydali odatlarni shakllantiring va haftalik natijalarni kuzating')" :hint="t('Yangi odat qo\'shing va haftaning har bir kunida bajarganingizni belgilab boring. Ma\'lumotlar xotirada saqlanadi.')">
     <template #header><AppHeader /></template>
 
-    <div class="space-y-6">
+    <div class="space-y-6 animate-fadeUp">
       <div class="flex gap-2">
-        <input v-model="newHabitName" type="text" placeholder="Yangi odat qo'shish (masalan: 10 ta inglizcha so'z)" class="input flex-1" @keydown.enter="addHabit" />
-        <button class="btn-primary" @click="addHabit">Qo'shish</button>
+        <input v-model="newHabitName" type="text" :placeholder="t('Yangi odat qo\'shish (masalan: 10 ta inglizcha so\'z)')" class="input flex-1" @keydown.enter="addHabit" />
+        <button class="btn-primary animate-popIn" @click="addHabit">{{ t('Qo\'shish') }}</button>
       </div>
 
       <div class="space-y-3">
@@ -62,7 +83,7 @@ function removeHabit(id) {
           <span class="w-6"></span>
         </div>
 
-        <div v-for="h in habits" :key="h.id" class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+        <div v-for="h in habits" :key="h.id" class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 card-hover-lift animate-slideInBottom">
           <div class="flex items-center justify-between gap-3">
             <div class="flex items-center gap-2.5 flex-1 min-w-0">
               <span class="text-xl">{{ h.icon }}</span>
@@ -73,18 +94,18 @@ function removeHabit(id) {
               <button
                 v-for="(done, idx) in h.days"
                 :key="idx"
-                class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs transition-all"
+                class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs transition-all cursor-pointer"
                 :class="done ? 'bg-green-500 text-white shadow-sm scale-105' : 'bg-slate-200 dark:bg-slate-700 text-transparent hover:bg-slate-300 dark:hover:bg-slate-600'"
                 @click="toggleDay(h, idx)"
               >
                 ✓
               </button>
-              <button class="w-6 text-slate-300 hover:text-red-500 text-sm ml-1" @click="removeHabit(h.id)">❌</button>
+              <button class="w-6 text-slate-300 hover:text-red-500 text-sm ml-1 transition-colors" @click="removeHabit(h.id)">❌</button>
             </div>
           </div>
           
           <div v-if="h.history && h.history.length > 0" class="mt-3 pt-2 border-t border-slate-200 dark:border-slate-700 text-[10px] text-slate-400">
-            <span class="font-semibold">So'nggi harakatlar:</span>
+            <span class="font-semibold">{{ t('So\'nggi harakatlar:') }}</span>
             <span v-for="(hist, idx) in h.history.slice(0,3)" :key="idx" class="ml-2 bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded">
               {{ hist.action }}
             </span>

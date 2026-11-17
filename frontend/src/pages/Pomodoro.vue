@@ -2,14 +2,21 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import ToolShell from '../components/ToolShell.vue'
 import AppHeader from '../components/AppHeader.vue'
+import { useAuthStore } from '../store/auth'
+import { useI18n } from '../i18n'
 
-const modes = [
-  { id: 'work', label: '👨‍💻 Ish (25m)', minutes: 25 },
-  { id: 'short', label: '☕ Qisqa tanaffus (5m)', minutes: 5 },
-  { id: 'long', label: '🌴 Uzun tanaffus (15m)', minutes: 15 },
-]
+const auth = useAuthStore()
+const { t } = useI18n()
 
-const STORAGE_KEY = 'pomodoroState'
+const modes = computed(() => [
+  { id: 'work', label: `👨‍💻 ${t('Ish (25m)')}`, minutes: 25 },
+  { id: 'short', label: `☕ ${t('Qisqa tanaffus (5m)')}`, minutes: 5 },
+  { id: 'long', label: `🌴 ${t('Uzun tanaffus (15m)')}`, minutes: 15 },
+])
+
+const storageKey = computed(() => {
+  return auth.user?.id ? `pomodoroState_${auth.user.id}` : 'pomodoroState_guest'
+})
 
 const activeMode = ref('work')
 const timeLeft = ref(25 * 60)
@@ -19,7 +26,7 @@ const completedCount = ref(0)
 let timerInterval = null
 
 const totalDuration = computed(() => {
-  const modeObj = modes.find(m => m.id === activeMode.value)
+  const modeObj = modes.value.find(m => m.id === activeMode.value)
   return (modeObj ? modeObj.minutes : 25) * 60
 })
 
@@ -45,28 +52,40 @@ function saveState() {
     taskTitle: taskTitle.value,
     completedCount: completedCount.value,
   }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+  localStorage.setItem(storageKey.value, JSON.stringify(state))
 }
 
 function loadState() {
-  const savedState = localStorage.getItem(STORAGE_KEY)
+  stopTimer()
+  const savedState = localStorage.getItem(storageKey.value)
   if (savedState) {
-    const state = JSON.parse(savedState)
-    activeMode.value = state.activeMode
-    timeLeft.value = state.timeLeft
-    isRunning.value = state.isRunning
-    taskTitle.value = state.taskTitle
-    completedCount.value = state.completedCount
-    if (isRunning.value) {
-      startTimer() // Agar taymer ishlayotgan bo'lsa, uni qayta ishga tushiramiz
+    try {
+      const state = JSON.parse(savedState)
+      activeMode.value = state.activeMode || 'work'
+      timeLeft.value = typeof state.timeLeft === 'number' ? state.timeLeft : 25 * 60
+      isRunning.value = false
+      taskTitle.value = state.taskTitle || ''
+      completedCount.value = state.completedCount || 0
+    } catch (e) {
+      resetDefaults()
     }
+  } else {
+    resetDefaults()
   }
+}
+
+function resetDefaults() {
+  activeMode.value = 'work'
+  timeLeft.value = 25 * 60
+  isRunning.value = false
+  taskTitle.value = ''
+  completedCount.value = 0
 }
 
 function setMode(modeId) {
   stopTimer()
   activeMode.value = modeId
-  const modeObj = modes.find(m => m.id === modeId)
+  const modeObj = modes.value.find(m => m.id === modeId)
   timeLeft.value = (modeObj ? modeObj.minutes : 25) * 60
 }
 
@@ -104,7 +123,7 @@ function playBeep() {
     const osc = ctx.createOscillator()
     const gain = ctx.createGain()
     osc.type = 'sine'
-    osc.frequency.setValueAtTime(587.33, ctx.currentTime) // D5
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime)
     gain.gain.setValueAtTime(0.3, ctx.currentTime)
     osc.connect(gain)
     gain.connect(ctx.destination)
@@ -117,35 +136,38 @@ function playBeep() {
 
 onMounted(() => {
   loadState()
-  // Har bir o'zgaruvchi o'zgarganda saqlash
   watch([activeMode, timeLeft, isRunning, taskTitle, completedCount], saveState, { deep: true })
+})
+
+watch(() => auth.user?.id, () => {
+  loadState()
 })
 
 onUnmounted(() => {
   stopTimer()
-  saveState() // Sahifadan chiqishdan oldin oxirgi holatni saqlash
+  saveState()
 })
 </script>
 
 <template>
   <ToolShell
     icon="🍅"
-    title="Pomodoro Taymer"
-    description="Diqqatni bir joyga jamlab samarali ishlash usuli"
-    hint="25 daqiqa to'liq diqqat bilan ishlang, so'ng 5 daqiqa dam oling"
+    :title="t('Pomodoro Taymer')"
+    :description="t('Diqqatni bir joyga jamlab samarali ishlash usuli')"
+    :hint="t('25 daqiqa to\'liq diqqat bilan ishlang, so\'ng 5 daqiqa dam oling')"
   >
     <template #header>
       <AppHeader />
     </template>
 
-    <div class="space-y-6 text-center">
+    <div class="space-y-6 text-center animate-fadeUp">
       <!-- Mode selection buttons -->
-      <div class="inline-flex p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800 gap-1">
+      <div class="inline-flex p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800 gap-1 card-hover-lift">
         <button
           v-for="m in modes"
           :key="m.id"
-          class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition"
-          :class="activeMode === m.id ? 'bg-brand-500 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+          class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer"
+          :class="activeMode === m.id ? 'bg-brand-500 text-white shadow-sm scale-105' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
           @click="setMode(m.id)"
         >
           {{ m.label }}
@@ -153,7 +175,7 @@ onUnmounted(() => {
       </div>
 
       <!-- Circular Timer Display -->
-      <div class="relative w-56 h-56 mx-auto flex items-center justify-center my-4">
+      <div class="relative w-56 h-56 mx-auto flex items-center justify-center my-4 animate-scaleIn">
         <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
           <circle
             cx="50" cy="50" r="42"
@@ -177,7 +199,7 @@ onUnmounted(() => {
             {{ minutesFormatted }}:{{ secondsFormatted }}
           </span>
           <span class="text-xs text-slate-400 mt-1 uppercase font-semibold tracking-wider">
-            {{ isRunning ? 'Fokuslaning' : 'Tayyor' }}
+            {{ isRunning ? t('Fokuslaning') : t('Tayyor') }}
           </span>
         </div>
       </div>
@@ -188,7 +210,7 @@ onUnmounted(() => {
           v-model="taskTitle"
           type="text"
           class="input text-center text-sm"
-          placeholder="Qaysi vazifa ustida ishlayapsiz? (Masalan: Matematika 3-mashq)"
+          :placeholder="t('Qaysi vazifa ustida ishlayapsiz? (Masalan: Matematika 3-mashq)')"
         />
       </div>
 
@@ -196,30 +218,30 @@ onUnmounted(() => {
       <div class="flex justify-center gap-3">
         <button
           v-if="!isRunning"
-          class="btn-primary !px-8 !py-3 text-base shadow-soft"
+          class="btn-primary !px-8 !py-3 text-base shadow-soft animate-popIn"
           @click="startTimer"
         >
-          ▶️ Boshlash
+          ▶️ {{ t('Boshlash') }}
         </button>
         <button
           v-else
           class="px-8 py-3 rounded-xl bg-amber-500 text-white font-semibold shadow-soft hover:bg-amber-600 transition"
           @click="stopTimer"
         >
-          ⏸️ Pauza
+          ⏸️ {{ t('Pauza') }}
         </button>
         <button
           class="btn-secondary !px-4 !py-3 text-sm"
           @click="resetTimer"
         >
-          🔄 Qayta o'rnatish
+          🔄 {{ t('Qayta o\'rnatish') }}
         </button>
       </div>
 
       <!-- Session Stats -->
       <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-center gap-6 text-sm">
         <div class="flex items-center gap-2">
-          <span>🎯 Bajarilgan Pomodorolar:</span>
+          <span>🎯 {{ t('Bajarilgan Pomodorolar:') }}</span>
           <span class="font-bold text-brand-600 dark:text-brand-400 text-lg">{{ completedCount }}</span>
         </div>
       </div>

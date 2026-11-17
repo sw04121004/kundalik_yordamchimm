@@ -251,7 +251,7 @@ const timeBasedPrompts = computed(() => {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
             <!-- Planner Widget -->
-            <router-link :to="{ name: 'planner' }" class="card p-5 hover:-translate-y-0.5 hover:shadow-md hover:border-brand-500/50 transition-all duration-200 group relative overflow-hidden bg-white dark:bg-[#1d2523] border border-slate-200/80 dark:border-white/10">
+            <router-link :to="{ name: 'planner' }" class="card card-hover-lift p-5 hover:shadow-md hover:border-brand-500/50 transition-all duration-200 group relative overflow-hidden bg-white dark:bg-[#1d2523] border border-slate-200/80 dark:border-white/10">
               <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2.5">
                   <div class="w-10 h-10 rounded-lg bg-brand-50 dark:bg-brand-950/40 border border-brand-200/50 dark:border-brand-500/30 flex items-center justify-center text-brand-700 dark:text-brand-300 transition-transform duration-200 group-hover:scale-105"><CalendarDays class="w-5 h-5" aria-hidden="true" /></div>
@@ -287,7 +287,7 @@ const timeBasedPrompts = computed(() => {
             </router-link>
 
             <!-- Finance Widget -->
-            <router-link :to="{ name: 'finance' }" class="card p-5 hover:-translate-y-0.5 hover:shadow-md hover:border-brand-500/50 transition-all duration-200 group relative overflow-hidden bg-white dark:bg-[#1d2523] border border-slate-200/80 dark:border-white/10">
+            <router-link :to="{ name: 'finance' }" class="card card-hover-lift p-5 hover:shadow-md hover:border-brand-500/50 transition-all duration-200 group relative overflow-hidden bg-white dark:bg-[#1d2523] border border-slate-200/80 dark:border-white/10">
               <div class="flex items-center justify-between mb-4 relative z-10">
                 <div class="flex items-center gap-2.5">
                   <div class="w-10 h-10 rounded-lg bg-brand-50 dark:bg-brand-950/40 border border-brand-200/50 dark:border-brand-500/30 flex items-center justify-center text-brand-700 dark:text-brand-300 transition-transform duration-200 group-hover:scale-105"><WalletCards class="w-5 h-5" aria-hidden="true" /></div>
@@ -326,7 +326,7 @@ const timeBasedPrompts = computed(() => {
               v-for="shortcut in aiShortcuts"
               :key="shortcut.value"
               :to="{ name: 'ai-assistant' }"
-              class="card p-5 flex flex-col items-center gap-3 hover:-translate-y-0.5 hover:shadow-md hover:border-brand-500/50 transition-all duration-200 group bg-white dark:bg-[#1d2523] border border-slate-200/80 dark:border-white/10"
+              class="card card-hover-lift p-5 flex flex-col items-center gap-3 hover:shadow-md hover:border-brand-500/50 transition-all duration-200 group bg-white dark:bg-[#1d2523] border border-slate-200/80 dark:border-white/10"
             >
               <Sparkles class="w-6 h-6 text-brand-700 dark:text-brand-300 transition-transform duration-200 group-hover:scale-105" aria-hidden="true" />
               <span class="font-bold text-slate-800 dark:text-slate-100 text-xs text-center truncate w-full group-hover:text-brand-500 dark:group-hover:text-brand-300 transition-colors">{{ shortcut.label }}</span>

@@ -30,7 +30,7 @@ export const ACCENT_PRESETS = {
 const STORAGE_KEY = 'qulay_accent'
 const DARK_STORAGE_KEY = 'qulay_dark'
 const previousAccent = localStorage.getItem(STORAGE_KEY)
-const defaultAccent = ['rose', 'red', 'coral', 'berry'].includes(previousAccent) ? 'blue' : (previousAccent || 'blue')
+const defaultAccent = (!previousAccent || previousAccent === 'blue' || ['rose', 'red', 'coral', 'berry'].includes(previousAccent)) ? 'purple' : previousAccent
 
 export const useThemeStore = defineStore('theme', {
   state: () => ({
@@ -40,7 +40,7 @@ export const useThemeStore = defineStore('theme', {
 
   actions: {
     applyAccent(name) {
-      const preset = ACCENT_PRESETS[name] || ACCENT_PRESETS.teal
+      const preset = ACCENT_PRESETS[name] || ACCENT_PRESETS.purple
       const root = document.documentElement
       Object.entries(preset.shades).forEach(([shade, rgb]) => {
         root.style.setProperty(`--brand-${shade}`, rgb)
@@ -65,7 +65,9 @@ export const useThemeStore = defineStore('theme', {
     },
 
     init() {
-      if (['rose', 'red', 'coral', 'berry'].includes(previousAccent)) this.setAccent('blue')
+      if (!previousAccent || previousAccent === 'blue' || ['rose', 'red', 'coral', 'berry'].includes(previousAccent)) {
+        this.setAccent('purple')
+      }
       this.applyAccent(this.accent)
       this.applyDark(this.isDark)
     },

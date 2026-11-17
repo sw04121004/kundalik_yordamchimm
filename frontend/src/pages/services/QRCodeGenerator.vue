@@ -24,7 +24,7 @@ const qrUrl = computed(() => {
 function generate() {
   error.value = ''
   if (!text.value.trim()) {
-    error.value = 'Iltimos, matn yoki havola kiriting.'
+    error.value = t('Iltimos, matn yoki havola kiriting.')
     generatedText.value = ''
     return
   }
@@ -41,49 +41,45 @@ function reset() {
 <template>
   <ToolShell
     icon="🔳"
-    title="QR-kod generatori"
-    description="Matn yoki havoladan QR-kod yarating"
-    hint="Matn yoki havola (link) kiriting, «Yaratish»ni bosing — QR-kod darhol paydo bo‘ladi, uni yuklab olishingiz mumkin."
+    :title="t('QR-kod generatori')"
+    :description="t('Matn yoki havoladan QR-kod yarating')"
+    :hint="t('Matn yoki havola (link) kiriting, «Yaratish»ni bosing — QR-kod darhol paydo bo‘ladi, uni yuklab olishingiz mumkin.')"
   >
     <template #header><AppHeader /></template>
 
     <FormAlert :message="error" />
 
-    <div class="space-y-4">
+    <div class="space-y-4 animate-fadeUp">
       <div>
-        <label class="label">Matn yoki havola</label>
+        <label class="label">{{ t('Matn yoki havola') }}</label>
         <input
           v-model="text"
           type="text"
           class="input"
-          placeholder="masalan: https://example.com yoki istalgan matn"
+          :placeholder="t('masalan: https://example.com yoki istalgan matn')"
           @keyup.enter="generate"
         />
       </div>
 
       <div>
-        <label class="label">O‘lcham: {{ size }}×{{ size }} px</label>
-        <input v-model="size" type="range" min="150" max="500" step="50" class="w-full accent-brand-600" />
+        <label class="label">{{ t('O\'lcham:') }} {{ size }}×{{ size }} px</label>
+        <input v-model="size" type="range" min="150" max="500" step="50" class="w-full accent-brand-600 cursor-pointer" />
       </div>
 
       <div class="flex gap-3 pt-2">
-        <button class="btn-primary flex-1" @click="generate">Yaratish</button>
+        <button class="btn-primary flex-1 animate-popIn" @click="generate">{{ t('Yaratish') }}</button>
         <button class="btn-secondary" @click="reset">{{ t('common.clear') }}</button>
       </div>
 
       <transition name="page-fade">
         <div
           v-if="qrUrl"
-          class="mt-5 rounded-xl bg-gradient-to-br from-brand-50 to-brand-100/60 dark:from-slate-700 dark:to-slate-700/60 border border-brand-100 dark:border-slate-600 p-5 flex flex-col items-center gap-4 animate-resultPop"
+          class="mt-5 rounded-xl bg-gradient-to-br from-brand-50 to-brand-100/60 dark:from-slate-700 dark:to-slate-700/60 border border-brand-100 dark:border-slate-600 p-5 flex flex-col items-center gap-4 card-hover-lift animate-scaleIn"
         >
           <img :src="qrUrl" :alt="generatedText" class="rounded-lg border border-white shadow-sm bg-white" />
-          <a :href="qrUrl" :download="'qulay-qr-kod.png'" class="btn-secondary text-sm">Yuklab olish</a>
+          <a :href="qrUrl" :download="'qulay-qr-kod.png'" class="btn-secondary text-sm">{{ t('Yuklab olish (PNG)') }}</a>
         </div>
       </transition>
-
-      <p class="text-xs text-slate-400 dark:text-slate-500 text-center pt-1">
-        QR-kod tashqi (bepul) xizmat orqali yaratiladi, shuning uchun internet aloqasi kerak bo‘ladi.
-      </p>
     </div>
   </ToolShell>
 </template>

@@ -30,7 +30,7 @@ function toggleFavorite(event) {
   <component
     :is="target === '#' ? 'div' : 'router-link'"
     :to="target !== '#' ? target : undefined"
-    class="service-card p-5 flex flex-col gap-4 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 cursor-pointer group relative bg-white dark:bg-[#1d2523] border border-slate-200/80 dark:border-white/10 hover:border-brand-500/50 rounded-2xl"
+    class="service-card card-hover-lift p-5 flex flex-col gap-4 hover:shadow-md transition-all duration-200 cursor-pointer group relative bg-white dark:bg-[#1d2523] border border-slate-200/80 dark:border-white/10 hover:border-brand-500/50 rounded-2xl"
   >
     <button
       v-if="showFavorite && slug"

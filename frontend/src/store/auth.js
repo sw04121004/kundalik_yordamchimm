@@ -103,6 +103,7 @@ export const useAuthStore = defineStore('auth', {
     },
 
     clearSession() {
+      const currentUserId = this.user?.id
       this.clearTokens()
       // Oldingi foydalanuvchining shaxsiy ma'lumotlari (AI suhbatlari, sevimlilar)
       // xotirada qolib ketmasligi uchun tegishli store'larni tozalaymiz —
@@ -110,6 +111,19 @@ export const useAuthStore = defineStore('auth', {
       useAiStore().$reset()
       usePlannerStore().$reset()
       useServicesStore().$patch({ favorites: [], favoritesLoaded: false })
+      localStorage.removeItem('qulay_goals')
+      localStorage.removeItem('qulay_goals_guest')
+      localStorage.removeItem('qulay_habits')
+      localStorage.removeItem('qulay_habits_guest')
+      localStorage.removeItem('pomodoroState')
+      localStorage.removeItem('pomodoroState_guest')
+      localStorage.removeItem('pomodoro_state')
+      localStorage.removeItem('pomodoro_state_guest')
+      if (currentUserId) {
+        localStorage.removeItem(`qulay_goals_${currentUserId}`)
+        localStorage.removeItem(`qulay_habits_${currentUserId}`)
+        localStorage.removeItem(`pomodoroState_${currentUserId}`)
+      }
     },
 
     async logout() {
