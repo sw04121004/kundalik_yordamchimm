@@ -1498,6 +1498,8 @@ export function setLanguage(code) {
   localStorage.setItem("qulay_language", code)
   document.documentElement.lang = code
   document.documentElement.dir = "ltr"
+  document.documentElement.setAttribute("translate", "no")
+  document.documentElement.classList.add("notranslate")
 }
 
 export function initLanguage() {
@@ -1516,4 +1518,6 @@ export function useI18n() {
 
 watch(language, (code) => {
   document.documentElement.lang = code
+  document.documentElement.setAttribute("translate", "no")
+  document.documentElement.classList.add("notranslate")
 })
