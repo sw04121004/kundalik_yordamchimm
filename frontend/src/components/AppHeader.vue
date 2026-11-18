@@ -93,13 +93,13 @@ onUnmounted(() => {
         </router-link>
       </nav>
 
-      <div class="flex items-center gap-2 sm:gap-3">
+      <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
         <LanguageSwitcher />
         <span v-if="auth.user" class="hidden lg:block text-sm text-slate-500 dark:text-slate-400">
           {{ t('nav.greeting') }} <span class="font-semibold text-slate-700 dark:text-slate-200">{{ auth.user.first_name || auth.user.username }}</span>
         </span>
         <ThemeSwitcher />
-        <div ref="accountMenuRef" class="relative">
+        <div v-if="auth.isAuthenticated" ref="accountMenuRef" class="relative">
           <button
             ref="accountButtonRef"
             type="button"
@@ -116,7 +116,7 @@ onUnmounted(() => {
             <div
               v-if="menuOpen"
               id="account-menu"
-              class="absolute right-0 mt-3 w-48 glass-surface p-2 text-sm z-50 origin-top-right"
+              class="absolute right-0 mt-3 w-48 glass-surface p-2 text-sm z-50 origin-top-right shadow-lg border border-slate-200 dark:border-white/10 rounded-xl"
               role="menu"
               @click="menuOpen = false"
             >
@@ -152,6 +152,13 @@ onUnmounted(() => {
             </div>
           </transition>
         </div>
+        <router-link
+          v-else
+          :to="{ name: 'login' }"
+          class="btn-primary text-xs sm:text-sm py-1.5 px-3 rounded-lg font-medium"
+        >
+          {{ t('login.submit') }}
+        </router-link>
       </div>
     </div>
   </header>

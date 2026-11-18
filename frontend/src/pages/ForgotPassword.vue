@@ -61,9 +61,9 @@ async function confirmReset() {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-[#f6f7f9] dark:bg-[#111318] px-4 py-12">
+  <div class="min-h-screen flex items-center justify-center bg-[#f6f7f9] dark:bg-[#111318] px-4 pt-16 pb-12 sm:py-12">
     <div class="absolute top-4 right-4"><LanguageSwitcher /></div>
-    <main class="w-full max-w-md card p-6 sm:p-8">
+    <main class="w-full max-w-md card p-6 sm:p-8 animate-fadeUp">
       <div class="flex items-center justify-between mb-6">
         <router-link :to="{ name: 'login' }" class="inline-flex items-center gap-2 text-sm text-brand-700 dark:text-brand-300">
           <ArrowLeft class="w-4 h-4" />
@@ -77,9 +77,11 @@ async function confirmReset() {
       <p v-if="notice" class="mb-4 rounded-xl border border-brand-200 bg-brand-50 p-3 text-sm text-brand-800 dark:border-brand-800 dark:bg-brand-900/30 dark:text-brand-100" role="status">{{ notice }}</p>
 
       <form v-if="step === 1" class="space-y-4" @submit.prevent="requestCode">
-        <label class="label" for="reset-email">{{ t('forgot.email') }}</label>
-        <input id="reset-email" v-model="form.email" type="email" class="input" autocomplete="email" required />
-        <button class="btn-primary w-full" type="submit" :disabled="busy">{{ busy ? '...' : t('forgot.send') }}</button>
+        <div>
+          <label class="label" for="reset-email">{{ t('forgot.email') }}</label>
+          <input id="reset-email" v-model="form.email" type="email" class="input" autocomplete="email" required />
+        </div>
+        <button class="btn-primary w-full !mt-6" type="submit" :disabled="busy">{{ busy ? '...' : t('forgot.send') }}</button>
       </form>
 
       <form v-else class="space-y-4" @submit.prevent="confirmReset">
@@ -107,10 +109,12 @@ async function confirmReset() {
             </button>
           </div>
         </div>
-        <button class="btn-primary w-full" type="submit" :disabled="busy">{{ busy ? '...' : t('forgot.save') }}</button>
+        <button class="btn-primary w-full !mt-6" type="submit" :disabled="busy">{{ busy ? '...' : t('forgot.save') }}</button>
       </form>
 
-      <button v-if="step === 2" class="mt-4 text-sm text-brand-700 underline dark:text-brand-300" type="button" :disabled="busy" @click="step = 1; notice = ''; error = ''">{{ t('forgot.send') }}</button>
+      <div v-if="step === 2" class="mt-6 text-center">
+        <button class="text-sm text-brand-700 underline dark:text-brand-300 font-medium hover:text-brand-800" type="button" :disabled="busy" @click="step = 1; notice = ''; error = ''">{{ t('forgot.send') }}</button>
+      </div>
     </main>
   </div>
 </template>

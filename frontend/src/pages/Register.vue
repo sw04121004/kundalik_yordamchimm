@@ -56,7 +56,7 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-[#f6f7f9] dark:bg-[#111318] px-4 py-12">
+  <div class="min-h-screen flex items-center justify-center bg-[#f6f7f9] dark:bg-[#111318] px-4 pt-16 pb-12 sm:py-12">
     <div class="absolute top-4 right-4"><LanguageSwitcher /></div>
     <div class="w-full max-w-md animate-fadeUp">
       <div class="text-center mb-8">
@@ -111,13 +111,13 @@ async function handleSubmit() {
               </button>
             </div>
           </div>
-          <button type="submit" class="btn-primary w-full mt-4" :disabled="submitting">
+          <button type="submit" class="btn-primary w-full !mt-6" :disabled="submitting">
             <span v-if="submitting" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
             {{ submitting ? t('register.submitting') : t('register.submit') }}
           </button>
         </form>
 
-        <p class="text-center text-sm text-slate-500 dark:text-slate-400 mt-5">
+        <p class="text-center text-sm text-slate-500 dark:text-slate-400 mt-6">
           {{ t('register.hasAccount') }}
           <router-link :to="{ name: 'login' }" class="text-brand-600 dark:text-brand-400 font-semibold hover:underline ml-1">{{ t('register.login') }}</router-link>
         </p>

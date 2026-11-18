@@ -36,7 +36,7 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-[#f6f7f9] dark:bg-[#111318] px-4 py-12">
+  <div class="min-h-screen flex items-center justify-center bg-[#f6f7f9] dark:bg-[#111318] px-4 pt-16 pb-12 sm:py-12">
     <div class="absolute top-4 right-4"><LanguageSwitcher /></div>
     <div class="w-full max-w-sm animate-fadeUp">
       <div class="text-center mb-8">
@@ -62,7 +62,10 @@ async function handleSubmit() {
             <input v-model="form.username" type="text" class="input" placeholder="aziz_dev" autocomplete="username" />
           </div>
           <div>
-            <label class="label">{{ t('login.password') }}</label>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="label mb-0">{{ t('login.password') }}</label>
+              <router-link :to="{ name: 'forgot-password' }" class="text-xs sm:text-sm text-brand-600 dark:text-brand-400 font-medium hover:underline">{{ t('login.forgotPassword') }}</router-link>
+            </div>
             <div class="relative">
               <input v-model="form.password" :type="showPassword ? 'text' : 'password'" class="input pr-10" placeholder="••••••••" autocomplete="current-password" />
               <button type="button" @click="showPassword = !showPassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none" :aria-label="showPassword ? t('profile.password.hide') : t('profile.password.show')">
@@ -71,17 +74,13 @@ async function handleSubmit() {
               </button>
             </div>
           </div>
-          <button type="submit" class="btn-primary w-full mt-2" :disabled="submitting">
+          <button type="submit" class="btn-primary w-full !mt-6" :disabled="submitting">
             <span v-if="submitting" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
             {{ submitting ? t('login.submitting') : t('login.submit') }}
           </button>
         </form>
 
-        <div class="text-right -mt-2">
-          <router-link :to="{ name: 'forgot-password' }" class="text-sm text-brand-700 dark:text-brand-300 font-semibold hover:underline">{{ t('login.forgotPassword') }}</router-link>
-        </div>
-
-        <p class="text-center text-sm text-slate-500 dark:text-slate-400 mt-5">
+        <p class="text-center text-sm text-slate-500 dark:text-slate-400 mt-6">
           {{ t('login.noAccount') }}
           <router-link :to="{ name: 'register' }" class="text-brand-600 dark:text-brand-400 font-semibold hover:underline ml-1">{{ t('login.register') }}</router-link>
         </p>
