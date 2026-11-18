@@ -48,27 +48,29 @@ onUnmounted(() => {
     <transition name="palette">
       <div
         v-if="open"
-        class="absolute right-0 mt-4 backdrop-blur-2xl bg-white/80 dark:bg-slate-900/80 border border-white/50 dark:border-white/10 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.15)] dark:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.5)] p-5 rounded-2xl w-72 origin-top-right transform transition-all"
+        class="absolute right-0 mt-4 backdrop-blur-2xl bg-white/80 dark:bg-slate-900/80 border border-white/50 dark:border-white/10 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.15)] dark:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.5)] p-5 rounded-2xl w-60 origin-top-right transform transition-all"
       >
         <p class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4 px-1 flex items-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg>
           Mavzu Rangi
         </p>
-        <div class="grid grid-cols-5 gap-3 mb-5">
+        <div class="grid grid-cols-4 gap-2 mb-5">
           <button
             v-for="(preset, key) in ACCENT_PRESETS"
             :key="key"
-            class="relative w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-125 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
-            :style="{ background: preset.swatch, '--tw-ring-color': preset.swatch }"
+            class="relative flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all duration-300 focus:outline-none hover:bg-slate-100/60 dark:hover:bg-white/5"
+            :class="theme.accent === key ? 'bg-slate-100/80 dark:bg-white/8 ring-2' : ''"
+            :style="theme.accent === key ? { '--tw-ring-color': preset.swatch } : {}"
             :title="preset.label"
-            @click="choose(key)"
+            @click="choose(key); open = false"
           >
             <span
-              v-if="theme.accent === key"
-              class="absolute -inset-1.5 rounded-full ring-2 transition-all duration-300 animate-pulse-slow"
-              :style="{ '--tw-ring-color': preset.swatch }"
-            ></span>
-            <svg v-if="theme.accent === key" class="w-4 h-4 text-white drop-shadow-md animate-pop-in" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+              class="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-sm"
+              :style="{ background: preset.swatch, boxShadow: theme.accent === key ? `0 0 12px ${preset.swatch}60` : '' }"
+            >
+              <svg v-if="theme.accent === key" class="w-4 h-4 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+            </span>
+            <span class="text-[10px] font-semibold leading-tight text-center text-slate-600 dark:text-slate-300 truncate w-full">{{ preset.label }}</span>
           </button>
         </div>
 

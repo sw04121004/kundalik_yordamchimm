@@ -1,46 +1,193 @@
 import { defineStore } from 'pinia'
 
+// 8 distinct, harmonious colors: Ko'k (standart), Binafsha, Zumrad, Atirgul, To'q sariq, Firuza, Oltin, Grafit
 export const ACCENT_PRESETS = {
-  purple: { label: 'Binafsha', swatch: '#a855f7', shades: { 50: '250 245 255', 100: '243 232 255', 200: '233 213 255', 300: '216 180 254', 400: '192 132 252', 500: '168 85 247', 600: '147 51 234', 700: '126 34 206', 800: '107 33 168', 900: '88 28 135' } },
-  violet: { label: 'Siyohrang', swatch: '#8b5cf6', shades: { 50: '245 243 255', 100: '237 233 254', 200: '221 214 254', 300: '196 181 253', 400: '167 139 250', 500: '139 92 246', 600: '124 58 237', 700: '109 40 217', 800: '91 33 182', 900: '76 29 149' } },
-  indigo: { label: 'Indigo', swatch: '#6366f1', shades: { 50: '238 242 255', 100: '224 231 255', 200: '199 210 254', 300: '165 180 252', 400: '129 140 248', 500: '99 102 241', 600: '79 70 229', 700: '67 56 202', 800: '55 48 163', 900: '49 46 129' } },
-  blue: { label: 'Ko‘k', swatch: '#3b8ff5', shades: { 50: '238 246 255', 100: '219 235 254', 200: '191 223 254', 300: '147 203 253', 400: '96 174 250', 500: '59 143 245', 600: '37 111 232', 700: '30 89 207', 800: '31 73 166', 900: '31 64 131' } },
-  sky: { label: 'Osmon', swatch: '#0ea5e9', shades: { 50: '240 249 255', 100: '224 242 254', 200: '186 230 253', 300: '125 211 252', 400: '56 189 248', 500: '14 165 233', 600: '2 132 199', 700: '3 105 161', 800: '7 89 133', 900: '12 74 110' } },
-  cyan: { label: 'Zangori', swatch: '#06b6d4', shades: { 50: '236 254 255', 100: '207 250 254', 200: '165 243 252', 300: '103 232 249', 400: '34 211 238', 500: '6 182 212', 600: '8 145 178', 700: '14 116 144', 800: '21 94 117', 900: '22 78 99' } },
-  teal: { label: 'Firuza', swatch: '#14b8a6', shades: { 50: '240 253 250', 100: '204 251 241', 200: '153 246 228', 300: '94 234 212', 400: '45 212 191', 500: '20 184 166', 600: '13 148 136', 700: '15 118 110', 800: '17 94 89', 900: '19 78 74' } },
-  green: { label: 'Yashil', swatch: '#22c55e', shades: { 50: '240 253 244', 100: '220 252 231', 200: '187 247 208', 300: '134 239 172', 400: '74 222 128', 500: '34 197 94', 600: '22 163 74', 700: '21 128 61', 800: '22 101 52', 900: '20 83 45' } },
-  emerald: { label: 'Zumrad', swatch: '#10b981', shades: { 50: '236 253 245', 100: '209 250 229', 200: '167 243 208', 300: '110 231 183', 400: '52 211 153', 500: '16 185 129', 600: '5 150 105', 700: '4 120 87', 800: '6 95 70', 900: '6 78 59' } },
-  lime: { label: 'Ohak', swatch: '#84cc16', shades: { 50: '247 254 231', 100: '236 252 203', 200: '217 249 157', 300: '190 242 100', 400: '163 230 53', 500: '132 204 22', 600: '101 163 13', 700: '77 124 15', 800: '63 98 18', 900: '54 83 20' } },
-  yellow: { label: 'Sariq', swatch: '#eab308', shades: { 50: '254 252 232', 100: '254 249 195', 200: '254 240 138', 300: '253 224 71', 400: '250 204 21', 500: '234 179 8', 600: '202 138 4', 700: '161 98 7', 800: '133 77 14', 900: '113 63 18' } },
-  amber: { label: 'Qahrabo', swatch: '#f59e0b', shades: { 50: '255 251 235', 100: '254 243 199', 200: '253 230 138', 300: '252 211 77', 400: '251 191 36', 500: '245 158 11', 600: '217 119 6', 700: '180 83 9', 800: '146 64 14', 900: '120 53 15' } },
-  orange: { label: 'To‘q sariq', swatch: '#f97316', shades: { 50: '255 247 237', 100: '255 237 213', 200: '254 215 170', 300: '253 186 116', 400: '251 146 60', 500: '249 115 22', 600: '234 88 12', 700: '194 65 12', 800: '154 52 18', 900: '124 45 18' } },
-  coral: { label: 'Marjon', swatch: '#f43f5e', shades: { 50: '255 241 242', 100: '255 228 230', 200: '254 205 211', 300: '253 164 175', 400: '251 113 133', 500: '244 63 94', 600: '225 29 72', 700: '190 18 60', 800: '159 18 57', 900: '136 19 55' } },
-  red: { label: 'Qizil', swatch: '#ef4444', shades: { 50: '254 242 242', 100: '254 226 226', 200: '254 202 202', 300: '252 165 165', 400: '248 113 113', 500: '239 68 68', 600: '220 38 38', 700: '185 28 28', 800: '153 27 27', 900: '127 29 29' } },
-  pink: { label: 'Pushti', swatch: '#ec4899', shades: { 50: '253 242 248', 100: '252 231 243', 200: '251 207 232', 300: '249 168 212', 400: '244 114 182', 500: '236 72 153', 600: '219 39 119', 700: '190 24 93', 800: '157 23 77', 900: '131 24 67' } },
-  rose: { label: 'Atirgul', swatch: '#e11d48', shades: { 50: '255 241 242', 100: '255 228 230', 200: '254 205 211', 300: '253 164 175', 400: '251 113 133', 500: '225 29 72', 600: '190 18 60', 700: '159 18 57', 800: '136 19 55', 900: '112 26 50' } },
-  magenta: { label: 'Qirmizi', swatch: '#d946ef', shades: { 50: '253 244 255', 100: '250 232 255', 200: '245 208 254', 300: '240 171 252', 400: '232 121 249', 500: '217 70 239', 600: '192 38 211', 700: '162 28 175', 800: '134 25 143', 900: '112 26 117' } },
-  berry: { label: 'Malina', swatch: '#9f1239', shades: { 50: '255 241 242', 100: '255 228 230', 200: '254 205 211', 300: '253 164 175', 400: '251 113 133', 500: '244 63 94', 600: '225 29 72', 700: '190 18 60', 800: '159 18 57', 900: '136 19 55' } },
-  lavender: { label: 'Lavanda', swatch: '#a78bfa', shades: { 50: '245 243 255', 100: '237 233 254', 200: '221 214 254', 300: '196 181 253', 400: '167 139 250', 500: '139 92 246', 600: '124 58 237', 700: '109 40 217', 800: '91 33 182', 900: '76 29 149' } },
-  ocean: { label: 'Okean', swatch: '#0f766e', shades: { 50: '240 253 250', 100: '204 251 241', 200: '153 246 228', 300: '94 234 212', 400: '45 212 191', 500: '15 118 110', 600: '13 105 98', 700: '17 94 89', 800: '19 78 74', 900: '20 65 62' } },
-  mint: { label: 'Yalpiz', swatch: '#34d399', shades: { 50: '236 253 245', 100: '209 250 229', 200: '167 243 208', 300: '110 231 183', 400: '52 211 153', 500: '16 185 129', 600: '5 150 105', 700: '4 120 87', 800: '6 95 70', 900: '6 78 59' } },
-  copper: { label: 'Mis', swatch: '#c2410c', shades: { 50: '255 247 237', 100: '255 237 213', 200: '254 215 170', 300: '253 186 116', 400: '251 146 60', 500: '194 65 12', 600: '180 55 8', 700: '154 52 18', 800: '124 45 18', 900: '102 38 16' } },
-  slate: { label: 'Grafit', swatch: '#475569', shades: { 50: '248 250 252', 100: '241 245 249', 200: '226 232 240', 300: '203 213 225', 400: '148 163 184', 500: '71 85 105', 600: '51 65 85', 700: '51 65 85', 800: '30 41 59', 900: '15 23 42' } },
+  blue: {
+    label: "Ko'k",
+    labels: { uz: "Ko'k", ru: "Синий", en: "Blue" },
+    swatch: '#2563eb',
+    shades: {
+      50: '239 246 255',
+      100: '219 234 254',
+      200: '191 219 254',
+      300: '147 197 253',
+      400: '96 165 250',
+      500: '37 99 235',
+      600: '29 78 216',
+      700: '29 64 175',
+      800: '30 58 138',
+      900: '23 37 84',
+      950: '15 23 42',
+    },
+  },
+  purple: {
+    label: 'Binafsha',
+    labels: { uz: 'Binafsha', ru: 'Фиолетовый', en: 'Purple' },
+    swatch: '#7c3aed',
+    shades: {
+      50: '250 245 255',
+      100: '243 232 255',
+      200: '233 213 255',
+      300: '216 180 254',
+      400: '192 132 252',
+      500: '124 58 237',
+      600: '109 40 217',
+      700: '91 33 182',
+      800: '76 29 149',
+      900: '59 7 100',
+      950: '46 16 101',
+    },
+  },
+  emerald: {
+    label: 'Zumrad',
+    labels: { uz: 'Zumrad', ru: 'Изумрудный', en: 'Emerald' },
+    swatch: '#059669',
+    shades: {
+      50: '236 253 245',
+      100: '209 250 229',
+      200: '167 243 208',
+      300: '110 231 183',
+      400: '52 211 153',
+      500: '5 150 105',
+      600: '4 120 87',
+      700: '6 95 70',
+      800: '6 78 59',
+      900: '4 47 36',
+      950: '2 44 34',
+    },
+  },
+  rose: {
+    label: 'Atirgul',
+    labels: { uz: 'Atirgul', ru: 'Розовый', en: 'Rose' },
+    swatch: '#e11d48',
+    shades: {
+      50: '255 241 242',
+      100: '255 228 230',
+      200: '254 205 211',
+      300: '253 164 175',
+      400: '251 113 133',
+      500: '225 29 72',
+      600: '190 18 60',
+      700: '159 18 57',
+      800: '136 19 55',
+      900: '76 5 25',
+      950: '47 4 17',
+    },
+  },
+  orange: {
+    label: "To'q sariq",
+    labels: { uz: "To'q sariq", ru: 'Оранжевый', en: 'Orange' },
+    swatch: '#ea580c',
+    shades: {
+      50: '255 247 237',
+      100: '255 237 213',
+      200: '254 215 170',
+      300: '253 186 116',
+      400: '251 146 60',
+      500: '234 88 12',
+      600: '194 65 12',
+      700: '154 52 18',
+      800: '124 45 18',
+      900: '67 20 7',
+      950: '43 14 5',
+    },
+  },
+  teal: {
+    label: 'Firuza',
+    labels: { uz: 'Firuza', ru: 'Бирюзовый', en: 'Teal' },
+    swatch: '#0d9488',
+    shades: {
+      50: '240 253 250',
+      100: '204 251 241',
+      200: '153 246 228',
+      300: '94 234 212',
+      400: '45 212 191',
+      500: '13 148 136',
+      600: '15 118 110',
+      700: '17 94 89',
+      800: '19 78 74',
+      900: '19 42 41',
+      950: '4 47 46',
+    },
+  },
+  amber: {
+    label: 'Oltin',
+    labels: { uz: 'Oltin', ru: 'Янтарный', en: 'Amber' },
+    swatch: '#d97706',
+    shades: {
+      50: '255 251 235',
+      100: '254 243 199',
+      200: '253 230 138',
+      300: '252 211 77',
+      400: '251 191 36',
+      500: '217 119 6',
+      600: '180 83 9',
+      700: '146 64 14',
+      800: '120 53 15',
+      900: '69 26 3',
+      950: '45 15 2',
+    },
+  },
+  slate: {
+    label: 'Grafit',
+    labels: { uz: 'Grafit', ru: 'Графитовый', en: 'Slate' },
+    swatch: '#475569',
+    shades: {
+      50: '248 250 252',
+      100: '241 245 249',
+      200: '226 232 240',
+      300: '203 213 225',
+      400: '148 163 184',
+      500: '100 116 139',
+      600: '71 85 105',
+      700: '51 65 85',
+      800: '30 41 59',
+      900: '15 23 42',
+      950: '2 6 23',
+    },
+  },
+}
+
+const LEGACY_MIGRATION = {
+  sky: 'blue',
+  indigo: 'blue',
+  ocean: 'teal',
+  cyan: 'teal',
+  green: 'emerald',
+  mint: 'emerald',
+  lime: 'emerald',
+  red: 'rose',
+  coral: 'rose',
+  pink: 'rose',
+  berry: 'rose',
+  magenta: 'purple',
+  violet: 'purple',
+  lavender: 'purple',
+  yellow: 'amber',
+  copper: 'orange',
 }
 
 const STORAGE_KEY = 'qulay_accent'
 const DARK_STORAGE_KEY = 'qulay_dark'
-const previousAccent = localStorage.getItem(STORAGE_KEY)
-const defaultAccent = (!previousAccent || previousAccent === 'blue' || ['rose', 'red', 'coral', 'berry'].includes(previousAccent)) ? 'purple' : previousAccent
+
+function resolveAccent(raw) {
+  if (!raw) return 'blue'
+  if (ACCENT_PRESETS[raw]) return raw
+  if (LEGACY_MIGRATION[raw]) return LEGACY_MIGRATION[raw]
+  return 'blue'
+}
 
 export const useThemeStore = defineStore('theme', {
   state: () => ({
-    accent: defaultAccent,
-    isDark: localStorage.getItem(DARK_STORAGE_KEY) === 'true',
+    accent: resolveAccent(typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null),
+    isDark: typeof localStorage !== 'undefined' && localStorage.getItem(DARK_STORAGE_KEY) === 'true',
   }),
 
   actions: {
     applyAccent(name) {
-      const preset = ACCENT_PRESETS[name] || ACCENT_PRESETS.purple
+      const safeName = resolveAccent(name)
+      const preset = ACCENT_PRESETS[safeName] || ACCENT_PRESETS.blue
+      if (typeof document === 'undefined') return
       const root = document.documentElement
       Object.entries(preset.shades).forEach(([shade, rgb]) => {
         root.style.setProperty(`--brand-${shade}`, rgb)
@@ -48,25 +195,34 @@ export const useThemeStore = defineStore('theme', {
     },
 
     setAccent(name) {
-      if (!ACCENT_PRESETS[name]) return
-      this.accent = name
-      localStorage.setItem(STORAGE_KEY, name)
-      this.applyAccent(name)
+      const safeName = resolveAccent(name)
+      this.accent = safeName
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(STORAGE_KEY, safeName)
+      }
+      this.applyAccent(safeName)
     },
 
     applyDark(isDark) {
-      document.documentElement.classList.toggle('dark', isDark)
+      if (typeof document !== 'undefined') {
+        document.documentElement.classList.toggle('dark', isDark)
+      }
     },
 
     toggleDark() {
       this.isDark = !this.isDark
-      localStorage.setItem(DARK_STORAGE_KEY, String(this.isDark))
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(DARK_STORAGE_KEY, String(this.isDark))
+      }
       this.applyDark(this.isDark)
     },
 
     init() {
-      if (!previousAccent || previousAccent === 'blue' || ['rose', 'red', 'coral', 'berry'].includes(previousAccent)) {
-        this.setAccent('purple')
+      const saved = typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null
+      const valid = resolveAccent(saved)
+      this.accent = valid
+      if (saved !== valid && typeof localStorage !== 'undefined') {
+        localStorage.setItem(STORAGE_KEY, valid)
       }
       this.applyAccent(this.accent)
       this.applyDark(this.isDark)
