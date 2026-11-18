@@ -71,13 +71,27 @@ class EmailOrUsernameTokenSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         # Resolve username/email case-insensitively and discard accidental spaces.
         login_value = (attrs.get(self.username_field) or attrs.get("email") or "").strip()
+        password = attrs.get("password")
         if login_value:
             from django.contrib.auth import get_user_model
             User = get_user_model()
-            lookup = {"email__iexact": login_value} if "@" in login_value else {"username__iexact": login_value}
-            matched = User.objects.filter(**lookup).first()
-            if matched:
-                attrs[self.username_field] = matched.username
+            # 1. Agar username aniq mos kelsa faqat shu user:
+            user_by_username = User.objects.filter(username__iexact=login_value).first()
+            if user_by_username:
+                attrs[self.username_field] = user_by_username.username
+            elif "@" in login_value:
+                # 2. Email bilan kirilganda barcha faol userlarni tekshirish:
+                candidates = User.objects.filter(email__iexact=login_value, is_active=True).order_by("-last_login", "-date_joined", "-id")
+                matched_user = None
+                if password:
+                    for cand in candidates:
+                        if cand.check_password(password):
+                            matched_user = cand
+                            break
+                if matched_user:
+                    attrs[self.username_field] = matched_user.username
+                elif candidates.exists():
+                    attrs[self.username_field] = candidates.first().username
         return super().validate(attrs)
 
 
@@ -252,12 +266,16 @@ class PasswordResetRequestView(APIView):
         if not is_email_configured():
             return Response({"detail": _EMAIL_NOT_CONFIGURED[lang]}, status=503)
 
-        account = UserModel.objects.filter(email__iexact=serializer.validated_data["email"]).first()
+        email_clean = serializer.validated_data["email"].strip()
+        candidates = UserModel.objects.filter(email__iexact=email_clean, is_active=True).order_by("-last_login", "-date_joined", "-id")
+        account = candidates.first()
+        if not account:
+            account = UserModel.objects.filter(email__iexact=email_clean).order_by("-date_joined", "-id").first()
         generic_detail = _EMAIL_SENT_DETAIL[lang]
 
         if account:
             now = timezone.now()
-            PasswordResetCode.objects.filter(user=account, used_at__isnull=True).update(used_at=now)
+            PasswordResetCode.objects.filter(user__email__iexact=email_clean, used_at__isnull=True).update(used_at=now)
             code = f"{secrets.randbelow(1_000_000):06d}"
             reset = PasswordResetCode.objects.create(
                 user=account,
@@ -282,25 +300,54 @@ class PasswordResetConfirmView(APIView):
     def post(self, request):
         serializer = PasswordResetConfirmSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
-        account = UserModel.objects.filter(email__iexact=serializer.validated_data["email"]).first()
+        email = serializer.validated_data["email"].strip()
+        code = serializer.validated_data["code"].strip()
+        new_password = serializer.validated_data["new_password"]
         now = timezone.now()
+        lang = _get_lang_from_request(request)
+
         with transaction.atomic():
-            reset = None
-            if account:
-                reset = PasswordResetCode.objects.select_for_update().filter(
-                    user=account, used_at__isnull=True, expires_at__gt=now, attempts__lt=5
-                ).order_by("-created_at").first()
+            reset = PasswordResetCode.objects.select_for_update().select_related("user").filter(
+                user__email__iexact=email,
+                used_at__isnull=True,
+                expires_at__gt=now,
+                attempts__lt=5,
+            ).order_by("-created_at").first()
+
             if not reset:
-                return Response({"detail": "Kod yaroqsiz yoki muddati tugagan. Yangi kod so'rang."}, status=400)
-            if not check_password(serializer.validated_data["code"], reset.code_hash):
+                msg = {
+                    "uz": "Kod yaroqsiz yoki muddati tugagan. Yangi kod so'rang.",
+                    "ru": "Код недействителен или срок его действия истёк. Запросите новый код.",
+                    "en": "The code is invalid or expired. Request a new code.",
+                }.get(lang, "Kod yaroqsiz yoki muddati tugagan. Yangi kod so'rang.")
+                return Response({"detail": msg}, status=400)
+
+            if not check_password(code, reset.code_hash):
                 reset.attempts += 1
                 reset.save(update_fields=["attempts"])
-                return Response({"detail": "Tasdiqlash kodi noto'g'ri."}, status=400)
-            account.set_password(serializer.validated_data["new_password"])
-            account.save(update_fields=["password"])
+                msg = {
+                    "uz": "Tasdiqlash kodi noto'g'ri.",
+                    "ru": "Неверный код подтверждения.",
+                    "en": "Incorrect confirmation code.",
+                }.get(lang, "Tasdiqlash kodi noto'g'ri.")
+                return Response({"detail": msg}, status=400)
+
+            target_user = reset.user
+            target_user.set_password(new_password)
+            target_user.save()
+
             reset.used_at = now
             reset.save(update_fields=["used_at"])
-        return Response({"detail": "Parol o'zgartirildi. Yangi parol bilan tizimga kiring."})
+
+            for outstanding in OutstandingToken.objects.filter(user=target_user):
+                BlacklistedToken.objects.get_or_create(token=outstanding)
+
+        success_msg = {
+            "uz": "Parol o'zgartirildi. Yangi parol bilan tizimga kiring.",
+            "ru": "Пароль изменён. Войдите в систему с новым паролем.",
+            "en": "Password changed. Log in with your new password.",
+        }.get(lang, "Parol o'zgartirildi. Yangi parol bilan tizimga kiring.")
+        return Response({"detail": success_msg})
 
 
 class ChangePasswordView(APIView):
@@ -310,5 +357,15 @@ class ChangePasswordView(APIView):
     def post(self, request):
         serializer = ChangePasswordSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response({"detail": "Parol muvaffaqiyatli o‘zgartirildi."})
+        user = serializer.save()
+
+        for outstanding in OutstandingToken.objects.filter(user=user):
+            BlacklistedToken.objects.get_or_create(token=outstanding)
+
+        lang = _get_lang_from_request(request)
+        msg = {
+            "uz": "Parol muvaffaqiyatli o‘zgartirildi.",
+            "ru": "Пароль успешно изменён.",
+            "en": "Password changed successfully.",
+        }.get(lang, "Parol muvaffaqiyatli o‘zgartirildi.")
+        return Response({"detail": msg})

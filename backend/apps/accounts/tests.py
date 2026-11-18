@@ -388,3 +388,102 @@ class AccountAPITests(APITestCase):
 		res = self.client.post(reverse("password-reset-request"), {"email": self.user.email}, format="json")
 		self.assertEqual(res.status_code, status.HTTP_202_ACCEPTED)
 		self.assertEqual(res.data["detail"], "Agar email akkauntga tegishli bo'lsa, tiklash kodi yuborildi.")
+
+	def test_login_with_duplicate_email_matches_correct_user_by_password(self):
+		dup_email = "duplicate@example.com"
+		u1 = User.objects.create_user(username="dup-user-1", email=dup_email, password="PassOne123!")
+		u2 = User.objects.create_user(username="dup-user-2", email=dup_email, password="PassTwo456!")
+
+		# Email + PassOne123! kirilganda dup-user-1 tanlanadi
+		res1 = self.client.post(reverse("login"), {"username": dup_email, "password": "PassOne123!"}, format="json")
+		self.assertEqual(res1.status_code, status.HTTP_200_OK)
+		token1 = RefreshToken(res1.data["refresh"])
+		self.assertEqual(token1["username"], "dup-user-1")
+
+		# Email + PassTwo456! kirilganda dup-user-2 tanlanadi
+		res2 = self.client.post(reverse("login"), {"username": dup_email, "password": "PassTwo456!"}, format="json")
+		self.assertEqual(res2.status_code, status.HTTP_200_OK)
+		token2 = RefreshToken(res2.data["refresh"])
+		self.assertEqual(token2["username"], "dup-user-2")
+
+		# Email + noto'g'ri parol bo'lsa 401
+		res_bad = self.client.post(reverse("login"), {"username": dup_email, "password": "WrongPass999!"}, format="json")
+		self.assertEqual(res_bad.status_code, status.HTTP_401_UNAUTHORIZED)
+
+		# Username orqali kirish: faqat o'sha username ga tegishli parol bilan kiradi
+		res_u1_good = self.client.post(reverse("login"), {"username": "dup-user-1", "password": "PassOne123!"}, format="json")
+		self.assertEqual(res_u1_good.status_code, status.HTTP_200_OK)
+		res_u1_wrong = self.client.post(reverse("login"), {"username": "dup-user-1", "password": "PassTwo456!"}, format="json")
+		self.assertEqual(res_u1_wrong.status_code, status.HTTP_401_UNAUTHORIZED)
+
+	@override_settings(EMAIL_PROVIDER="smtp", EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+	@patch("apps.accounts.views.send_mail")
+	def test_password_reset_and_change_blacklists_tokens_and_enforces_new_password(self, send_mail_mock):
+		user = User.objects.create_user(username="reset-user", email="resetme@example.com", password="InitialPass123!")
+		old_refresh = RefreshToken.for_user(user)
+
+		# 1. Reset code so'rash
+		req = self.client.post(reverse("password-reset-request"), {"email": user.email}, format="json")
+		self.assertEqual(req.status_code, status.HTTP_202_ACCEPTED)
+		code = re.search(r"\b(\d{6})\b", send_mail_mock.call_args.args[1]).group(1)
+
+		# 2. Reset confirm
+		confirm_payload = {
+			"email": user.email,
+			"code": code,
+			"new_password": "BrandNewPass789!",
+			"new_password2": "BrandNewPass789!",
+		}
+		confirm_res = self.client.post(reverse("password-reset-confirm"), confirm_payload, format="json")
+		self.assertEqual(confirm_res.status_code, status.HTTP_200_OK)
+
+		# 3. Eski parol rad etilishi kerak (username va email bilan)
+		bad_login_username = self.client.post(reverse("login"), {"username": user.username, "password": "InitialPass123!"}, format="json")
+		self.assertEqual(bad_login_username.status_code, status.HTTP_401_UNAUTHORIZED)
+		bad_login_email = self.client.post(reverse("login"), {"username": user.email, "password": "InitialPass123!"}, format="json")
+		self.assertEqual(bad_login_email.status_code, status.HTTP_401_UNAUTHORIZED)
+
+		# 4. Yangi parol muvaffaqiyatli kirishi kerak (username va email bilan)
+		good_login_username = self.client.post(reverse("login"), {"username": user.username, "password": "BrandNewPass789!"}, format="json")
+		self.assertEqual(good_login_username.status_code, status.HTTP_200_OK)
+		good_login_email = self.client.post(reverse("login"), {"username": user.email, "password": "BrandNewPass789!"}, format="json")
+		self.assertEqual(good_login_email.status_code, status.HTTP_200_OK)
+
+		# 5. Paroldan oldingi eski refresh token blacklist bo'lgan
+		refresh_attempt = self.client.post(reverse("token_refresh"), {"refresh": str(old_refresh)}, format="json")
+		self.assertEqual(refresh_attempt.status_code, status.HTTP_401_UNAUTHORIZED)
+
+		# 6. Change-password tekshiruvi:
+		user.refresh_from_db()
+		active_refresh = RefreshToken(good_login_username.data["refresh"])
+		self.client.force_authenticate(user)
+		change_res = self.client.post(
+			reverse("change-password"),
+			{"old_password": "BrandNewPass789!", "new_password": "ThirdPass1234!", "new_password2": "ThirdPass1234!"},
+			format="json",
+		)
+		self.assertEqual(change_res.status_code, status.HTTP_200_OK)
+
+		# Change passworddan keyin oldingi token blacklist bo'lishi kerak
+		self.client.force_authenticate(None)
+		refresh_attempt2 = self.client.post(reverse("token_refresh"), {"refresh": str(active_refresh)}, format="json")
+		self.assertEqual(refresh_attempt2.status_code, status.HTTP_401_UNAUTHORIZED)
+
+		# Yangi "ThirdPass1234!" bilan login o'tadi
+		final_login = self.client.post(reverse("login"), {"username": user.email, "password": "ThirdPass1234!"}, format="json")
+		self.assertEqual(final_login.status_code, status.HTTP_200_OK)
+
+	def test_registration_rejects_duplicate_email_case_insensitively(self):
+		res = self.client.post(
+			reverse("register"),
+			{
+				"username": "distinct-username",
+				"email": self.user.email.upper(),  # AUDIT@EXAMPLE.COM
+				"password": "StrongPass123!",
+				"password2": "StrongPass123!",
+			},
+			format="json",
+			HTTP_ACCEPT_LANGUAGE="uz",
+		)
+		self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+		self.assertIn("allaqachon", " ".join(res.data["email"]))

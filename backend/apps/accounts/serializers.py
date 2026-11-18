@@ -123,15 +123,19 @@ class RegisterSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         request = self.context.get("request")
         lang = _get_language_from_request(request)
-        if User.objects.filter(username__iexact=value).exists():
+        clean_value = (value or "").strip()
+        if User.objects.filter(username__iexact=clean_value).exists():
             raise serializers.ValidationError(_REGISTER_MESSAGES[lang]["username_taken"])
-        return value
+        return clean_value
 
     def validate_email(self, value):
         request = self.context.get("request")
         lang = _get_language_from_request(request)
-        if value and User.objects.filter(email__iexact=value).exists():
-            raise serializers.ValidationError(_REGISTER_MESSAGES[lang]["email_taken"])
+        if value:
+            clean_value = value.strip()
+            if User.objects.filter(email__iexact=clean_value).exists():
+                raise serializers.ValidationError(_REGISTER_MESSAGES[lang]["email_taken"])
+            return clean_value
         return value
 
     def validate_password(self, value):
@@ -169,9 +173,11 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         lang = _get_language_from_request(request)
         if value:
-            qs = User.objects.filter(email__iexact=value).exclude(pk=self.instance.pk)
+            clean_value = value.strip()
+            qs = User.objects.filter(email__iexact=clean_value).exclude(pk=self.instance.pk)
             if qs.exists():
                 raise serializers.ValidationError(_REGISTER_MESSAGES[lang]["email_taken"])
+            return clean_value
         return value
 
 
