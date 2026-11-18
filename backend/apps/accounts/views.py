@@ -39,18 +39,24 @@ class RegisterView(generics.CreateAPIView):
     throttle_classes = [RegisterThrottle]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        refresh = RefreshToken.for_user(user)
-        return Response(
-            {
-                "user": UserSerializer(user).data,
-                "access": str(refresh.access_token),
-                "refresh": str(refresh),
-            },
-            status=201,
-        )
+        lang = _get_lang_from_request(request)
+        from django.utils import translation
+        translation.activate(lang)
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            user = serializer.save()
+            refresh = RefreshToken.for_user(user)
+            return Response(
+                {
+                    "user": UserSerializer(user).data,
+                    "access": str(refresh.access_token),
+                    "refresh": str(refresh),
+                },
+                status=201,
+            )
+        finally:
+            translation.deactivate()
 
 
 class EmailOrUsernameTokenSerializer(TokenObtainPairSerializer):
@@ -187,9 +193,23 @@ _RESET_EMAIL_TEMPLATES = {
 def _get_lang_from_request(request):
     if not request:
         return "uz"
-    accept = getattr(request, "headers", {}).get("Accept-Language", "uz") if hasattr(request, "headers") else request.META.get("HTTP_ACCEPT_LANGUAGE", "uz")
-    lang = accept.split(",", 1)[0].split("-", 1)[0].lower()
-    return lang if lang in ("uz", "ru", "en") else "uz"
+    accept = ""
+    if hasattr(request, "headers") and request.headers:
+        accept = request.headers.get("Accept-Language") or ""
+    if not accept and hasattr(request, "META"):
+        accept = request.META.get("HTTP_ACCEPT_LANGUAGE") or ""
+    if not accept:
+        from django.utils import translation
+        active = translation.get_language()
+        if active in ("uz", "ru", "en"):
+            return active
+        return "uz"
+    for part in accept.split(","):
+        tag = part.split(";")[0].strip().lower()
+        base_tag = tag.split("-")[0]
+        if base_tag in ("uz", "ru", "en"):
+            return base_tag
+    return "uz"
 
 
 def is_email_configured():

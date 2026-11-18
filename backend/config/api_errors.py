@@ -11,9 +11,23 @@ def _get_lang(context):
     request = context.get("request") if context else None
     if not request:
         return "uz"
-    accept = getattr(request, "headers", {}).get("Accept-Language", "uz") if hasattr(request, "headers") else request.META.get("HTTP_ACCEPT_LANGUAGE", "uz")
-    lang = accept.split(",", 1)[0].split("-", 1)[0].lower()
-    return lang if lang in ("uz", "ru", "en") else "uz"
+    accept = ""
+    if hasattr(request, "headers") and request.headers:
+        accept = request.headers.get("Accept-Language") or ""
+    if not accept and hasattr(request, "META"):
+        accept = request.META.get("HTTP_ACCEPT_LANGUAGE") or ""
+    if not accept:
+        from django.utils import translation
+        active = translation.get_language()
+        if active in ("uz", "ru", "en"):
+            return active
+        return "uz"
+    for part in accept.split(","):
+        tag = part.split(";")[0].strip().lower()
+        base_tag = tag.split("-")[0]
+        if base_tag in ("uz", "ru", "en"):
+            return base_tag
+    return "uz"
 
 
 _MESSAGES = {

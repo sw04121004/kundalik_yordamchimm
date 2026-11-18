@@ -9,9 +9,23 @@ User = get_user_model()
 def _get_language_from_request(request):
     if not request:
         return "uz"
-    accept = getattr(request, "headers", {}).get("Accept-Language", "uz") if hasattr(request, "headers") else request.META.get("HTTP_ACCEPT_LANGUAGE", "uz")
-    lang = accept.split(",", 1)[0].split("-", 1)[0].lower()
-    return lang if lang in ("uz", "ru", "en") else "uz"
+    accept = ""
+    if hasattr(request, "headers") and request.headers:
+        accept = request.headers.get("Accept-Language") or ""
+    if not accept and hasattr(request, "META"):
+        accept = request.META.get("HTTP_ACCEPT_LANGUAGE") or ""
+    if not accept:
+        from django.utils import translation
+        active = translation.get_language()
+        if active in ("uz", "ru", "en"):
+            return active
+        return "uz"
+    for part in accept.split(","):
+        tag = part.split(";")[0].strip().lower()
+        base_tag = tag.split("-")[0]
+        if base_tag in ("uz", "ru", "en"):
+            return base_tag
+    return "uz"
 
 
 _PASSWORD_MESSAGES = {
@@ -86,16 +100,24 @@ def normalize_confirmation_word(text: str) -> str:
 def _validate_password_for_request(password, user, request):
     language = _get_language_from_request(request)
     messages = _PASSWORD_MESSAGES.get(language, _PASSWORD_MESSAGES["uz"])
+    from django.utils import translation
+    translation.activate(language)
     try:
         validate_password(password, user=user)
     except DjangoValidationError as exc:
         codes = {error.code for error in exc.error_list}
         ordered = ("password_too_short", "password_too_common", "password_entirely_numeric", "password_too_similar")
-        raise serializers.ValidationError([messages[code] for code in ordered if code in codes] or [
-            "Parol xavfsizlik talablariga mos kelmadi." if language == "uz" else
-            "Пароль не соответствует требованиям безопасности." if language == "ru" else
-            "The password does not meet security requirements."
-        ]) from None
+        found_messages = [messages[code] for code in ordered if code in codes]
+        if found_messages:
+            raise serializers.ValidationError(found_messages)
+        default_fallback = {
+            "uz": "Parol xavfsizlik talablariga mos kelmadi.",
+            "ru": "Пароль не соответствует требованиям безопасности.",
+            "en": "The password does not meet security requirements.",
+        }
+        raise serializers.ValidationError([default_fallback.get(language, default_fallback["uz"])])
+    finally:
+        translation.deactivate()
 
 
 class UserSerializer(serializers.ModelSerializer):

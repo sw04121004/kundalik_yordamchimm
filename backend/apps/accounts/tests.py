@@ -487,3 +487,69 @@ class AccountAPITests(APITestCase):
 		)
 		self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 		self.assertIn("allaqachon", " ".join(res.data["email"]))
+
+	def test_registration_error_messages_in_all_three_languages(self):
+		# 1. Username band
+		for lang, expected in [
+			("uz", "Bu foydalanuvchi nomi allaqachon band."),
+			("ru", "Пользователь с таким именем уже существует."),
+			("en", "A user with that username already exists."),
+		]:
+			cache.clear()
+			res = self.client.post(
+				reverse("register"),
+				{"username": self.user.username, "email": f"unique_{lang}@example.com", "password": "GoodPass123!", "password2": "GoodPass123!"},
+				format="json",
+				HTTP_ACCEPT_LANGUAGE=lang,
+			)
+			self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+			self.assertIn(expected, " ".join(res.data["username"]))
+
+		# 2. Email band
+		for lang, expected in [
+			("uz", "Bu email allaqachon ro‘yxatdan o‘tgan."),
+			("ru", "Этот адрес электронной почты уже зарегистрирован."),
+			("en", "This email is already registered."),
+		]:
+			cache.clear()
+			res = self.client.post(
+				reverse("register"),
+				{"username": f"user_new_{lang}", "email": self.user.email, "password": "GoodPass123!", "password2": "GoodPass123!"},
+				format="json",
+				HTTP_ACCEPT_LANGUAGE=lang,
+			)
+			self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+			self.assertIn(expected, " ".join(res.data["email"]))
+
+		# 3. Parol juda oddiy (password_too_common / 12345678)
+		for lang, expected in [
+			("uz", "Bu parol juda keng tarqalgan"),
+			("ru", "Этот пароль слишком распространён"),
+			("en", "This password is too common"),
+		]:
+			cache.clear()
+			res = self.client.post(
+				reverse("register"),
+				{"username": f"simple_{lang}", "email": f"simple_{lang}@example.com", "password": "password", "password2": "password"},
+				format="json",
+				HTTP_ACCEPT_LANGUAGE=lang,
+			)
+			self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+			self.assertIn(expected, " ".join(res.data["password"]))
+
+		# 4. Parol foydalanuvchi ma'lumotiga o'xshash (password_too_similar)
+		for lang, expected in [
+			("uz", "Parol foydalanuvchi ma’lumotlariga juda o‘xshash bo‘lmasin."),
+			("ru", "Пароль не должен быть слишком похож на данные пользователя."),
+			("en", "The password is too similar to the user's information."),
+		]:
+			cache.clear()
+			u_name = f"johnsmith_{lang}"
+			res = self.client.post(
+				reverse("register"),
+				{"username": u_name, "email": f"{u_name}@example.com", "password": f"My{u_name}1", "password2": f"My{u_name}1"},
+				format="json",
+				HTTP_ACCEPT_LANGUAGE=lang,
+			)
+			self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+			self.assertIn(expected, " ".join(res.data["password"]))

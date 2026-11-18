@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { language } from '../i18n'
 
 const defaultBase = import.meta.env.DEV
   ? 'http://127.0.0.1:8000'
@@ -11,7 +12,8 @@ const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
-  config.headers['Accept-Language'] = localStorage.getItem('qulay_language') || 'uz'
+  const activeLang = language?.value || localStorage.getItem('qulay_language') || 'uz'
+  config.headers['Accept-Language'] = activeLang
   const access = localStorage.getItem('qulay_access')
   if (access) {
     config.headers.Authorization = `Bearer ${access}`

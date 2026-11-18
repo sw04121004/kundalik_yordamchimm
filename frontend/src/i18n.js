@@ -8,8 +8,7 @@ export const SUPPORTED_LANGUAGES = [
 
 const supportedCodes = new Set(SUPPORTED_LANGUAGES.map((item) => item.code))
 const savedLanguage = localStorage.getItem("qulay_language")
-// Saqlangan noto'g'ri yoki qo'llab-quvvatlanmaydigan til bo'lsa, 'uz' ga tushadi
-const language = ref(supportedCodes.has(savedLanguage) ? savedLanguage : "uz")
+export const language = ref(supportedCodes.has(savedLanguage) ? savedLanguage : "uz")
 
 // ─── O'zbek tili (Asosiy / Default) ──────────────────────────────────────────
 const uz = {
