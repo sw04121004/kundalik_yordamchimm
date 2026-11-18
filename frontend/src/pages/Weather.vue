@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import {
   Cloud, CloudDrizzle, CloudFog, CloudLightning, CloudRain, CloudSnow,
   CloudSun, Droplets, MapPin, Moon, RefreshCw, Search, Sun, Wind,
@@ -11,8 +11,9 @@ import { useI18n } from '../i18n'
 
 const LOCATION_KEY = 'qulay_weather_location'
 const DEFAULT_LOCATION = {
+  id: 1512569,
   name: 'Toshkent', admin1: 'Toshkent shahri', country: "O'zbekiston",
-  country_code: 'UZ', lat: 41.3111, lon: 69.2797,
+  country_code: 'UZ', lat: 41.26465, lon: 69.21627,
 }
 const { t, language, locale: currentLocale } = useI18n()
 
@@ -20,12 +21,30 @@ const { t, language, locale: currentLocale } = useI18n()
 const weatherApiLanguage = computed(() => ['uz', 'ru', 'en'].includes(language.value) ? language.value : 'uz')
 const numberFormat = computed(() => new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 1 }))
 
-const countryOptions = [
-  ['UZ', "O'zbekiston"], ['KZ', "Qozog'iston"], ['KG', "Qirg'iziston"], ['TJ', 'Tojikiston'],
-  ['RU', 'Rossiya'], ['TR', 'Turkiya'], ['US', 'AQSh'], ['GB', 'Buyuk Britaniya'],
-  ['AF', "Afg'oniston"], ['CN', 'Xitoy'], ['IN', 'Hindiston'], ['IR', 'Eron'],
-  ['AE', 'BAA'], ['SA', 'Saudiya Arabistoni'], ['DE', 'Germaniya'], ['FR', 'Fransiya'],
-]
+const countryNames = {
+  uz: {
+    UZ: "O'zbekiston", KZ: "Qozog'iston", KG: "Qirg'iziston", TJ: "Tojikiston",
+    RU: "Rossiya", TR: "Turkiya", US: "AQSh", GB: "Buyuk Britaniya",
+    AF: "Afg'oniston", CN: "Xitoy", IN: "Hindiston", IR: "Eron",
+    AE: "BAA", SA: "Saudiya Arabistoni", DE: "Germaniya", FR: "Fransiya",
+  },
+  ru: {
+    UZ: "Узбекистан", KZ: "Казахстан", KG: "Кыргызстан", TJ: "Таджикистан",
+    RU: "Россия", TR: "Турция", US: "США", GB: "Великобритания",
+    AF: "Афганистан", CN: "Китай", IN: "Индия", IR: "Иран",
+    AE: "ОАЭ", SA: "Саудовская Аравия", DE: "Германия", FR: "Франция",
+  },
+  en: {
+    UZ: "Uzbekistan", KZ: "Kazakhstan", KG: "Kyrgyzstan", TJ: "Tajikistan",
+    RU: "Russia", TR: "Turkey", US: "United States", GB: "United Kingdom",
+    AF: "Afghanistan", CN: "China", IN: "India", IR: "Iran",
+    AE: "UAE", SA: "Saudi Arabia", DE: "Germany", FR: "France",
+  },
+}
+const countryOptions = computed(() => {
+  const map = countryNames[language.value] || countryNames.uz
+  return Object.entries(map)
+})
 const location = ref(null)
 const cityQuery = ref('')
 const country = ref('')
@@ -139,7 +158,43 @@ async function loadForecast() {
   }
 }
 
-onMounted(() => {
+async function updateLocationLanguage() {
+  if (!location.value) return
+  try {
+    const params = { lang: weatherApiLanguage.value }
+    if (location.value.id) {
+      params.id = location.value.id
+    } else if (location.value.name) {
+      params.q = location.value.name
+      if (location.value.country_code) params.country = location.value.country_code
+    } else {
+      return
+    }
+    const { data } = await api.get('/weather/search/', { params })
+    const updated = data.results?.[0]
+    if (updated) {
+      location.value = {
+        ...location.value,
+        id: updated.id || location.value.id,
+        name: updated.name,
+        admin1: updated.admin1,
+        country: updated.country,
+        country_code: updated.country_code || location.value.country_code,
+      }
+      cityQuery.value = [location.value.name, location.value.admin1, location.value.country].filter(Boolean).join(', ')
+      localStorage.setItem(LOCATION_KEY, JSON.stringify(location.value))
+    }
+  } catch {
+    // Tarmoq xatosi bo'lsa koordinatalar bo'yicha ishlashda davom etadi
+  }
+}
+
+watch(language, async () => {
+  await updateLocationLanguage()
+  loadForecast()
+})
+
+onMounted(async () => {
   let savedLocation
   try {
     savedLocation = JSON.parse(localStorage.getItem(LOCATION_KEY) || 'null')
@@ -151,6 +206,7 @@ onMounted(() => {
   cityQuery.value = [location.value.name, location.value.admin1, location.value.country].filter(Boolean).join(', ')
   if (!savedIsValid) localStorage.setItem(LOCATION_KEY, JSON.stringify(DEFAULT_LOCATION))
   loadForecast()
+  await updateLocationLanguage()
   refreshTimer = window.setInterval(loadForecast, 10 * 60 * 1000)
 })
 
@@ -180,7 +236,7 @@ onUnmounted(() => {
         </button>
       </header>
 
-      <section class="card p-4 sm:p-5 mb-6" aria-label="Shahar qidirish">
+      <section class="card p-4 sm:p-5 mb-6" :aria-label="t('weather.city')">
         <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_220px] gap-4">
           <div class="relative">
             <label for="weather-city" class="label">{{ t('weather.city') }}</label>
@@ -210,7 +266,7 @@ onUnmounted(() => {
 
       <p v-if="error" class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200" role="alert">{{ error }}</p>
 
-      <section v-if="loading && !forecast" class="card p-6 sm:p-8 mb-6 animate-pulse" aria-label="Yuklanmoqda">
+      <section v-if="loading && !forecast" class="card p-6 sm:p-8 mb-6 animate-pulse" :aria-label="t('common.loading')">
         <div class="h-5 w-44 rounded bg-slate-200 dark:bg-slate-700 mb-5"></div>
         <div class="h-14 w-32 rounded bg-slate-200 dark:bg-slate-700 mb-4"></div>
         <div class="h-4 w-56 rounded bg-slate-200 dark:bg-slate-700"></div>

@@ -19,7 +19,7 @@ from .serializers import (
     WeatherSearchQuerySerializer,
 )
 from .throttles import WeatherForecastThrottle, WeatherSearchThrottle
-from .weather import get_forecast, search_locations
+from .weather import get_forecast, search_locations, get_location_by_id
 
 
 class CategoryListView(generics.ListAPIView):
@@ -139,6 +139,15 @@ class WeatherSearchView(APIView):
     throttle_classes = [WeatherSearchThrottle]
 
     def get(self, request):
+        loc_id = request.query_params.get("id")
+        lang = request.query_params.get("lang", "uz")
+        if loc_id:
+            try:
+                loc = get_location_by_id(int(loc_id), lang)
+                if loc:
+                    return Response({"results": [loc]})
+            except (ValueError, TypeError):
+                pass
         serializer = WeatherSearchQuerySerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         query = serializer.validated_data

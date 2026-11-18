@@ -20,9 +20,13 @@ def _provider_url(resource):
     if OPEN_METEO_API_KEY:
         if resource == "geocoding":
             return "https://customer-geocoding-api.open-meteo.com/v1/search"
+        if resource == "geocoding_get":
+            return "https://customer-geocoding-api.open-meteo.com/v1/get"
         return "https://customer-api.open-meteo.com/v1/forecast"
     if resource == "geocoding":
         return "https://geocoding-api.open-meteo.com/v1/search"
+    if resource == "geocoding_get":
+        return "https://geocoding-api.open-meteo.com/v1/get"
     return "https://api.open-meteo.com/v1/forecast"
 
 
@@ -44,19 +48,52 @@ def _get_json(resource, params):
     return payload
 
 
-def search_locations(query, country_code="", language="uz"):
-    normalized = query.strip()
-    cache_key = f"weather:search:{language}:{country_code.upper()}:{normalized.casefold()}"
+def get_location_by_id(location_id, language="uz"):
+    geo_lang = "ru" if language == "ru" else "en"
+    cache_key = f"weather:location:{geo_lang}:{location_id}"
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
 
-    params = {"name": normalized, "count": 8, "language": language, "format": "json"}
+    params = {"id": location_id, "language": geo_lang}
+    try:
+        payload = _get_json("geocoding_get", params)
+    except Exception:
+        return None
+
+    if not isinstance(payload, dict) or not payload.get("id"):
+        return None
+
+    loc = {
+        "id": payload.get("id"),
+        "name": payload.get("name", ""),
+        "admin1": payload.get("admin1", ""),
+        "country": payload.get("country", ""),
+        "country_code": payload.get("country_code", ""),
+        "lat": payload.get("latitude"),
+        "lon": payload.get("longitude"),
+    }
+    cache.set(cache_key, loc, CACHE_SECONDS)
+    return loc
+
+
+def search_locations(query, country_code="", language="uz"):
+    normalized = query.strip()
+    geo_lang = "en" if language == "uz" else language
+    cache_key = f"weather:search:{geo_lang}:{country_code.upper()}:{normalized.casefold()}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    params = {"name": normalized, "count": 8, "language": geo_lang, "format": "json"}
     if country_code:
         params["countryCode"] = country_code.upper()
     payload = _get_json("geocoding", params)
-    locations = [
-        {
+    locations = []
+    for result in payload.get("results", []):
+        if not isinstance(result, dict):
+            continue
+        loc = {
             "name": result.get("name", ""),
             "admin1": result.get("admin1", ""),
             "country": result.get("country", ""),
@@ -64,9 +101,9 @@ def search_locations(query, country_code="", language="uz"):
             "lat": result.get("latitude"),
             "lon": result.get("longitude"),
         }
-        for result in payload.get("results", [])
-        if isinstance(result, dict)
-    ]
+        if result.get("id") is not None:
+            loc["id"] = result["id"]
+        locations.append(loc)
     cache.set(cache_key, locations, CACHE_SECONDS)
     return locations
 
