@@ -3,6 +3,7 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import { revealDirective } from './directives/reveal'
+import { vTilt, vMagnet, vRipple, vGlow } from './directives/fx'
 import './assets/main.css'
 import './assets/animations.css'
 import { initLanguage } from './i18n'
@@ -24,4 +25,8 @@ window.addEventListener('unhandledrejection', (event) => {
 app.use(createPinia())
 app.use(router)
 app.directive('reveal', revealDirective)
+app.directive('tilt', vTilt)
+app.directive('magnet', vMagnet)
+app.directive('ripple', vRipple)
+app.directive('glow', vGlow)
 app.mount('#app')

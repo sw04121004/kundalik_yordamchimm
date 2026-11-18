@@ -80,7 +80,7 @@ html.dark .skeleton-shimmer {
 .stagger-5 { animation-delay: 250ms !important; }
 .stagger-6 { animation-delay: 300ms !important; }
 
-/* Accessible prefers-reduced-motion */
+/* Accessible prefers-reduced-motion & user profile disable */
 @media (prefers-reduced-motion: reduce) {
   .animate-fadeUp,
   .animate-pulseGlow,
@@ -115,9 +115,86 @@ html.dark .skeleton-shimmer {
   }
 }
 
+html.qulay-disable-animations .animate-fadeUp,
+html.qulay-disable-animations .animate-pulseGlow,
+html.qulay-disable-animations .animate-bounceSoft,
+html.qulay-disable-animations .animate-floatY,
+html.qulay-disable-animations .animate-float,
+html.qulay-disable-animations .animate-bounce,
+html.qulay-disable-animations .animate-checkPop,
+html.qulay-disable-animations .animate-wiggle,
+html.qulay-disable-animations .animate-goldBreathe,
+html.qulay-disable-animations .animate-shimmerSweep,
+html.qulay-disable-animations .animate-slideInLeft,
+html.qulay-disable-animations .animate-slideInRight,
+html.qulay-disable-animations .animate-slideInBottom,
+html.qulay-disable-animations .animate-scaleIn,
+html.qulay-disable-animations .skeleton-shimmer {
+  animation: none !important;
+}
+html.qulay-disable-animations .stagger-children > *,
+html.qulay-disable-animations .stagger-slide > * {
+  animation: none !important;
+}
+html.qulay-disable-animations .card-interactive:hover {
+  transform: none !important;
+}
+
 @media (max-width: 430px) {
   .stagger-children > *,
   .stagger-slide > * {
     animation-delay: 0ms !important;
   }
+}
+
+/* ── Ripple expand keyframe (used by v-ripple directive) ── */
+@keyframes rippleExpand {
+  to { transform: scale(1); opacity: 0; }
+}
+
+/* ── Card tilt spotlight overlay (used by v-tilt directive) ── */
+.tilt-active {
+  position: relative;
+  will-change: transform;
+}
+.tilt-active::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at var(--spotlight-x, 50%) var(--spotlight-y, 50%),
+    rgb(var(--brand-400) / 0.10) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+html.dark .tilt-active::after {
+  background: radial-gradient(
+    circle at var(--spotlight-x, 50%) var(--spotlight-y, 50%),
+    rgb(var(--brand-300) / 0.14) 0%,
+    transparent 70%
+  );
+}
+
+/* ── Glow halo overlay (used by v-glow directive) ── */
+.glow-active {
+  position: relative;
+}
+.glow-active::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--glow-x, 50%) - 80px);
+  top: calc(var(--glow-y, 50%) - 80px);
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: rgb(var(--brand-500) / 0.12);
+  pointer-events: none;
+  filter: blur(32px);
+  transition: opacity 0.3s ease;
+}
+html.dark .glow-active::before {
+  background: rgb(var(--brand-400) / 0.18);
 }

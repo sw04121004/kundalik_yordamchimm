@@ -199,6 +199,11 @@ const uz = {
   "profile.danger.dialog.submitting": "O'chirilmoqda...",
   "profile.danger.dialog.noPassword": "Joriy parolni kiriting.",
   "profile.danger.dialog.wrongConfirm": "Tasdiqlash uchun «O'chirish» deb yozing.",
+  "profile.animations.title": "Ko'rinish va animatsiyalar",
+  "profile.animations.label": "Interaktiv animatsiyalar",
+  "profile.animations.desc": "Kartalar, tugmalar va kursorga vizual effektlar",
+  "profile.animations.on": "Yoqilgan",
+  "profile.animations.off": "O'chirilgan",
 
   // Ob-havo (Weather)
   "weather.title": "Ob-havo",
@@ -850,6 +855,11 @@ const ru = {
   "profile.danger.dialog.submitting": "Удаляем...",
   "profile.danger.dialog.noPassword": "Введите текущий пароль.",
   "profile.danger.dialog.wrongConfirm": "Для подтверждения введите «Удалить».",
+  "profile.animations.title": "Оформление и анимации",
+  "profile.animations.label": "Интерактивные анимации",
+  "profile.animations.desc": "Визуальные эффекты для карточек, кнопок и курсора",
+  "profile.animations.on": "Включено",
+  "profile.animations.off": "Выключено",
 
   // Ob-havo (Weather)
   "weather.title": "Погода",
@@ -1501,6 +1511,11 @@ const en = {
   "profile.danger.dialog.submitting": "Deleting...",
   "profile.danger.dialog.noPassword": "Please enter your current password.",
   "profile.danger.dialog.wrongConfirm": "Type \"Delete\" to confirm.",
+  "profile.animations.title": "Appearance & Animations",
+  "profile.animations.label": "Interactive animations",
+  "profile.animations.desc": "Visual effects for cards, buttons, and cursor",
+  "profile.animations.on": "Enabled",
+  "profile.animations.off": "Disabled",
 
   // Weather
   "weather.title": "Weather",

@@ -6,10 +6,29 @@ import AppHeader from '../components/AppHeader.vue'
 import FormAlert from '../components/FormAlert.vue'
 import { Eye, EyeOff } from 'lucide-vue-next'
 import { useI18n } from '../i18n'
+import { updateRootClass } from '../directives/fx'
 
 const router = useRouter()
 const auth = useAuthStore()
 const { t } = useI18n()
+
+// Animations toggle
+const animationsEnabled = ref(true)
+function loadAnimationPref() {
+  try {
+    animationsEnabled.value = localStorage.getItem('qulay_animations') !== 'false'
+  } catch {
+    animationsEnabled.value = true
+  }
+  updateRootClass()
+}
+function toggleAnimations() {
+  animationsEnabled.value = !animationsEnabled.value
+  try {
+    localStorage.setItem('qulay_animations', String(animationsEnabled.value))
+  } catch {}
+  updateRootClass()
+}
 
 const profileForm = reactive({
   first_name: '',
@@ -22,6 +41,7 @@ const profileSubmitting = ref(false)
 onMounted(() => {
   profileForm.first_name = auth.user?.first_name || ''
   profileForm.email = auth.user?.email || ''
+  loadAnimationPref()
 })
 
 async function saveProfile() {
@@ -208,6 +228,33 @@ async function deleteAccount() {
             {{ passwordSubmitting ? t('profile.password.submitting') : t('profile.password.submit') }}
           </button>
         </form>
+      </div>
+
+      <!-- Animatsiyalar toggle -->
+      <div class="card p-6 sm:p-7 mt-6">
+        <h2 class="font-bold text-slate-800 dark:text-slate-100 mb-4">{{ t('profile.animations.title') }}</h2>
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ t('profile.animations.label') }}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ t('profile.animations.desc') }}</p>
+          </div>
+          <button
+            type="button"
+            class="relative flex-shrink-0 w-14 h-7 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
+            :style="animationsEnabled ? { background: 'rgb(var(--brand-500))' } : {}"
+            :class="animationsEnabled ? '' : 'bg-slate-200 dark:bg-slate-700'"
+            :aria-label="t('profile.animations.label')"
+            @click="toggleAnimations"
+          >
+            <span
+              class="absolute top-1 w-5 h-5 rounded-full bg-white shadow-md transition-all duration-300"
+              :class="animationsEnabled ? 'left-8' : 'left-1'"
+            ></span>
+          </button>
+        </div>
+        <p class="text-xs mt-3" :class="animationsEnabled ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400'">
+          {{ animationsEnabled ? t('profile.animations.on') : t('profile.animations.off') }}
+        </p>
       </div>
 
       <section class="card p-6 sm:p-7 mt-6 border border-red-200 dark:border-red-900/60">
