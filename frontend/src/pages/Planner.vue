@@ -5,13 +5,17 @@ import { useI18n } from '../i18n'
 import AppHeader from '../components/AppHeader.vue'
 import FormAlert from '../components/FormAlert.vue'
 import { CalendarDays } from 'lucide-vue-next'
+import { getTaskStatus, runReminderSelfTests } from '../utils/plannerReminders'
 
 const planner = usePlannerStore()
 const { t, locale } = useI18n()
 const form = reactive({ title: '', due_date: '', due_time: '' })
 const submitting = ref(false)
 
-onMounted(() => planner.fetchTasks())
+onMounted(() => {
+  planner.fetchTasks()
+  runReminderSelfTests()
+})
 
 function todayISO() {
   const d = new Date()
@@ -87,6 +91,45 @@ function formatTime(val) { return val ? val.slice(0, 5) : '' }
         </div>
       </div>
 
+      <!-- Notification Permission & Offline notice banner -->
+      <div class="card p-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs bg-white dark:bg-white/[0.02]">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl shrink-0">🔔</span>
+          <div>
+            <div class="font-semibold text-slate-800 dark:text-slate-200">
+              <span v-if="planner.notificationPermission === 'granted'" class="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                <span>✓</span> {{ t('planner.reminders.enabled') }}
+              </span>
+              <span v-else-if="planner.notificationPermission === 'denied'" class="text-red-600 dark:text-red-400 font-bold flex items-center gap-1">
+                <span>✕</span> {{ t('planner.reminders.blocked') }}
+              </span>
+              <span v-else-if="planner.notificationPermission === 'unsupported'" class="text-slate-500">
+                {{ t('planner.reminders.unsupported') }}
+              </span>
+              <span v-else class="text-slate-700 dark:text-slate-300">
+                {{ t('planner.reminders.enable') }}
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+              <span v-if="planner.notificationPermission === 'denied'">
+                {{ t('planner.reminders.blockedDesc') }}
+              </span>
+              <span v-else>
+                {{ t('planner.reminders.offlineNotice') }}
+              </span>
+            </p>
+          </div>
+        </div>
+        <button
+          v-if="planner.notificationPermission === 'default'"
+          type="button"
+          class="btn-primary text-xs py-1.5 px-3 self-start sm:self-auto shrink-0"
+          @click="planner.requestNotificationPermission()"
+        >
+          🔔 {{ t('planner.reminders.enable') }}
+        </button>
+      </div>
+
       <!-- Add task form -->
       <div class="card p-5 mb-8">
         <FormAlert :message="planner.error" class="mb-4" />
@@ -151,9 +194,21 @@ function formatTime(val) { return val ? val.slice(0, 5) : '' }
                   :class="task.is_done ? 'text-slate-400 line-through' : 'text-slate-800 dark:text-slate-100'">
                   {{ task.title }}
                 </p>
-                <div v-if="task.due_date || task.due_time" class="flex items-center gap-1.5 mt-0.5">
+                <div v-if="task.due_date || task.due_time" class="flex items-center gap-1.5 mt-0.5 flex-wrap">
                   <span v-if="task.due_date" class="text-[11px] font-medium text-slate-400">{{ formatDate(task.due_date) }}</span>
-                  <span v-if="task.due_time" class="text-[11px] font-semibold text-brand-600 dark:text-brand-400">{{ formatTime(task.due_time) }}</span>
+                  <span v-if="task.due_time" class="text-[11px] font-semibold text-brand-600 dark:text-brand-400 font-mono">{{ formatTime(task.due_time) }}</span>
+                  <span
+                    v-if="!task.is_done && getTaskStatus(task) === 'overdue'"
+                    class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300 border border-red-200/50"
+                  >
+                    {{ t('planner.status.overdue') }}
+                  </span>
+                  <span
+                    v-else-if="!task.is_done && getTaskStatus(task) === 'approaching'"
+                    class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200/50 animate-pulse"
+                  >
+                    {{ t('planner.status.approaching') }}
+                  </span>
                 </div>
               </div>
 

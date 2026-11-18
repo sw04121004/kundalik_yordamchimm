@@ -4,6 +4,7 @@ import { useServicesStore } from '../store/services'
 import { useAiStore, PURPOSES } from '../store/ai'
 import { useAuthStore } from '../store/auth'
 import { usePlannerStore } from '../store/planner'
+import { getTaskStatus } from '../utils/plannerReminders'
 import AppHeader from '../components/AppHeader.vue'
 import ServiceCard from '../components/ServiceCard.vue'
 import api from '../api/axios'
@@ -279,7 +280,19 @@ const timeBasedPrompts = computed(() => {
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </span>
                     <span :class="task.is_done ? 'text-slate-400 line-through' : 'text-slate-700 dark:text-slate-300'" class="truncate font-medium">{{ task.title }}</span>
-                    <span v-if="task.due_time" class="ml-auto text-xs text-slate-400 shrink-0 font-mono">{{ task.due_time.slice(0,5) }}</span>
+                    <span
+                      v-if="!task.is_done && getTaskStatus(task) === 'overdue'"
+                      class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300 shrink-0 ml-auto"
+                    >
+                      {{ t('planner.status.overdue') }}
+                    </span>
+                    <span
+                      v-else-if="!task.is_done && getTaskStatus(task) === 'approaching'"
+                      class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 shrink-0 ml-auto animate-pulse"
+                    >
+                      {{ t('planner.status.approaching') }}
+                    </span>
+                    <span v-else-if="task.due_time" class="ml-auto text-xs text-slate-400 shrink-0 font-mono">{{ task.due_time.slice(0,5) }}</span>
                   </li>
                 </ul>
               </template>

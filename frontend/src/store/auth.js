@@ -123,7 +123,9 @@ export const useAuthStore = defineStore('auth', {
         localStorage.removeItem(`qulay_goals_${currentUserId}`)
         localStorage.removeItem(`qulay_habits_${currentUserId}`)
         localStorage.removeItem(`pomodoroState_${currentUserId}`)
+        localStorage.removeItem(`qulay_notified_${currentUserId}`)
       }
+      localStorage.removeItem('qulay_notified_guest')
     },
 
     async logout() {

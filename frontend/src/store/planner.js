@@ -1,6 +1,16 @@
-﻿import { defineStore } from 'pinia'
+import { defineStore } from 'pinia'
 import api from '../api/axios'
 import { extractErrorMessage } from '../api/errors'
+import { useAuthStore } from './auth'
+import {
+  getTaskTriggerTimestamp,
+  getTaskStatus,
+  isTaskDue,
+  isTaskAlreadyNotified,
+  markTaskNotified,
+  clearTaskNotified,
+  clearAllNotifiedForUser,
+} from '../utils/plannerReminders'
 
 function todayISO() {
   const d = new Date()
@@ -9,13 +19,59 @@ function todayISO() {
   return local.toISOString().slice(0, 10)
 }
 
+let reminderInterval = null
+let titleBlinkInterval = null
+let originalTitle = typeof document !== 'undefined' ? document.title : 'Qulay.uz'
+
+function playReminderBeep() {
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext
+    if (!AudioContextClass) return
+    const ctx = new AudioContextClass()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime) // D5
+    osc.frequency.setValueAtTime(880, ctx.currentTime + 0.12) // A5
+    gain.gain.setValueAtTime(0.18, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start()
+    osc.stop(ctx.currentTime + 0.45)
+  } catch {}
+}
+
+function startTitleBlink(message) {
+  if (typeof document === 'undefined' || titleBlinkInterval) return
+  originalTitle = document.title
+  let isAlt = false
+  titleBlinkInterval = setInterval(() => {
+    document.title = isAlt ? `⏰ ${message}` : originalTitle
+    isAlt = !isAlt
+  }, 1000)
+}
+
+function stopTitleBlink() {
+  if (titleBlinkInterval) {
+    clearInterval(titleBlinkInterval)
+    titleBlinkInterval = null
+    if (typeof document !== 'undefined') {
+      document.title = originalTitle
+    }
+  }
+}
+
 export const usePlannerStore = defineStore('planner', {
   state: () => ({
     tasks: [], // full list
     todayTasks: [], // just today's
     loading: false,
     error: '',
-    notificationsStarted: false
+    notificationsStarted: false,
+    activeReminder: null, // task object for active modal/toast
+    overdueSummaryCount: 0,
+    notificationPermission: typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'unsupported',
   }),
 
   getters: {
@@ -26,6 +82,14 @@ export const usePlannerStore = defineStore('planner', {
       const done = state.todayTasks.filter((t) => t.is_done).length
       return Math.round((done / state.todayTasks.length) * 100)
     },
+    overdueTasks: (state) => {
+      const now = Date.now()
+      return state.tasks.filter(t => getTaskStatus(t, now) === 'overdue')
+    },
+    approachingTasks: (state) => {
+      const now = Date.now()
+      return state.tasks.filter(t => getTaskStatus(t, now) === 'approaching')
+    },
   },
 
   actions: {
@@ -35,6 +99,7 @@ export const usePlannerStore = defineStore('planner', {
         const { data } = await api.get('/planner/tasks/')
         this.tasks = data
         this.todayTasks = data.filter(t => t.due_date === todayISO())
+        this.checkOverdueSummary()
       } catch (error) {
         console.error('Vazifalarni yuklashda xatolik:', error)
       } finally {
@@ -74,6 +139,16 @@ export const usePlannerStore = defineStore('planner', {
         }
         applyUpdate(this.tasks)
         applyUpdate(this.todayTasks)
+
+        // Agar vazifa bajarilgan bo'lsa, eslatmani yopish
+        if (data.is_done && this.activeReminder?.id === task.id) {
+          this.dismissReminder()
+        }
+        // Agar qayta bajarilmagan qilinsa, qayta eslatish uchun tozalash
+        if (!data.is_done) {
+          const auth = useAuthStore()
+          clearTaskNotified(auth.user?.id, task.id)
+        }
       } catch (error) {
         console.error('Vazifani yangilashda xatolik:', error)
       }
@@ -84,47 +159,140 @@ export const usePlannerStore = defineStore('planner', {
         await api.delete(`/planner/tasks/${id}/`)
         this.tasks = this.tasks.filter((t) => t.id !== id)
         this.todayTasks = this.todayTasks.filter((t) => t.id !== id)
+        if (this.activeReminder?.id === id) {
+          this.dismissReminder()
+        }
       } catch (error) {
         console.error("Vazifani o'chirishda xatolik:", error)
       }
     },
 
-    startNotifications() {
-      if (this.notificationsStarted) return;
-      this.notificationsStarted = true;
+    async snoozeTask(task, minutes = 10) {
+      const now = new Date(Date.now() + minutes * 60 * 1000)
+      const offset = now.getTimezoneOffset()
+      const local = new Date(now.getTime() - offset * 60 * 1000)
+      const newDate = local.toISOString().slice(0, 10)
+      const newTime = local.toTimeString().slice(0, 5)
 
-      if (!('Notification' in window)) return;
-      
-      // Request permission only on user interaction if needed, but here we just ask if not denied
-      if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-        Notification.requestPermission();
+      try {
+        const { data } = await api.patch(`/planner/tasks/${task.id}/`, {
+          due_date: newDate,
+          due_time: newTime,
+        })
+        const applyUpdate = (list) => {
+          const idx = list.findIndex((t) => t.id === task.id)
+          if (idx !== -1) list.splice(idx, 1, data)
+        }
+        applyUpdate(this.tasks)
+        applyUpdate(this.todayTasks)
+      } catch (e) {
+        console.error('Kechiktirishda xatolik:', e)
+      } finally {
+        this.dismissReminder()
       }
-      
-      setInterval(() => {
-        if (Notification.permission !== 'granted') return;
-        const now = new Date();
-        const currentTime = now.toTimeString().slice(0, 5); // HH:MM
-        const currentDate = todayISO();
-        
-        // We only notify for today's tasks to optimize checking
-        this.todayTasks.forEach(task => {
-          if (!task.is_done && task.due_date === currentDate && task.due_time) {
-            const taskTime = task.due_time.slice(0, 5);
-            if (taskTime === currentTime && !task.notified) {
-              const notification = new Notification("Reja vaqti keldi!", {
-                body: task.title,
-                icon: '/favicon.ico'
-              });
-              task.notified = true;
-              
-              notification.onclick = () => {
-                window.focus();
-                notification.close();
-              };
+    },
+
+    dismissReminder() {
+      this.activeReminder = null
+      stopTitleBlink()
+    },
+
+    clearOverdueSummary() {
+      this.overdueSummaryCount = 0
+    },
+
+    async requestNotificationPermission() {
+      if (typeof window === 'undefined' || !('Notification' in window)) {
+        this.notificationPermission = 'unsupported'
+        return 'unsupported'
+      }
+      try {
+        const res = await Notification.requestPermission()
+        this.notificationPermission = res
+        return res
+      } catch (e) {
+        this.notificationPermission = Notification.permission
+        return Notification.permission
+      }
+    },
+
+    checkOverdueSummary() {
+      const now = Date.now()
+      const count = this.tasks.filter(t => !t.is_done && getTaskStatus(t, now) === 'overdue').length
+      this.overdueSummaryCount = count
+    },
+
+    checkReminders() {
+      const nowMs = Date.now()
+      const auth = useAuthStore()
+      const userId = auth.user?.id
+
+      for (const task of this.tasks) {
+        if (task.is_done) continue
+        const triggerMs = getTaskTriggerTimestamp(task)
+        if (!triggerMs) continue
+
+        // Agar vazifa vaqti yetgan bo'lsa (yoki o'tib ketgan, lekin 12 soat ichida)
+        if (isTaskDue(task, nowMs)) {
+          if (!isTaskAlreadyNotified(userId, task.id, triggerMs)) {
+            // Eslatma berish!
+            markTaskNotified(userId, task.id, triggerMs)
+            this.activeReminder = task
+            playReminderBeep()
+            startTitleBlink(task.title)
+
+            // Brauzer tizimli bildirishnomasi (ruxsat bo'lsa)
+            if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+              try {
+                const notif = new Notification('Qulay.uz — Reja eslatmasi', {
+                  body: task.title,
+                  icon: '/favicon.ico',
+                  tag: `task-${task.id}`,
+                })
+                notif.onclick = () => {
+                  window.focus()
+                  notif.close()
+                }
+              } catch {}
             }
+            break // Bitta tsiklda bitta asosiy eslatma ko'rsatiladi
           }
-        });
-      }, 30000); // every 30 seconds
-    }
+        }
+      }
+    },
+
+    clearNotifiedStorage() {
+      const auth = useAuthStore()
+      clearAllNotifiedForUser(auth.user?.id)
+      this.activeReminder = null
+      stopTitleBlink()
+    },
+
+    startNotifications() {
+      if (this.notificationsStarted) return
+      this.notificationsStarted = true
+
+      // Har 15 soniyada tekshirish
+      if (!reminderInterval) {
+        reminderInterval = setInterval(() => {
+          this.checkReminders()
+        }, 15000)
+      }
+
+      // Tab qayta ochilganda yoki fokus olganda zudlik bilan tekshirish
+      if (typeof window !== 'undefined') {
+        window.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') {
+            this.checkReminders()
+          }
+        })
+        window.addEventListener('focus', () => {
+          this.checkReminders()
+        })
+      }
+
+      // Boshlanishida bir marta tekshirish
+      this.checkReminders()
+    },
   },
 })
