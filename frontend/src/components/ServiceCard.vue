@@ -19,6 +19,26 @@ const servicesStore = useServicesStore()
 const isFavorite = computed(() => props.slug ? servicesStore.isFavorite(props.slug) : false)
 const target = computed(() => props.route || props.to || '#')
 
+const displayName = computed(() => {
+  if (props.slug) {
+    const bySvc = t(`svc.${props.slug}.name`)
+    if (bySvc && bySvc !== `svc.${props.slug}.name`) return bySvc
+    const bySlug = t(`service.${props.slug}.name`)
+    if (bySlug && bySlug !== `service.${props.slug}.name`) return bySlug
+  }
+  return t(props.name) || props.name
+})
+
+const displayDescription = computed(() => {
+  if (props.slug) {
+    const bySvc = t(`svc.${props.slug}.desc`)
+    if (bySvc && bySvc !== `svc.${props.slug}.desc`) return bySvc
+    const bySlug = t(`service.${props.slug}.desc`)
+    if (bySlug && bySlug !== `service.${props.slug}.desc`) return bySlug
+  }
+  return t(props.description) || props.description
+})
+
 function toggleFavorite(event) {
   event.preventDefault()
   event.stopPropagation()
@@ -50,8 +70,8 @@ function toggleFavorite(event) {
     </div>
 
     <div class="pr-4 relative z-10">
-      <h3 class="font-semibold text-sm text-slate-800 dark:text-slate-100 group-hover:text-brand-700 dark:group-hover:text-brand-300 transition-colors leading-snug">{{ name }}</h3>
-      <p v-if="description" class="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed line-clamp-2">{{ description }}</p>
+      <h3 class="font-semibold text-sm text-slate-800 dark:text-slate-100 group-hover:text-brand-700 dark:group-hover:text-brand-300 transition-colors leading-snug">{{ displayName }}</h3>
+      <p v-if="displayDescription" class="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed line-clamp-2">{{ displayDescription }}</p>
     </div>
   </component>
 </template>

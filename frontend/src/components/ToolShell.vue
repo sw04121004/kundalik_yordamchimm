@@ -1,14 +1,44 @@
 <script setup>
+import { computed } from 'vue'
 import { Sparkles } from 'lucide-vue-next'
 import { useI18n } from '../i18n'
 
 const { t } = useI18n()
 
-defineProps({
+const props = defineProps({
   icon: { type: String, default: '⚙️' },
   title: { type: String, required: true },
   description: { type: String, default: '' },
   hint: { type: String, default: '' },
+  slug: { type: String, default: '' },
+})
+
+const displayTitle = computed(() => {
+  if (props.slug) {
+    const byTool = t(`tool.${props.slug}.title`)
+    if (byTool && byTool !== `tool.${props.slug}.title`) return byTool
+    const bySvc = t(`svc.${props.slug}.name`)
+    if (bySvc && bySvc !== `svc.${props.slug}.name`) return bySvc
+  }
+  return t(props.title) || props.title
+})
+
+const displayDescription = computed(() => {
+  if (props.slug) {
+    const byTool = t(`tool.${props.slug}.desc`)
+    if (byTool && byTool !== `tool.${props.slug}.desc`) return byTool
+    const bySvc = t(`svc.${props.slug}.desc`)
+    if (bySvc && bySvc !== `svc.${props.slug}.desc`) return bySvc
+  }
+  return t(props.description) || props.description
+})
+
+const displayHint = computed(() => {
+  if (props.slug) {
+    const bySlug = t(`tool.${props.slug}.hint`)
+    if (bySlug && bySlug !== `tool.${props.slug}.hint`) return bySlug
+  }
+  return t(props.hint) || props.hint
 })
 </script>
 
@@ -29,17 +59,17 @@ defineProps({
           <Sparkles class="w-6 h-6" aria-hidden="true" />
         </div>
         <div>
-          <h1 class="text-xl font-extrabold text-slate-800 dark:text-slate-100">{{ title }}</h1>
-          <p v-if="description" class="text-sm text-slate-500 dark:text-slate-400">{{ description }}</p>
+          <h1 class="text-xl font-extrabold text-slate-800 dark:text-slate-100">{{ displayTitle }}</h1>
+          <p v-if="displayDescription" class="text-sm text-slate-500 dark:text-slate-400">{{ displayDescription }}</p>
         </div>
       </div>
 
       <div
-        v-if="hint"
+        v-if="displayHint"
         class="mt-5 flex items-start gap-2.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/40 text-amber-800 dark:text-amber-300 text-sm px-4 py-3 animate-fadeUp"
       >
         <span class="text-base leading-none mt-0.5">💡</span>
-        <span>{{ hint }}</span>
+        <span>{{ displayHint }}</span>
       </div>
 
       <div class="glass-surface p-6 sm:p-7 mt-6 animate-fadeUp">

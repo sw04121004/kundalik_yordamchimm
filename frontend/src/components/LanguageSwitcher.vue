@@ -4,9 +4,9 @@ import { SUPPORTED_LANGUAGES, useI18n } from '../i18n'
 const { language, setLanguage } = useI18n()
 
 const displayLabels = {
-  uz: "O'z",
-  ru: "Ру",
-  en: "En",
+  uz: "O'Z",
+  ru: "RU",
+  en: "EN",
 }
 </script>
 

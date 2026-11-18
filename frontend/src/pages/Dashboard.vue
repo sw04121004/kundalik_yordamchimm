@@ -329,7 +329,7 @@ const timeBasedPrompts = computed(() => {
               class="card card-hover-lift p-5 flex flex-col items-center gap-3 hover:shadow-md hover:border-brand-500/50 transition-all duration-200 group bg-white dark:bg-[#1d2523] border border-slate-200/80 dark:border-white/10"
             >
               <Sparkles class="w-6 h-6 text-brand-700 dark:text-brand-300 transition-transform duration-200 group-hover:scale-105" aria-hidden="true" />
-              <span class="font-bold text-slate-800 dark:text-slate-100 text-xs text-center truncate w-full group-hover:text-brand-500 dark:group-hover:text-brand-300 transition-colors">{{ shortcut.label }}</span>
+              <span class="font-bold text-slate-800 dark:text-slate-100 text-xs text-center truncate w-full group-hover:text-brand-500 dark:group-hover:text-brand-300 transition-colors">{{ t(`ai.purpose.${shortcut.value}`) || t(shortcut.label) || shortcut.label }}</span>
             </router-link>
           </div>
         </section>
@@ -361,9 +361,9 @@ const timeBasedPrompts = computed(() => {
           <section v-for="cat in filteredCategories" :key="cat.id" class="animate-fadeUp">
             <h2 class="text-sm font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-4 flex items-center gap-2.5 group">
               <Layers class="w-5 h-5 text-brand-700 dark:text-brand-300" aria-hidden="true" />
-              <span class="group-hover:text-brand-500 dark:group-hover:text-brand-300 transition-colors duration-300">{{ cat.name }}</span>
+              <span class="group-hover:text-brand-500 dark:group-hover:text-brand-300 transition-colors duration-300">{{ t(`cat.${cat.slug}`) || t(cat.name) || cat.name }}</span>
             </h2>
-            <p v-if="cat.description" class="text-sm text-slate-500 dark:text-slate-400 mb-4">{{ cat.description }}</p>
+            <p v-if="cat.description" class="text-sm text-slate-500 dark:text-slate-400 mb-4">{{ t(`cat.${cat.slug}.desc`) || t(cat.description) || cat.description }}</p>
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 stagger-children">
               <ServiceCard v-for="svc in cat.services" :key="svc.id" v-bind="svc" />
             </div>

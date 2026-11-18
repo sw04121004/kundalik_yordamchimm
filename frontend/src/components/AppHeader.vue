@@ -57,7 +57,7 @@ onUnmounted(() => {
       <nav class="hidden md:flex items-center gap-1">
         <router-link
           :to="{ name: 'dashboard' }"
-          class="relative px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+          class="relative px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap"
           :class="$route.name === 'dashboard' ? 'text-brand-700 dark:text-brand-300' : 'text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-300'"
         >
           <span
@@ -69,7 +69,7 @@ onUnmounted(() => {
         </router-link>
         <router-link
           :to="{ name: 'ai-assistant' }"
-          class="relative px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1.5"
+          class="relative px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap"
           :class="$route.name === 'ai-assistant' ? 'text-brand-700 dark:text-brand-300' : 'text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-300'"
         >
           <span
@@ -81,7 +81,7 @@ onUnmounted(() => {
         </router-link>
         <router-link
           :to="{ name: 'planner' }"
-          class="relative px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1.5"
+          class="relative px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap"
           :class="$route.name === 'planner' ? 'text-brand-700 dark:text-brand-300' : 'text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-300'"
         >
           <span

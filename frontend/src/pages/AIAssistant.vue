@@ -312,7 +312,7 @@ function autoResize(el) {
                 @click="pickPurpose(p.value)"
               >
                 <span class="text-3xl">{{ p.icon }}</span>
-                <span class="text-xs font-semibold text-slate-700 dark:text-slate-200 text-center leading-tight">{{ p.label }}</span>
+                <span class="text-xs font-semibold text-slate-700 dark:text-slate-200 text-center leading-tight">{{ t(`ai.purpose.${p.value}`) || p.label }}</span>
               </button>
             </div>
           </div>
@@ -325,7 +325,7 @@ function autoResize(el) {
             <div class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xl shrink-0">{{ purposeMeta(aiStore.current.purpose).icon }}</div>
             <div class="min-w-0">
               <p class="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{{ aiStore.current.title }}</p>
-              <p class="text-xs text-slate-500 dark:text-slate-400">{{ purposeMeta(aiStore.current.purpose).label }}</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400">{{ t(`ai.purpose.${aiStore.current.purpose}`) || purposeMeta(aiStore.current.purpose).label }}</p>
             </div>
           </div>
 
