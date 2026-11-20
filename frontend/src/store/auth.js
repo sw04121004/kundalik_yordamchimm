@@ -105,27 +105,50 @@ export const useAuthStore = defineStore('auth', {
     clearSession() {
       const currentUserId = this.user?.id
       this.clearTokens()
-      // Oldingi foydalanuvchining shaxsiy ma'lumotlari (AI suhbatlari, sevimlilar)
-      // xotirada qolib ketmasligi uchun tegishli store'larni tozalaymiz —
-      // aks holda keyingi login qilgan boshqa foydalanuvchi ularni ko'rib qolishi mumkin.
+      // Oldingi foydalanuvchining shaxsiy ma'lumotlari (AI suhbatlari, sevimlilar, reja)
+      // xotirada qolib ketmasligi uchun tegishli store'larni tozalaymiz
       useAiStore().$reset()
       usePlannerStore().$reset()
-      useServicesStore().$patch({ favorites: [], favoritesLoaded: false })
-      localStorage.removeItem('qulay_goals')
-      localStorage.removeItem('qulay_goals_guest')
-      localStorage.removeItem('qulay_habits')
-      localStorage.removeItem('qulay_habits_guest')
-      localStorage.removeItem('pomodoroState')
-      localStorage.removeItem('pomodoroState_guest')
-      localStorage.removeItem('pomodoro_state')
-      localStorage.removeItem('pomodoro_state_guest')
+      useServicesStore().$patch({ favorites: [], favoritesLoaded: false, categories: [], loaded: false })
+
+      // Eski umumiy (id-siz) kalitlarni ham, guest kalitlarni ham to'liq tozalash
+      const legacyKeys = [
+        'qulay_goals', 'qulay_goals_guest',
+        'qulay_habits', 'qulay_habits_guest',
+        'pomodoroState', 'pomodoroState_guest',
+        'pomodoro_state', 'pomodoro_state_guest',
+        'qulay_weather_location', 'qulay_weather_location_guest',
+        'qulay_notified_guest',
+      ]
+      legacyKeys.forEach(k => localStorage.removeItem(k))
+
+      // Joriy foydalanuvchiga tegishli kalitlarni tozalash
       if (currentUserId) {
         localStorage.removeItem(`qulay_goals_${currentUserId}`)
         localStorage.removeItem(`qulay_habits_${currentUserId}`)
         localStorage.removeItem(`pomodoroState_${currentUserId}`)
+        localStorage.removeItem(`pomodoro_state_${currentUserId}`)
         localStorage.removeItem(`qulay_notified_${currentUserId}`)
+        localStorage.removeItem(`qulay_weather_location_${currentUserId}`)
+        localStorage.removeItem(`qulay_finance_txs_${currentUserId}`)
+        localStorage.removeItem(`qulay_finance_migrated_v1_${currentUserId}`)
       }
-      localStorage.removeItem('qulay_notified_guest')
+
+      // Har qanday boshqa qulay_* foydalanuvchi ma'lumotlari bo'lsa (faqat 4 ta qurilma sozlamasi qoladi)
+      // Qurilma sozlamalari: qulay_language, qulay_accent, qulay_dark, qulay_animations
+      try {
+        const preserveKeys = new Set(['qulay_language', 'qulay_accent', 'qulay_dark', 'qulay_animations'])
+        const keysToRemove = []
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i)
+          if (key && !preserveKeys.has(key)) {
+            if (key.startsWith('qulay_') || key.startsWith('pomodoro')) {
+              keysToRemove.push(key)
+            }
+          }
+        }
+        keysToRemove.forEach(k => localStorage.removeItem(k))
+      } catch {}
     },
 
     async logout() {

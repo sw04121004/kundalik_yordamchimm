@@ -7,9 +7,13 @@ import {
 import AppHeader from '../components/AppHeader.vue'
 import api from '../api/axios'
 import { extractErrorMessage } from '../api/errors'
+import { useAuthStore } from '../store/auth'
 import { useI18n } from '../i18n'
 
-const LOCATION_KEY = 'qulay_weather_location'
+const auth = useAuthStore()
+const locationKey = computed(() => {
+  return auth.user?.id ? `qulay_weather_location_${auth.user.id}` : 'qulay_weather_location_guest'
+})
 const DEFAULT_LOCATION = {
   id: 1512569,
   name: 'Toshkent', admin1: 'Toshkent shahri', country: "O'zbekiston",
@@ -137,7 +141,7 @@ function selectLocation(item) {
   cityQuery.value = [item.name, item.admin1, item.country].filter(Boolean).join(', ')
   suggestions.value = []
   searched.value = false
-  localStorage.setItem(LOCATION_KEY, JSON.stringify(item))
+  localStorage.setItem(locationKey.value, JSON.stringify(item))
   loadForecast()
 }
 
@@ -182,12 +186,31 @@ async function updateLocationLanguage() {
         country_code: updated.country_code || location.value.country_code,
       }
       cityQuery.value = [location.value.name, location.value.admin1, location.value.country].filter(Boolean).join(', ')
-      localStorage.setItem(LOCATION_KEY, JSON.stringify(location.value))
+      localStorage.setItem(locationKey.value, JSON.stringify(location.value))
     }
   } catch {
     // Tarmoq xatosi bo'lsa koordinatalar bo'yicha ishlashda davom etadi
   }
 }
+
+function initLocation() {
+  let savedLocation
+  try {
+    savedLocation = JSON.parse(localStorage.getItem(locationKey.value) || 'null')
+  } catch {
+    savedLocation = null
+  }
+  const savedIsValid = savedLocation && Number.isFinite(Number(savedLocation.lat)) && Number.isFinite(Number(savedLocation.lon))
+  location.value = savedIsValid ? savedLocation : DEFAULT_LOCATION
+  cityQuery.value = [location.value.name, location.value.admin1, location.value.country].filter(Boolean).join(', ')
+  if (!savedIsValid) localStorage.setItem(locationKey.value, JSON.stringify(DEFAULT_LOCATION))
+  loadForecast()
+  updateLocationLanguage()
+}
+
+watch(() => auth.user?.id, () => {
+  initLocation()
+})
 
 watch(language, async () => {
   await updateLocationLanguage()
@@ -195,18 +218,7 @@ watch(language, async () => {
 })
 
 onMounted(async () => {
-  let savedLocation
-  try {
-    savedLocation = JSON.parse(localStorage.getItem(LOCATION_KEY) || 'null')
-  } catch {
-    savedLocation = null
-  }
-  const savedIsValid = savedLocation && Number.isFinite(Number(savedLocation.lat)) && Number.isFinite(Number(savedLocation.lon))
-  location.value = savedIsValid ? savedLocation : DEFAULT_LOCATION
-  cityQuery.value = [location.value.name, location.value.admin1, location.value.country].filter(Boolean).join(', ')
-  if (!savedIsValid) localStorage.setItem(LOCATION_KEY, JSON.stringify(DEFAULT_LOCATION))
-  loadForecast()
-  await updateLocationLanguage()
+  initLocation()
   refreshTimer = window.setInterval(loadForecast, 10 * 60 * 1000)
 })
 
