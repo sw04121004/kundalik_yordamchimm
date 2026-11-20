@@ -38,12 +38,12 @@ const result = computed(() => {
   if (value.value === '') return null
   const num = parseFloat(value.value)
   if (!Number.isFinite(num)) {
-    error.value = 'Harorat uchun to‘g‘ri son kiriting.'
+    error.value = t('tool.harorat-konvertori.errorValid')
     return null
   }
   const celsius = toCelsius(num, from.value)
   if (celsius < -273.15) {
-    error.value = 'Harorat mutlaq noldan (−273.15 °C) past bo‘lishi mumkin emas.'
+    error.value = t('tool.harorat-konvertori.errorZero')
     return null
   }
   const converted = fromCelsius(celsius, to.value)
@@ -63,27 +63,27 @@ function swap() {
 </script>
 
 <template>
-  <ToolShell icon="🌡️" title="Harorat konvertori" description="Selsiy, Farengeyt, Kelvin" hint="Qiymatni kiriting, «Dan» va «Ga» birliklarini tanlang — natija avtomatik hisoblanadi.">
+  <ToolShell slug="harorat-konvertori" icon="🌡️" title="svc.harorat-konvertori.name" description="svc.harorat-konvertori.desc">
     <template #header><AppHeader /></template>
 
     <FormAlert :message="error" />
 
     <div class="space-y-4">
       <div>
-        <label class="label">Qiymat</label>
-        <input v-model="value" type="number" class="input" placeholder="masalan: 36.6" />
+        <label class="label">{{ t('tool.harorat-konvertori.val') }}</label>
+        <input v-model="value" type="number" class="input" placeholder="36.6" />
       </div>
 
       <div class="grid grid-cols-[1fr_auto_1fr] gap-3 items-end">
         <div>
-          <label class="label">Dan</label>
+          <label class="label">{{ t('tool.harorat-konvertori.from') }}</label>
           <select v-model="from" class="input">
             <option v-for="(label, key) in units" :key="key" :value="key">{{ label }}</option>
           </select>
         </div>
-        <button class="btn-secondary !px-3 !py-2.5 mb-0.5" @click="swap" title="Almashtirish">⇄</button>
+        <button class="btn-secondary !px-3 !py-2.5 mb-0.5" @click="swap" :title="t('tool.harorat-konvertori.swap')">⇄</button>
         <div>
-          <label class="label">Ga</label>
+          <label class="label">{{ t('tool.harorat-konvertori.to') }}</label>
           <select v-model="to" class="input">
             <option v-for="(label, key) in units" :key="key" :value="key">{{ label }}</option>
           </select>
@@ -94,7 +94,7 @@ function swap() {
 
       <transition name="page-fade">
         <div v-if="result !== null" class="mt-5 rounded-xl bg-gradient-to-br from-brand-50 to-brand-100/60 dark:from-slate-700 dark:to-slate-700/60 border border-brand-100 dark:border-slate-600 px-5 py-4 animate-resultPop">
-          <p class="text-xs font-medium text-brand-600 uppercase tracking-wide">Natija</p>
+          <p class="text-xs font-medium text-brand-600 uppercase tracking-wide">{{ t('common.result') }}</p>
           <p class="text-2xl font-extrabold text-brand-800 mt-1 break-words">
             {{ value }}° {{ from.toUpperCase() }} = {{ result }}° {{ to.toUpperCase() }}
           </p>

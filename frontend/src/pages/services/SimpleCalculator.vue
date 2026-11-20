@@ -33,7 +33,7 @@ function calculate() {
 
   if (a.value === '' || b.value === '') return
   if (!Number.isFinite(x) || !Number.isFinite(y)) {
-    error.value = 'Iltimos, faqat raqam kiriting.'
+    error.value = t('tool.oddiy-kalkulyator.errorNumeric')
     return
   }
 
@@ -50,14 +50,14 @@ function calculate() {
       break
     case '/':
       if (y === 0) {
-        error.value = 'Nolga bo‘lish mumkin emas.'
+        error.value = t('tool.oddiy-kalkulyator.errorZero')
         return
       }
       value = x / y
       break
   }
   if (!Number.isFinite(value)) {
-    error.value = 'Natija son chegarasidan oshib ketdi.'
+    error.value = t('tool.oddiy-kalkulyator.errorOverflow')
     return
   }
   result.value = Math.round(value * 100000) / 100000
@@ -75,7 +75,7 @@ function reset() {
 </script>
 
 <template>
-  <ToolShell icon="➗" title="Oddiy kalkulyator" description="Qo‘shish, ayirish, ko‘paytirish, bo‘lish" hint="Ikki sonni kiriting va amalni tanlang — natija darhol yangilanadi.">
+  <ToolShell slug="oddiy-kalkulyator" icon="➗" title="svc.oddiy-kalkulyator.name" description="svc.oddiy-kalkulyator.desc">
     <template #header><AppHeader /></template>
 
     <FormAlert :message="error" />
@@ -83,17 +83,17 @@ function reset() {
     <div class="space-y-4">
       <div class="grid grid-cols-3 gap-3 items-end">
         <div class="col-span-1">
-          <label class="label">1-son</label>
+          <label class="label">{{ t('tool.oddiy-kalkulyator.num1') }}</label>
           <input v-model="a" type="number" class="input" placeholder="0" @keyup.enter="calculate" />
         </div>
         <div class="col-span-1">
-          <label class="label">Amal</label>
+          <label class="label">{{ t('tool.oddiy-kalkulyator.op') }}</label>
           <select v-model="operation" class="input">
             <option v-for="op in operations" :key="op.value" :value="op.value">{{ op.label }}</option>
           </select>
         </div>
         <div class="col-span-1">
-          <label class="label">2-son</label>
+          <label class="label">{{ t('tool.oddiy-kalkulyator.num2') }}</label>
           <input v-model="b" type="number" class="input" placeholder="0" @keyup.enter="calculate" />
         </div>
       </div>

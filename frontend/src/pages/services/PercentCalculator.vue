@@ -26,21 +26,21 @@ function calculate() {
   const n = parseFloat(number.value)
   const p = parseFloat(percent.value)
 
-  if (number.value === '' || percent.value === '') {
-    error.value = 'Iltimos, ikkala maydonni ham to‘ldiring.'
+  if (!Number.isFinite(n) || !Number.isFinite(p)) {
+    error.value = t('tool.foiz-hisoblagich.errorNumeric')
     return
   }
-  if (!Number.isFinite(n) || !Number.isFinite(p)) {
-    error.value = 'Iltimos, faqat raqam kiriting.'
+  if (p < 0) {
+    error.value = t('tool.foiz-hisoblagich.errorPercent')
     return
   }
 
   const value = (n * p) / 100
   if (!Number.isFinite(value)) {
-    error.value = 'Natija son chegarasidan oshib ketdi.'
+    error.value = t('tool.oddiy-kalkulyator.errorOverflow')
     return
   }
-  result.value = `${n} sonining ${p}% i = ${round(value)}`
+  result.value = `${n} × ${p}% = ${round(value)}`
 }
 
 watch([number, percent], calculate)
@@ -58,19 +58,19 @@ function reset() {
 </script>
 
 <template>
-  <ToolShell icon="🧮" title="Foiz hisoblagich" description="Sondan foizni tez va aniq hisoblang" hint="Son va foizni kiriting — natija darhol hisoblanadi.">
+  <ToolShell slug="foiz-hisoblagich" icon="🧮" title="svc.foiz-hisoblagich.name" description="svc.foiz-hisoblagich.desc">
     <template #header><AppHeader /></template>
 
     <FormAlert :message="error" />
 
     <div class="space-y-4">
       <div>
-        <label class="label">Son</label>
-        <input v-model="number" type="number" class="input" placeholder="masalan: 250" />
+        <label class="label">{{ t('tool.foiz-hisoblagich.number') }}</label>
+        <input v-model="number" type="number" class="input" placeholder="250" />
       </div>
       <div>
-        <label class="label">Foiz (%)</label>
-        <input v-model="percent" type="number" class="input" placeholder="masalan: 15" />
+        <label class="label">{{ t('tool.foiz-hisoblagich.percent') }}</label>
+        <input v-model="percent" type="number" class="input" placeholder="15" />
       </div>
 
       <button class="btn-secondary w-full" @click="reset">{{ t('common.clear') }}</button>

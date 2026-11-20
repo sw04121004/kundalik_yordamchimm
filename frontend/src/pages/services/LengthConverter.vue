@@ -31,7 +31,7 @@ const result = computed(() => {
   if (value.value === '') return null
   const num = parseFloat(value.value)
   if (!Number.isFinite(num) || num < 0) {
-    error.value = 'Uzunlikni 0 yoki undan katta son bilan kiriting.'
+    error.value = t('tool.uzunlik-konvertori.error')
     return null
   }
   const meters = num * units[from.value].factor
@@ -52,27 +52,27 @@ function swap() {
 </script>
 
 <template>
-  <ToolShell icon="📏" title="Uzunlik konvertori" description="Metr, kilometr, milya va boshqa birliklar" hint="Qiymatni kiriting, «Dan» va «Ga» birliklarini tanlang — natija avtomatik hisoblanadi.">
+  <ToolShell slug="uzunlik-konvertori" icon="📏" title="svc.uzunlik-konvertori.name" description="svc.uzunlik-konvertori.desc">
     <template #header><AppHeader /></template>
 
     <FormAlert :message="error" />
 
     <div class="space-y-4">
       <div>
-        <label class="label">Qiymat</label>
-        <input v-model="value" type="number" class="input" placeholder="masalan: 100" />
+        <label class="label">{{ t('tool.uzunlik-konvertori.val') }}</label>
+        <input v-model="value" type="number" class="input" placeholder="100" />
       </div>
 
       <div class="grid grid-cols-[1fr_auto_1fr] gap-3 items-end">
         <div>
-          <label class="label">Dan</label>
+          <label class="label">{{ t('tool.uzunlik-konvertori.from') }}</label>
           <select v-model="from" class="input">
             <option v-for="(u, key) in units" :key="key" :value="key">{{ u.label }}</option>
           </select>
         </div>
-        <button class="btn-secondary !px-3 !py-2.5 mb-0.5" @click="swap" title="Almashtirish">⇄</button>
+        <button class="btn-secondary !px-3 !py-2.5 mb-0.5" @click="swap" :title="t('tool.uzunlik-konvertori.swap')">⇄</button>
         <div>
-          <label class="label">Ga</label>
+          <label class="label">{{ t('tool.uzunlik-konvertori.to') }}</label>
           <select v-model="to" class="input">
             <option v-for="(u, key) in units" :key="key" :value="key">{{ u.label }}</option>
           </select>
@@ -83,7 +83,7 @@ function swap() {
 
       <transition name="page-fade">
         <div v-if="result !== null" class="mt-5 rounded-xl bg-gradient-to-br from-brand-50 to-brand-100/60 dark:from-slate-700 dark:to-slate-700/60 border border-brand-100 dark:border-slate-600 px-5 py-4 animate-resultPop">
-          <p class="text-xs font-medium text-brand-600 uppercase tracking-wide">Natija</p>
+          <p class="text-xs font-medium text-brand-600 uppercase tracking-wide">{{ t('common.result') }}</p>
           <p class="text-2xl font-extrabold text-brand-800 mt-1 break-words">
             {{ value }} {{ units[from].label.split(' ')[0] }} = {{ result }} {{ units[to].label.split(' ')[0] }}
           </p>

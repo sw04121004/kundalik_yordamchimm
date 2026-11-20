@@ -27,13 +27,13 @@ function calculate() {
 
   const numbers = parts.map(Number)
   if (numbers.some((n) => !Number.isFinite(n))) {
-    error.value = 'Faqat raqamlarni vergul yoki bo‘shliq bilan ajratib kiriting.'
+    error.value = t('tool.ortacha-qiymat.errorFormat')
     return
   }
 
   const sum = numbers.reduce((acc, n) => acc + n, 0)
   if (!Number.isFinite(sum)) {
-    error.value = 'Sonlar yig‘indisi hisoblash chegarasidan oshib ketdi.'
+    error.value = t('tool.ortacha-qiymat.errorOverflow')
     return
   }
   const avg = sum / numbers.length
@@ -63,19 +63,19 @@ function reset() {
 </script>
 
 <template>
-  <ToolShell icon="📊" title="O‘rtacha qiymat hisoblagich" description="Sonlar ro‘yxatining o‘rtachasini toping" hint="Sonlarni vergul yoki bo‘shliq bilan ajratib kiriting (masalan: 12, 45, 33) — yig‘indi, eng katta/kichik va o‘rtacha qiymat avtomatik chiqadi.">
+  <ToolShell slug="ortacha-qiymat" icon="📊" title="svc.ortacha-qiymat.name" description="svc.ortacha-qiymat.desc">
     <template #header><AppHeader /></template>
 
     <FormAlert :message="error" />
 
     <div class="space-y-4">
       <div>
-        <label class="label">Sonlar (vergul yoki bo‘shliq bilan ajrating)</label>
+        <label class="label">{{ t('tool.ortacha-qiymat.label') }}</label>
         <textarea
           v-model="numbersText"
           rows="4"
           class="input resize-none"
-          placeholder="masalan: 12, 45, 33, 20, 8"
+          :placeholder="t('tool.ortacha-qiymat.placeholder')"
         ></textarea>
       </div>
 
@@ -86,23 +86,23 @@ function reset() {
       <transition name="page-fade">
         <div v-if="stats" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 animate-resultPop">
           <div class="rounded-xl bg-brand-50 dark:bg-slate-700 px-4 py-3 text-center">
-            <p class="text-xs text-brand-600 dark:text-brand-300 font-medium">Soni</p>
+            <p class="text-xs text-brand-600 dark:text-brand-300 font-medium">{{ t('tool.ortacha-qiymat.count') }}</p>
             <p class="text-lg font-extrabold text-brand-800 dark:text-brand-200">{{ stats.count }}</p>
           </div>
           <div class="rounded-xl bg-brand-50 dark:bg-slate-700 px-4 py-3 text-center">
-            <p class="text-xs text-brand-600 dark:text-brand-300 font-medium">Yig‘indi</p>
+            <p class="text-xs text-brand-600 dark:text-brand-300 font-medium">{{ t('tool.ortacha-qiymat.sum') }}</p>
             <p class="text-lg font-extrabold text-brand-800 dark:text-brand-200">{{ stats.sum }}</p>
           </div>
           <div class="rounded-xl bg-brand-50 dark:bg-slate-700 px-4 py-3 text-center">
-            <p class="text-xs text-brand-600 dark:text-brand-300 font-medium">Eng katta</p>
+            <p class="text-xs text-brand-600 dark:text-brand-300 font-medium">{{ t('tool.ortacha-qiymat.max') }}</p>
             <p class="text-lg font-extrabold text-brand-800 dark:text-brand-200">{{ stats.max }}</p>
           </div>
           <div class="rounded-xl bg-brand-50 dark:bg-slate-700 px-4 py-3 text-center">
-            <p class="text-xs text-brand-600 dark:text-brand-300 font-medium">Eng kichik</p>
+            <p class="text-xs text-brand-600 dark:text-brand-300 font-medium">{{ t('tool.ortacha-qiymat.min') }}</p>
             <p class="text-lg font-extrabold text-brand-800 dark:text-brand-200">{{ stats.min }}</p>
           </div>
           <div class="col-span-2 sm:col-span-4 rounded-xl bg-gradient-to-br from-brand-50 to-brand-100/60 dark:from-slate-700 dark:to-slate-700/60 border border-brand-100 dark:border-slate-600 px-5 py-4 text-center animate-resultPop">
-            <p class="text-xs font-medium text-brand-600 uppercase tracking-wide">O‘rtacha qiymat</p>
+            <p class="text-xs font-medium text-brand-600 uppercase tracking-wide">{{ t('tool.ortacha-qiymat.avg') }}</p>
             <p class="text-2xl font-extrabold text-brand-800 dark:text-brand-200 mt-1">{{ stats.avg }}</p>
           </div>
         </div>

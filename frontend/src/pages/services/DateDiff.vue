@@ -53,7 +53,7 @@ function calendarParts(start, end) {
   const months = totalMonths % 12
 
   const days = (end.getTime() - cursor.getTime()) / DAY_MS
-  return `${years} yil, ${months} oy, ${days} kun`
+  return `${years} ${t('tool.sana-farqi.years')}, ${months} ${t('tool.sana-farqi.months')}, ${days} ${t('tool.sana-farqi.days')}`
 }
 
 function calculate() {
@@ -64,18 +64,18 @@ function calculate() {
   if (!startDate.value || !endDate.value) return
 
   if (!startDate.value || !endDate.value) {
-    error.value = 'Iltimos, ikkala sanani ham tanlang.'
+    error.value = t('tool.sana-farqi.errInvalid')
     return
   }
 
   const start = parseDate(startDate.value)
   const end = parseDate(endDate.value)
   if (!start || !end) {
-    error.value = 'Kiritilgan sanalardan biri yaroqsiz.'
+    error.value = t('tool.sana-farqi.errInvalid')
     return
   }
   if (start > end) {
-    error.value = 'Boshlanish sanasi tugash sanasidan keyin bo‘lmasligi kerak.'
+    error.value = t('tool.sana-farqi.errOrder')
     return
   }
 
@@ -95,7 +95,7 @@ function calculate() {
   result.value = {
     calendarDays,
     countedDays,
-    countedDaysLabel: excludeWeekends.value ? 'Ish kunlari (shanba-yakshanba chiqarilgan)' : 'Oraliqdagi barcha sanalar',
+    countedDaysLabel: excludeWeekends.value ? t('tool.sana-farqi.workingExcl') : t('tool.sana-farqi.allDays'),
     calendarParts: calendarParts(start, end),
   }
 }
@@ -113,10 +113,10 @@ function reset() {
 
 <template>
   <ToolShell
+    slug="sana-farqi"
     icon="📅"
-    title="Sana farqi"
-    description="Ikki sana orasidagi kalendar va ish kunlarini hisoblang"
-    hint="Kalendar farqi — sanalar orasidagi o‘tgan kunlar. Oraliqdagi kunlar sonida boshlanish va tugash sanalari ham qo‘shiladi. Faqat shanba-yakshanbani chiqarish mumkin; rasmiy bayramlar alohida tekshirilmaydi."
+    title="svc.sana-farqi.name"
+    description="svc.sana-farqi.desc"
   >
     <template #header><AppHeader /></template>
 
@@ -125,18 +125,18 @@ function reset() {
     <div class="space-y-4">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label class="label">Boshlanish sanasi</label>
+          <label class="label">{{ t('tool.sana-farqi.start') }}</label>
           <input v-model="startDate" type="date" class="input" />
         </div>
         <div>
-          <label class="label">Tugash sanasi</label>
+          <label class="label">{{ t('tool.sana-farqi.end') }}</label>
           <input v-model="endDate" type="date" class="input" />
         </div>
       </div>
 
       <label class="flex items-center gap-2 cursor-pointer pt-2">
         <input v-model="excludeWeekends" type="checkbox" class="w-4 h-4 text-brand-600 rounded focus:ring-brand-500 border-slate-300 dark:border-slate-600 dark:bg-slate-700">
-        <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Ish kunlarini sanash (shanba-yakshanbani chiqarish)</span>
+        <span class="text-sm font-medium text-slate-700 dark:text-slate-300">{{ t('tool.sana-farqi.exclude') }}</span>
       </label>
 
       <button class="btn-secondary w-full" @click="reset">{{ t('common.clear') }}</button>
@@ -144,15 +144,15 @@ function reset() {
       <transition name="page-fade">
         <div v-if="result" class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 animate-resultPop">
           <div class="rounded-xl bg-brand-50 dark:bg-slate-700 px-4 py-3 text-center">
-            <p class="text-xs text-brand-600 dark:text-brand-300 font-medium">Kalendar farqi</p>
-            <p class="text-lg font-extrabold text-brand-800 dark:text-brand-200">{{ result.calendarDays }} kun</p>
+            <p class="text-xs text-brand-600 dark:text-brand-300 font-medium">{{ t('tool.sana-farqi.calendarDiff') }}</p>
+            <p class="text-lg font-extrabold text-brand-800 dark:text-brand-200">{{ result.calendarDays }} {{ t('tool.sana-farqi.days') }}</p>
           </div>
           <div class="rounded-xl bg-brand-50 dark:bg-slate-700 px-4 py-3 text-center">
             <p class="text-xs text-brand-600 dark:text-brand-300 font-medium">{{ result.countedDaysLabel }}</p>
-            <p class="text-lg font-extrabold text-brand-800 dark:text-brand-200">{{ result.countedDays }} kun</p>
+            <p class="text-lg font-extrabold text-brand-800 dark:text-brand-200">{{ result.countedDays }} {{ t('tool.sana-farqi.days') }}</p>
           </div>
           <div class="sm:col-span-2 rounded-xl bg-gradient-to-br from-brand-50 to-brand-100/60 dark:from-slate-700 dark:to-slate-700/60 border border-brand-100 dark:border-slate-600 px-5 py-4 text-center animate-resultPop">
-            <p class="text-xs font-medium text-brand-600 uppercase tracking-wide">Yil, oy va kun hisobida</p>
+            <p class="text-xs font-medium text-brand-600 uppercase tracking-wide">{{ t('tool.sana-farqi.calParts') }}</p>
             <p class="text-xl font-extrabold text-brand-800 mt-1">{{ result.calendarParts }}</p>
           </div>
         </div>

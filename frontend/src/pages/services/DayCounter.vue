@@ -32,7 +32,7 @@ function calculate() {
 
   const n = Number(days.value)
   if (!Number.isSafeInteger(n) || n < 0) {
-    error.value = 'Iltimos, nol yoki undan katta butun son kiriting.'
+    error.value = t('tool.kun-hisoblagich.errorNum')
     return
   }
 
@@ -44,14 +44,14 @@ function calculate() {
   const [, year, month, day] = match
   const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)))
   if (date.getUTCFullYear() !== Number(year) || date.getUTCMonth() !== Number(month) - 1 || date.getUTCDate() !== Number(day)) {
-    error.value = 'Kiritilgan sana mavjud emas.'
+    error.value = t('tool.kun-hisoblagich.errNotExist')
     return
   }
 
   const delta = mode.value === 'add' ? n : -n
   date.setUTCDate(date.getUTCDate() + delta)
   if (!Number.isFinite(date.getTime())) {
-    error.value = 'Hisoblangan sana ruxsat etilgan oraliqdan tashqarida.'
+    error.value = t('tool.kun-hisoblagich.errRange')
     return
   }
 
@@ -73,34 +73,34 @@ function reset() {
 </script>
 
 <template>
-  <ToolShell icon="⏱️" title="Kun hisoblagich" description="Sanaga kun qo‘shing yoki ayiring" hint="Boshlang‘ich sanani tanlang, necha kun qo‘shish yoki ayirishni kiriting — yangi sana darhol hisoblanadi.">
+  <ToolShell slug="kun-hisoblagich" icon="⏱️" title="svc.kun-hisoblagich.name" description="svc.kun-hisoblagich.desc">
     <template #header><AppHeader /></template>
 
     <FormAlert :message="error" />
 
     <div class="space-y-4">
       <div>
-        <label class="label">Boshlang‘ich sana</label>
+        <label class="label">{{ t('tool.kun-hisoblagich.date') }}</label>
         <input v-model="baseDate" type="date" class="input" />
       </div>
 
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="label">Amal</label>
+          <label class="label">{{ t('tool.kun-hisoblagich.mode') }}</label>
           <select v-model="mode" class="input">
-            <option value="add">Qo‘shish (+)</option>
-            <option value="subtract">Ayirish (−)</option>
+            <option value="add">{{ t('tool.kun-hisoblagich.add') }}</option>
+            <option value="subtract">{{ t('tool.kun-hisoblagich.sub') }}</option>
           </select>
         </div>
         <div>
-          <label class="label">Kunlar soni</label>
-          <input v-model="days" type="number" min="0" class="input" placeholder="masalan: 30" />
+          <label class="label">{{ t('tool.kun-hisoblagich.days') }}</label>
+          <input v-model="days" type="number" min="0" class="input" placeholder="30" />
         </div>
       </div>
 
       <button class="btn-secondary w-full" @click="reset">{{ t('common.clear') }}</button>
 
-      <ResultBox label="Yangi sana" :value="result" />
+      <ResultBox :label="t('tool.kun-hisoblagich.newDate')" :value="result" />
     </div>
   </ToolShell>
 

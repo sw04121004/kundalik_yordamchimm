@@ -28,10 +28,11 @@ const CHARSETS = {
 }
 
 function strengthLabel(pw) {
-  if (pw.length >= 14) return { label: 'Kuchli', color: 'text-emerald-600' }
-  if (pw.length >= 10) return { label: 'O‘rtacha', color: 'text-amber-600' }
-  return { label: 'Zaif', color: 'text-red-600' }
+  if (pw.length >= 14) return { key: 'tool.parol-generatori.strong', color: 'text-emerald-600' }
+  if (pw.length >= 10) return { key: 'tool.parol-generatori.medium', color: 'text-amber-600' }
+  return { key: 'tool.parol-generatori.weak', color: 'text-red-600' }
 }
+
 
 function generate() {
   error.value = ''
@@ -58,7 +59,7 @@ function generate() {
   }
 
   if (!pool) {
-    error.value = 'Kamida bitta belgi turini tanlang.'
+    error.value = t('tool.parol-generatori.minOne')
     password.value = ''
     return
   }
@@ -91,7 +92,7 @@ async function copyPassword() {
     copied.value = true
     setTimeout(() => (copied.value = false), 1500)
   } catch {
-    error.value = 'Nusxalashda xatolik yuz berdi.'
+    error.value = t('tool.parol-generatori.copyError')
   }
 }
 
@@ -99,43 +100,43 @@ onMounted(generate)
 </script>
 
 <template>
-  <ToolShell icon="🔐" title="Kuchli parol generatori" description="Xavfsiz va murakkab parol yarating" hint="Uzunlik va belgi turlarini sozlang — parol avtomatik yaratiladi, «Nusxalash» orqali darhol nusxa olishingiz mumkin.">
+  <ToolShell slug="parol-generatori" icon="🔐" title="svc.parol-generatori.name" description="svc.parol-generatori.desc">
     <template #header><AppHeader /></template>
 
     <FormAlert :message="error" />
 
     <div class="space-y-5">
       <div>
-        <label class="label">Uzunligi: {{ length }} belgi</label>
+        <label class="label">{{ t('tool.parol-generatori.length') }}: {{ length }}</label>
         <input v-model="length" type="range" min="6" max="32" class="w-full accent-brand-600" />
       </div>
 
       <div class="grid grid-cols-2 gap-3 text-sm text-slate-600">
         <label class="flex items-center gap-2">
-          <input type="checkbox" v-model="useUpper" class="rounded text-brand-600 focus:ring-brand-400" /> Katta harflar (A-Z)
+          <input type="checkbox" v-model="useUpper" class="rounded text-brand-600 focus:ring-brand-400" /> {{ t('tool.parol-generatori.upper') }}
         </label>
         <label class="flex items-center gap-2">
-          <input type="checkbox" v-model="useLower" class="rounded text-brand-600 focus:ring-brand-400" /> Kichik harflar (a-z)
+          <input type="checkbox" v-model="useLower" class="rounded text-brand-600 focus:ring-brand-400" /> {{ t('tool.parol-generatori.lower') }}
         </label>
         <label class="flex items-center gap-2">
-          <input type="checkbox" v-model="useNumbers" class="rounded text-brand-600 focus:ring-brand-400" /> Raqamlar (0-9)
+          <input type="checkbox" v-model="useNumbers" class="rounded text-brand-600 focus:ring-brand-400" /> {{ t('tool.parol-generatori.numbers') }}
         </label>
         <label class="flex items-center gap-2">
-          <input type="checkbox" v-model="useSymbols" class="rounded text-brand-600 focus:ring-brand-400" /> Belgilar (!@#$)
+          <input type="checkbox" v-model="useSymbols" class="rounded text-brand-600 focus:ring-brand-400" /> {{ t('tool.parol-generatori.symbols') }}
         </label>
       </div>
 
-      <button class="btn-primary w-full" @click="generate">Parol yaratish</button>
+      <button class="btn-primary w-full" @click="generate">{{ t('tool.parol-generatori.generate') }}</button>
 
       <div v-if="password" :key="password" class="rounded-xl bg-gradient-to-br from-brand-50 to-brand-100/60 dark:from-slate-700 dark:to-slate-700/60 border border-brand-100 dark:border-slate-600 px-5 py-4 animate-resultPop">
         <div class="flex items-center justify-between gap-3">
           <p class="text-lg font-extrabold text-brand-800 font-mono break-all">{{ password }}</p>
           <button class="shrink-0 btn-secondary !px-3 !py-2 text-sm" @click="copyPassword">
-            {{ copied ? '✓ ' + t('common.copied') : t('common.copy') }}
+            {{ copied ? '✔ ' + t('common.copied') : t('common.copy') }}
           </button>
         </div>
         <p class="text-xs mt-2 font-semibold" :class="strengthLabel(password).color">
-          Kuch darajasi: {{ strengthLabel(password).label }}
+          {{ t('tool.parol-generatori.strength') }}: {{ t(strengthLabel(password).key) }}
         </p>
       </div>
     </div>

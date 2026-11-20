@@ -24,7 +24,7 @@ const qrUrl = computed(() => {
 function generate() {
   error.value = ''
   if (!text.value.trim()) {
-    error.value = t('Iltimos, matn yoki havola kiriting.')
+    error.value = t('tool.qr-kod-generatori.errorEmpty')
     generatedText.value = ''
     return
   }
@@ -39,35 +39,30 @@ function reset() {
 </script>
 
 <template>
-  <ToolShell
-    icon="🔳"
-    :title="t('QR-kod generatori')"
-    :description="t('Matn yoki havoladan QR-kod yarating')"
-    :hint="t('Matn yoki havola (link) kiriting, «Yaratish»ni bosing — QR-kod darhol paydo bo‘ladi, uni yuklab olishingiz mumkin.')"
-  >
+  <ToolShell slug="qr-kod-generatori" icon="📱" title="svc.qr-kod-generatori.name" description="svc.qr-kod-generatori.desc">
     <template #header><AppHeader /></template>
 
     <FormAlert :message="error" />
 
     <div class="space-y-4 animate-fadeUp">
       <div>
-        <label class="label">{{ t('Matn yoki havola') }}</label>
+        <label class="label">{{ t('tool.qr-kod-generatori.label') }}</label>
         <input
           v-model="text"
           type="text"
           class="input"
-          :placeholder="t('masalan: https://example.com yoki istalgan matn')"
+          :placeholder="t('tool.qr-kod-generatori.placeholder')"
           @keyup.enter="generate"
         />
       </div>
 
       <div>
-        <label class="label">{{ t('O\'lcham:') }} {{ size }}×{{ size }} px</label>
+        <label class="label">{{ t('tool.qr-kod-generatori.size') }}: {{ size }}×{{ size }} px</label>
         <input v-model="size" type="range" min="150" max="500" step="50" class="w-full accent-brand-600 cursor-pointer" />
       </div>
 
       <div class="flex gap-3 pt-2">
-        <button class="btn-primary flex-1 animate-popIn" @click="generate">{{ t('Yaratish') }}</button>
+        <button class="btn-primary flex-1 animate-popIn" @click="generate">{{ t('tool.qr-kod-generatori.generate') }}</button>
         <button class="btn-secondary" @click="reset">{{ t('common.clear') }}</button>
       </div>
 
@@ -77,7 +72,7 @@ function reset() {
           class="mt-5 rounded-xl bg-gradient-to-br from-brand-50 to-brand-100/60 dark:from-slate-700 dark:to-slate-700/60 border border-brand-100 dark:border-slate-600 p-5 flex flex-col items-center gap-4 card-hover-lift animate-scaleIn"
         >
           <img :src="qrUrl" :alt="generatedText" class="rounded-lg border border-white shadow-sm bg-white" />
-          <a :href="qrUrl" :download="'qulay-qr-kod.png'" class="btn-secondary text-sm">{{ t('Yuklab olish (PNG)') }}</a>
+          <a :href="qrUrl" :download="'qulay-qr-kod.png'" class="btn-secondary text-sm">{{ t('tool.qr-kod-generatori.download') }}</a>
         </div>
       </transition>
     </div>
