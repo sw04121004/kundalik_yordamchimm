@@ -230,6 +230,7 @@ const uz = {
   "weather.sunset": "Quyosh botishi",
   "weather.loading": "Ob-havo yuklanmoqda...",
   "weather.error": "Ob-havo ma'lumotini olib bo'lmadi.",
+  "weather.errorUnavailable": "Ob-havo xizmati vaqtincha ishlamayapti. Keyinroq qayta urinib ko'ring.",
   "weather.today": "Bugun",
   "weather.source": "Ob-havo ma'lumotlari:",
 
@@ -886,6 +887,7 @@ const ru = {
   "weather.sunset": "Закат",
   "weather.loading": "Загружаем погоду...",
   "weather.error": "Не удалось загрузить данные о погоде.",
+  "weather.errorUnavailable": "Служба погоды временно недоступна. Повторите попытку позже.",
   "weather.today": "Сегодня",
   "weather.source": "Данные о погоде:",
 
@@ -1542,6 +1544,7 @@ const en = {
   "weather.sunset": "Sunset",
   "weather.loading": "Loading weather...",
   "weather.error": "Could not load weather information.",
+  "weather.errorUnavailable": "Weather service is temporarily unavailable. Please try again later.",
   "weather.today": "Today",
   "weather.source": "Weather data:",
 

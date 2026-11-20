@@ -98,10 +98,72 @@ function weatherIcon(code, isDay = true) {
   return Cloud
 }
 
+const MONTH_NAMES = {
+  uz: ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr'],
+  ru: ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'],
+  en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+}
+
+const WEEKDAY_NAMES = {
+  uz: ['yakshanba', 'dushanba', 'seshanba', 'chorshanba', 'payshanba', 'juma', 'shanba'],
+  ru: ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'],
+  en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+}
+
 function formatDay(value) {
   const [year, month, day] = value.split('-').map(Number)
-  return new Intl.DateTimeFormat(currentLocale(), { weekday: 'short', day: 'numeric', month: 'short' })
-    .format(new Date(year, month - 1, day))
+  const d = new Date(year, month - 1, day)
+  const lang = ['uz', 'ru', 'en'].includes(language.value) ? language.value : 'uz'
+  const dayNum = d.getDate()
+  const mName = MONTH_NAMES[lang][d.getMonth()]
+  const wName = WEEKDAY_NAMES[lang][d.getDay()]
+
+  if (lang === 'uz') {
+    return `${dayNum}-${mName}, ${wName}`
+  }
+  if (lang === 'ru') {
+    return `${dayNum} ${mName}, ${wName}`
+  }
+  return `${wName}, ${mName} ${dayNum}`
+}
+
+const displayUnits = computed(() => {
+  const lang = language.value
+  if (lang === 'ru') {
+    return {
+      wind_speed: 'км/ч',
+      precipitation: 'мм',
+      pressure: 'гПа',
+    }
+  }
+  if (lang === 'en') {
+    return {
+      wind_speed: 'km/h',
+      precipitation: 'mm',
+      pressure: 'hPa',
+    }
+  }
+  return {
+    wind_speed: 'km/soat',
+    precipitation: 'mm',
+    pressure: 'gPa',
+  }
+})
+
+function getTodayRainProbability(forecastData) {
+  if (!forecastData) return 0
+  const dailyProb = forecastData.daily?.[0]?.precipitation_probability
+  if (!forecastData.hourly?.length) return dailyProb ?? 0
+  const nowHour = new Date().getHours()
+  const remainingHours = forecastData.hourly.filter(h => {
+    const hourNum = parseInt(h.time?.slice(11, 13), 10)
+    return !isNaN(hourNum) && hourNum >= nowHour
+  })
+  if (remainingHours.length > 0) {
+    const maxRemaining = Math.max(...remainingHours.map(h => h.precipitation_probability ?? 0))
+    return maxRemaining
+  }
+  return dailyProb ?? 0
 }
 
 function formatNumber(value) {
@@ -126,7 +188,13 @@ function searchCity() {
         searched.value = true
       }
     } catch (requestError) {
-      if (requestId === searchRequestId) error.value = extractErrorMessage(requestError, t('weather.error'))
+      if (requestId === searchRequestId) {
+        if (requestError?.response?.status === 503) {
+          error.value = t('weather.errorUnavailable')
+        } else {
+          error.value = extractErrorMessage(requestError, t('weather.error'))
+        }
+      }
     } finally {
       if (requestId === searchRequestId) searchLoading.value = false
     }
@@ -138,6 +206,7 @@ function selectLocation(item) {
   clearTimeout(searchTimer)
   searchLoading.value = false
   location.value = item
+  country.value = item.country_code || ''
   cityQuery.value = [item.name, item.admin1, item.country].filter(Boolean).join(', ')
   suggestions.value = []
   searched.value = false
@@ -156,7 +225,11 @@ async function loadForecast() {
     forecast.value = data
     lastUpdated.value = new Intl.DateTimeFormat(currentLocale(), { hour: '2-digit', minute: '2-digit' }).format(new Date())
   } catch (requestError) {
-    error.value = extractErrorMessage(requestError, t('weather.error'))
+    if (requestError?.response?.status === 503) {
+      error.value = t('weather.errorUnavailable')
+    } else {
+      error.value = extractErrorMessage(requestError, t('weather.error'))
+    }
   } finally {
     loading.value = false
   }
@@ -202,6 +275,7 @@ function initLocation() {
   }
   const savedIsValid = savedLocation && Number.isFinite(Number(savedLocation.lat)) && Number.isFinite(Number(savedLocation.lon))
   location.value = savedIsValid ? savedLocation : DEFAULT_LOCATION
+  country.value = location.value.country_code || ''
   cityQuery.value = [location.value.name, location.value.admin1, location.value.country].filter(Boolean).join(', ')
   if (!savedIsValid) localStorage.setItem(locationKey.value, JSON.stringify(DEFAULT_LOCATION))
   loadForecast()
@@ -303,9 +377,9 @@ onUnmounted(() => {
             </div>
             <div class="grid grid-cols-2 gap-x-7 gap-y-5 sm:min-w-64">
               <div class="flex items-center gap-3"><span class="w-10 h-10 rounded-full flex items-center justify-center bg-brand-50 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300"><Droplets class="w-5 h-5" aria-hidden="true" /></span><div><p class="text-xs text-slate-500 dark:text-slate-400">{{ t('weather.humidity') }}</p><p class="font-semibold text-slate-800 dark:text-slate-100">{{ forecast.current.humidity }}%</p></div></div>
-              <div class="flex items-center gap-3"><span class="w-10 h-10 rounded-full flex items-center justify-center bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300"><Wind class="w-5 h-5" aria-hidden="true" /></span><div><p class="text-xs text-slate-500 dark:text-slate-400">{{ t('weather.wind') }}</p><p class="font-semibold text-slate-800 dark:text-slate-100">{{ formatNumber(forecast.current.wind_speed) }} {{ forecast.units.wind_speed }}</p></div></div>
-              <div class="flex items-center gap-3"><span class="w-10 h-10 rounded-full flex items-center justify-center bg-amber-50 dark:bg-amber-900/25 text-amber-700 dark:text-amber-300"><CloudRain class="w-5 h-5" aria-hidden="true" /></span><div><p class="text-xs text-slate-500 dark:text-slate-400">{{ t('weather.precipitation') }}</p><p class="font-semibold text-slate-800 dark:text-slate-100">{{ formatNumber(forecast.current.precipitation) }} {{ forecast.units.precipitation }}</p></div></div>
-              <div class="flex items-center gap-3"><span class="w-10 h-10 rounded-full flex items-center justify-center bg-violet-50 dark:bg-violet-900/25 text-violet-700 dark:text-violet-300"><span class="text-sm font-bold">hPa</span></span><div><p class="text-xs text-slate-500 dark:text-slate-400">{{ t('weather.pressure') }}</p><p class="font-semibold text-slate-800 dark:text-slate-100">{{ formatNumber(Math.round(forecast.current.pressure)) }} {{ forecast.units.pressure }}</p></div></div>
+              <div class="flex items-center gap-3"><span class="w-10 h-10 rounded-full flex items-center justify-center bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300"><Wind class="w-5 h-5" aria-hidden="true" /></span><div><p class="text-xs text-slate-500 dark:text-slate-400">{{ t('weather.wind') }}</p><p class="font-semibold text-slate-800 dark:text-slate-100">{{ formatNumber(forecast.current.wind_speed) }} {{ displayUnits.wind_speed }}</p></div></div>
+              <div class="flex items-center gap-3"><span class="w-10 h-10 rounded-full flex items-center justify-center bg-amber-50 dark:bg-amber-900/25 text-amber-700 dark:text-amber-300"><CloudRain class="w-5 h-5" aria-hidden="true" /></span><div><p class="text-xs text-slate-500 dark:text-slate-400">{{ t('weather.precipitation') }}</p><p class="font-semibold text-slate-800 dark:text-slate-100">{{ formatNumber(forecast.current.precipitation) }} {{ displayUnits.precipitation }}</p></div></div>
+              <div class="flex items-center gap-3"><span class="w-10 h-10 rounded-full flex items-center justify-center bg-violet-50 dark:bg-violet-900/25 text-violet-700 dark:text-violet-300"><span class="text-sm font-bold">{{ displayUnits.pressure }}</span></span><div><p class="text-xs text-slate-500 dark:text-slate-400">{{ t('weather.pressure') }}</p><p class="font-semibold text-slate-800 dark:text-slate-100">{{ formatNumber(Math.round(forecast.current.pressure)) }} {{ displayUnits.pressure }}</p></div></div>
             </div>
           </div>
         </section>
@@ -325,12 +399,16 @@ onUnmounted(() => {
         <section class="card p-5 sm:p-6">
           <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-3">{{ t('weather.daily') }}</h2>
           <div class="divide-y divide-slate-100 dark:divide-white/10">
-            <div v-for="(day, index) in forecast.daily" :key="day.date" class="grid grid-cols-[minmax(80px,1fr)_36px_minmax(90px,1fr)_48px] sm:grid-cols-[minmax(130px,1fr)_40px_minmax(120px,1fr)_90px_90px] items-center gap-3 py-3">
+            <div v-for="(day, index) in forecast.daily" :key="day.date" class="grid grid-cols-[minmax(80px,1fr)_36px_minmax(90px,1fr)_48px] sm:grid-cols-[minmax(130px,1fr)_40px_minmax(120px,1fr)_90px_auto] items-center gap-3 py-3">
               <p class="text-sm font-medium text-slate-700 dark:text-slate-200">{{ index === 0 ? t('weather.today') : formatDay(day.date) }}</p>
               <component :is="weatherIcon(day.weather_code)" class="w-5 h-5 text-brand-700 dark:text-brand-300" aria-hidden="true" />
               <div class="flex items-center gap-2 text-sm"><span class="font-semibold text-slate-900 dark:text-white">{{ formatNumber(Math.round(day.temperature_max)) }}°</span><span class="text-slate-500 dark:text-slate-400">{{ formatNumber(Math.round(day.temperature_min)) }}°</span></div>
-              <p class="text-right text-xs text-sky-700 dark:text-sky-300">{{ day.precipitation_probability ?? 0 }}%</p>
-              <p class="hidden sm:block text-right text-xs text-slate-500 dark:text-slate-400">{{ t('weather.sunrise') }} {{ day.sunrise?.slice(11, 16) }} · {{ t('weather.sunset') }} {{ day.sunset?.slice(11, 16) }}</p>
+              <p class="text-right text-xs text-sky-700 dark:text-sky-300">{{ (index === 0 ? getTodayRainProbability(forecast) : day.precipitation_probability) ?? 0 }}%</p>
+              <div class="hidden sm:flex items-center justify-end gap-3 text-right text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                <span class="inline-flex items-center gap-1">☀️ {{ day.sunrise?.slice(11, 16) }}</span>
+                <span class="text-slate-300 dark:text-slate-600">/</span>
+                <span class="inline-flex items-center gap-1">🌙 {{ day.sunset?.slice(11, 16) }}</span>
+              </div>
             </div>
           </div>
         </section>
