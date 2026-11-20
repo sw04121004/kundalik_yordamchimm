@@ -785,6 +785,25 @@ const uz = {
   "tool.valyuta-konvertori.swap": "Almashtirish",
 
   // AI Purpose nomlari
+    "theme.settings": "Ko'rinishni sozlash",
+  "theme.accentColor": "Mavzu rangi",
+  "theme.darkMode": "Tungi rejim",
+  "theme.lightMode": "Kunduzgi rejim",
+
+  "ai.voice.unsupported": "Bu brauzer ovozni matnga aylantirishni qo'llamaydi. Chrome yoki Edge brauzerida sinab ko'ring.",
+  "ai.voice.notAllowed": "Mikrofonga ruxsat berilmadi. Brauzer sozlamalaridan ruxsat bering.",
+  "ai.voice.serviceNotAllowed": "Brauzer ovoz xizmatidan foydalanishga ruxsat bermadi.",
+  "ai.voice.network": "Ovozni matnga aylantirish xizmati tarmoqqa ulanmayapti.",
+  "ai.voice.noSpeech": "Ovoz aniqlanmadi. Qayta urinib ko'ring.",
+  "ai.voice.error": "Ovoz yozishda xatolik yuz berdi.",
+  "ai.voice.recording": "Ovoz yozilmoqda",
+  "ai.voice.converting": "gapni matnga aylantiryapti",
+  "ai.voice.tip": "Mikrofon gapirganingizni matnga aylantiradi; yuborishdan oldin matnni tekshiring.",
+  "ai.voice.start": "Ovoz yozishni boshlash",
+  "ai.voice.stop": "Ovoz yozishni to'xtatish",
+  "ai.voice.titleStart": "Ovoz bilan yozish",
+  "ai.voice.titleStop": "To'xtatish",
+
   "ai.purpose.general": "Umumiy AI",
   "ai.purpose.kitchen": "Oshxona AI",
   "ai.purpose.study": "O'qish AI",
@@ -1572,6 +1591,25 @@ const ru = {
   "tool.valyuta-konvertori.swap": "Поменять",
 
   // AI Purpose
+    "theme.settings": "Настройка внешнего вида",
+  "theme.accentColor": "Цвет темы",
+  "theme.darkMode": "Ночной режим",
+  "theme.lightMode": "Дневной режим",
+
+  "ai.voice.unsupported": "Этот браузер не поддерживает распознавание речи. Попробуйте Chrome или Edge.",
+  "ai.voice.notAllowed": "Доступ к микрофону запрещён. Разрешите в настройках браузера.",
+  "ai.voice.serviceNotAllowed": "Браузер не разрешил использование голосовой службы.",
+  "ai.voice.network": "Сервис распознавания речи не может подключиться к сети.",
+  "ai.voice.noSpeech": "Речь не распознана. Попробуйте ещё раз.",
+  "ai.voice.error": "Ошибка при записи голоса.",
+  "ai.voice.recording": "Идёт запись речи",
+  "ai.voice.converting": "преобразование в текст",
+  "ai.voice.tip": "Микрофон преобразует речь в текст; проверьте текст перед отправкой.",
+  "ai.voice.start": "Начать голосовой ввод",
+  "ai.voice.stop": "Остановить голосовой ввод",
+  "ai.voice.titleStart": "Голосовой ввод",
+  "ai.voice.titleStop": "Остановить",
+
   "ai.purpose.general": "Общий AI",
   "ai.purpose.kitchen": "Кулинарный AI",
   "ai.purpose.study": "Учебный AI",
@@ -2358,6 +2396,25 @@ const en = {
   "tool.valyuta-konvertori.swap": "Swap",
 
   // AI Purpose
+    "theme.settings": "Appearance settings",
+  "theme.accentColor": "Theme color",
+  "theme.darkMode": "Dark mode",
+  "theme.lightMode": "Light mode",
+
+  "ai.voice.unsupported": "Speech recognition is not supported in this browser. Please try Chrome or Edge.",
+  "ai.voice.notAllowed": "Microphone permission denied. Please allow microphone access in browser settings.",
+  "ai.voice.serviceNotAllowed": "Browser did not allow speech service.",
+  "ai.voice.network": "Speech service network error.",
+  "ai.voice.noSpeech": "No speech detected. Please try again.",
+  "ai.voice.error": "Error recording audio.",
+  "ai.voice.recording": "Recording speech",
+  "ai.voice.converting": "converting to text",
+  "ai.voice.tip": "Microphone converts speech to text; verify text before sending.",
+  "ai.voice.start": "Start voice input",
+  "ai.voice.stop": "Stop voice input",
+  "ai.voice.titleStart": "Voice input",
+  "ai.voice.titleStop": "Stop",
+
   "ai.purpose.general": "General AI",
   "ai.purpose.kitchen": "Kitchen AI",
   "ai.purpose.study": "Study AI",

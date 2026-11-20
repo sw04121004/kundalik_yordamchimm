@@ -1,7 +1,9 @@
 <script setup>
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useThemeStore, ACCENT_PRESETS } from '../store/theme'
+import { useI18n } from '../i18n'
 
+const { t } = useI18n()
 const theme = useThemeStore()
 const open = ref(false)
 const dropdownRef = ref(null)
@@ -10,8 +12,6 @@ const currentPreset = computed(() => ACCENT_PRESETS[theme.accent] || ACCENT_PRES
 
 function choose(name) {
   theme.setAccent(name)
-  // Optional: automatically close after selection, or leave open for preview
-  // open.value = false 
 }
 
 function handleClickOutside(event) {
@@ -32,7 +32,8 @@ onUnmounted(() => {
   <div class="relative z-50" ref="dropdownRef">
     <button
       class="relative w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg group focus:outline-none"
-      title="Ko‘rinishni sozlash"
+      :title="t('theme.settings')"
+      :aria-label="t('theme.settings')"
       @click="open = !open"
     >
       <span
@@ -52,7 +53,7 @@ onUnmounted(() => {
       >
         <p class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4 px-1 flex items-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg>
-          Mavzu Rangi
+          {{ t('theme.accentColor') }}
         </p>
         <div class="grid grid-cols-4 gap-2 mb-5">
           <button
@@ -84,7 +85,7 @@ onUnmounted(() => {
                 <svg v-if="theme.isDark" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
                 <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
               </span>
-              {{ theme.isDark ? 'Tungi rejim' : 'Kunduzgi rejim' }}
+              {{ theme.isDark ? t('theme.darkMode') : t('theme.lightMode') }}
             </span>
             <span
               class="w-10 h-6 rounded-full relative transition-all duration-300 shadow-inner"

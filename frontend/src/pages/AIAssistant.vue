@@ -124,12 +124,12 @@ function toggleRecord() {
 
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
   if (!SpeechRecognition) {
-    voiceError.value = 'Bu brauzer ovozni matnga aylantirishni qo‘llamaydi. Chrome yoki Edge brauzerida sinab ko‘ring.'
+    voiceError.value = t('ai.voice.unsupported')
     return
   }
 
   speechRecognition = new SpeechRecognition()
-  speechRecognition.lang = 'uz-UZ'
+  speechRecognition.lang = language.value === 'ru' ? 'ru-RU' : language.value === 'en' ? 'en-US' : 'uz-UZ'
   speechRecognition.continuous = true
   speechRecognition.interimResults = true
   recordingBaseDraft = draft.value.trim()
@@ -155,12 +155,12 @@ function toggleRecord() {
   }
   speechRecognition.onerror = (event) => {
     const messages = {
-      'not-allowed': 'Mikrofonga ruxsat berilmadi. Brauzer sozlamalaridan ruxsat bering.',
-      'service-not-allowed': 'Brauzer ovoz xizmatidan foydalanishga ruxsat bermadi.',
-      network: 'Ovozni matnga aylantirish xizmati tarmoqqa ulanmayapti.',
-      'no-speech': 'Ovoz aniqlanmadi. Qayta urinib ko‘ring.',
+      'not-allowed': t('ai.voice.notAllowed'),
+      'service-not-allowed': t('ai.voice.serviceNotAllowed'),
+      network: t('ai.voice.network'),
+      'no-speech': t('ai.voice.noSpeech'),
     }
-    voiceError.value = messages[event.error] || 'Ovoz yozishda xatolik yuz berdi.'
+    voiceError.value = messages[event.error] || t('ai.voice.error')
     stopRecording()
   }
   speechRecognition.onend = () => {
@@ -433,17 +433,17 @@ function autoResize(el) {
           <!-- Input Area -->
           <div class="px-4 sm:px-5 py-3 border-t border-slate-100 dark:border-white/5 bg-white dark:bg-[#1d2523] relative">
             <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">{{ t('ai.disclaimer') }}</p>
-            <p v-if="isRecording" class="text-xs text-red-500 mb-2" role="status">🔴 Ovoz yozilmoqda · {{ formatDuration(recordingTime) }} · gapni matnga aylantiryapti</p>
+            <p v-if="isRecording" class="text-xs text-red-500 mb-2" role="status">🔴 {{ t('ai.voice.recording') }} · {{ formatDuration(recordingTime) }} · {{ t('ai.voice.converting') }}</p>
             <p v-else-if="voiceError" class="text-xs text-amber-600 dark:text-amber-400 mb-2" role="alert">{{ voiceError }}</p>
-            <p v-else class="text-[10px] text-slate-400 mb-2">Mikrofon gapirganingizni matnga aylantiradi; yuborishdan oldin matnni tekshiring.</p>
+            <p v-else class="text-[10px] text-slate-400 mb-2">{{ t('ai.voice.tip') }}</p>
             <!-- Input Box -->
             <div class="flex items-end gap-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/60 rounded-2xl px-3 py-2 transition-all focus-within:border-brand-500/50 focus-within:ring-2 focus-within:ring-brand-500/10">
               <button
                 type="button"
                 class="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-colors mb-0.5"
                 :class="isRecording ? 'text-red-500 bg-red-50 dark:bg-red-500/10' : 'text-slate-400 hover:text-brand-600 hover:bg-slate-100 dark:hover:bg-slate-800'"
-                :aria-label="isRecording ? 'Ovoz yozishni to‘xtatish' : 'Ovoz yozishni boshlash'"
-                :title="isRecording ? 'To‘xtatish' : 'Ovoz bilan yozish'"
+                :aria-label="isRecording ? t('ai.voice.stop') : t('ai.voice.start')"
+                :title="isRecording ? t('ai.voice.titleStop') : t('ai.voice.titleStart')"
                 @click="toggleRecord"
               >
                 <svg v-if="!isRecording" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18.5a6.5 6.5 0 006.5-6.5m-13 0a6.5 6.5 0 006.5 6.5m0 0V22m0-3.5H8.5m3.5 0h3.5M9 12V5a3 3 0 016 0v7a3 3 0 01-6 0z"/></svg>
