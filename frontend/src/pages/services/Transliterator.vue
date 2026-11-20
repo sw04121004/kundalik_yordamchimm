@@ -1,39 +1,102 @@
-﻿<script setup>
-import { ref, onMounted } from 'vue'
+<script setup>
+import { ref, computed, onMounted } from 'vue'
 import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
 import { useServicesStore } from '../../store/services'
 import { ArrowLeftRight, Copy, Check } from 'lucide-vue-next'
+import { useToolText } from '../../utils/toolText'
 
 const servicesStore = useServicesStore()
 onMounted(() => servicesStore.logUsage('transliterator'))
 
+const tx = useToolText({
+  uz: {
+    title: "Transliterator & Tarjimon",
+    desc: "Lotin va Kirill alifbosini bir-biriga o‘giring yoki boshqa tillarga tarjima qiling",
+    hint: "Matnni kiriting va o‘girish rejimini tanlang — natija darhol ko‘rinadi.",
+    latin: "Lotin",
+    cyrillic: "Kirill (Rus/O'zb)",
+    btnToTranslate: "Boshqa tillarga tarjima",
+    btnToTranslit: "Lotin & Kirillga qaytish",
+    placeholderLatin: "Bu yerga lotincha yozing...",
+    placeholderCyrillic: "Бу ерга кирилча ёзинг...",
+    placeholderTranslate: "Tarjima qilish uchun matn kiriting...",
+    placeholderResult: "Natija bu yerda chiqadi...",
+    errTranslate: "Tarjima qilishda xatolik yuz berdi.",
+    errNetwork: "Tarmoq xatoligi yuz berdi.",
+    langUz: "O'zbekcha",
+    langRu: "Ruscha",
+    langEn: "Inglizcha",
+    langDe: "Nemischa",
+    langFr: "Fransuzcha",
+  },
+  ru: {
+    title: "Транслитератор и Переводчик",
+    desc: "Конвертация между латиницей и кириллицей или перевод на другие языки",
+    hint: "Введите текст и выберите режим — результат появится сразу.",
+    latin: "Латиница",
+    cyrillic: "Кириллица (Рус/Узб)",
+    btnToTranslate: "Перевод на другие языки",
+    btnToTranslit: "Вернуться к транслитерации",
+    placeholderLatin: "Введите текст латиницей...",
+    placeholderCyrillic: "Введите текст кириллицей...",
+    placeholderTranslate: "Введите текст для перевода...",
+    placeholderResult: "Результат появится здесь...",
+    errTranslate: "Ошибка при переводе.",
+    errNetwork: "Ошибка сети.",
+    langUz: "Узбекский",
+    langRu: "Русский",
+    langEn: "Английский",
+    langDe: "Немецкий",
+    langFr: "Французский",
+  },
+  en: {
+    title: "Transliterator & Translator",
+    desc: "Convert between Latin and Cyrillic script or translate to other languages",
+    hint: "Enter text and select mode — result updates immediately.",
+    latin: "Latin",
+    cyrillic: "Cyrillic (Rus/Uzb)",
+    btnToTranslate: "Translate to other languages",
+    btnToTranslit: "Back to transliteration",
+    placeholderLatin: "Type in Latin script here...",
+    placeholderCyrillic: "Type in Cyrillic script here...",
+    placeholderTranslate: "Enter text to translate...",
+    placeholderResult: "Result appears here...",
+    errTranslate: "Error translating text.",
+    errNetwork: "Network error occurred.",
+    langUz: "Uzbek",
+    langRu: "Russian",
+    langEn: "English",
+    langDe: "German",
+    langFr: "French",
+  },
+})
+
 const text = ref('')
 const result = ref('')
-const mode = ref('latinToCyrillic') // 'latinToCyrillic' | 'cyrillicToLatin' | 'translate'
+const mode = ref('latinToCyrillic')
 const copied = ref(false)
 
 const fromLang = ref('uz')
 const toLang = ref('en')
 const isTranslating = ref(false)
 
-const languages = [
-  { code: 'uz', name: 'O\'zbekcha' },
-  { code: 'ru', name: 'Ruscha' },
-  { code: 'en', name: 'Inglizcha' },
-  { code: 'de', name: 'Nemischa' },
-  { code: 'fr', name: 'Fransuzcha' },
-]
+const languages = computed(() => [
+  { code: 'uz', name: tx.value.langUz },
+  { code: 'ru', name: tx.value.langRu },
+  { code: 'en', name: tx.value.langEn },
+  { code: 'de', name: tx.value.langDe },
+  { code: 'fr', name: tx.value.langFr },
+])
 
-// O'zbek lotin va kirill harflari xaritasi
 const cyrillicToLatinMap = {
-  'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ё': 'Yo', 'Ж': 'J', 'З': 'Z', 'И': 'I', 'Й': 'Y', 'К': 'K', 'Л': 'L', 'М': 'M', 'Н': 'N', 'О': 'O', 'П': 'P', 'Р': 'R', 'С': 'S', 'T': 'T', 'У': 'U', 'Ф': 'F', 'Х': 'X', 'Ц': 'Ts', 'Ч': 'Ch', 'Ш': 'Sh', 'Щ': 'Shch', 'Ъ': '\'', 'Ы': 'Y', 'Ь': '', 'Э': 'E', 'Ю': 'Yu', 'Я': 'Ya', 'Ў': 'O\'', 'Қ': 'Q', 'Ғ': 'G\'', 'Ҳ': 'H',
-  'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo', 'ж': 'j', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'x', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'shch', 'ъ': '\'', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya', 'ў': 'o\'', 'қ': 'q', 'ғ': 'g\'', 'ҳ': 'h'
+  'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ё': 'Yo', 'Ж': 'J', 'З': 'Z', 'И': 'I', 'Й': 'Y', 'К': 'K', 'Л': 'L', 'М': 'M', 'Н': 'N', 'О': 'O', 'П': 'P', 'Р': 'R', 'С': 'S', 'T': 'T', 'У': 'U', 'Ф': 'F', 'Х': 'X', 'Ц': 'Ts', 'Ч': 'Ch', 'Ш': 'Sh', 'Щ': 'Shch', 'Ъ': "'", 'Ы': 'Y', 'Ь': '', 'Э': 'E', 'Ю': 'Yu', 'Я': 'Ya', 'Ў': "O'", 'Қ': 'Q', 'Ғ': "G'", 'Ҳ': 'H',
+  'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo', 'ж': 'j', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'x', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'shch', 'ъ': "'", 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya', 'ў': "o'", 'қ': 'q', 'ғ': "g'", 'ҳ': 'h'
 }
 
 const latinToCyrillicMap = {
-  'A': 'А', 'B': 'Б', 'V': 'В', 'G': 'Г', 'D': 'Д', 'E': 'Е', 'Yo': 'Ё', 'J': 'Ж', 'Z': 'З', 'I': 'И', 'Y': 'Й', 'K': 'К', 'L': 'Л', 'M': 'М', 'N': 'Н', 'O': 'О', 'P': 'П', 'R': 'Р', 'S': 'С', 'T': 'Т', 'U': 'У', 'F': 'Ф', 'X': 'Х', 'Ts': 'Ц', 'Ch': 'Ч', 'Sh': 'Ш', 'Shch': 'Щ', 'E\'': 'Э', 'Yu': 'Ю', 'Ya': 'Я', 'O\'': 'Ў', 'Q': 'Қ', 'G\'': 'Ғ', 'H': 'Ҳ',
-  'a': 'а', 'b': 'б', 'v': 'в', 'g': 'г', 'd': 'д', 'e': 'е', 'yo': 'ё', 'j': 'ж', 'z': 'з', 'i': 'и', 'y': 'й', 'k': 'к', 'l': 'л', 'm': 'м', 'n': 'н', 'o': 'о', 'p': 'п', 'r': 'р', 's': 'с', 't': 'т', 'u': 'у', 'f': 'ф', 'x': 'х', 'ts': 'ц', 'ch': 'ч', 'sh': 'ш', 'shch': 'щ', 'e\'': 'э', 'yu': 'ю', 'ya': 'я', 'o\'': 'ў', 'q': 'қ', 'g\'': 'ғ', 'h': 'ҳ'
+  'A': 'А', 'B': 'Б', 'V': 'В', 'G': 'Г', 'D': 'Д', 'E': 'Е', 'Yo': 'Ё', 'J': 'Ж', 'Z': 'З', 'I': 'И', 'Y': 'Й', 'K': 'К', 'L': 'Л', 'M': 'М', 'N': 'Н', 'O': 'О', 'P': 'П', 'R': 'Р', 'S': 'С', 'T': 'Т', 'U': 'У', 'F': 'Ф', 'X': 'Х', 'Ts': 'Ц', 'Ch': 'Ч', 'Sh': 'Ш', 'Shch': 'Щ', "E'": 'Э', 'Yu': 'Ю', 'Ya': 'Я', "O'": 'Ў', 'Q': 'Қ', "G'": 'Ғ', 'H': 'Ҳ',
+  'a': 'а', 'b': 'б', 'v': 'в', 'g': 'г', 'd': 'д', 'e': 'е', 'yo': 'ё', 'j': 'ж', 'z': 'з', 'i': 'и', 'y': 'й', 'k': 'к', 'l': 'л', 'm': 'м', 'n': 'н', 'o': 'о', 'p': 'п', 'r': 'р', 's': 'с', 't': 'т', 'u': 'у', 'f': 'ф', 'x': 'х', 'ts': 'ц', 'ch': 'ч', 'sh': 'ш', 'shch': 'щ', "e'": 'э', 'yu': 'ю', 'ya': 'я', "o'": 'ў', 'q': 'қ', "g'": 'ғ', 'h': 'ҳ'
 }
 
 async function translateText() {
@@ -48,10 +111,10 @@ async function translateText() {
     if (data && data.responseData) {
       result.value = data.responseData.translatedText
     } else {
-      result.value = 'Tarjima qilishda xatolik yuz berdi.'
+      result.value = tx.value.errTranslate
     }
   } catch (err) {
-    result.value = 'Tarmoq xatoligi yuz berdi.'
+    result.value = tx.value.errNetwork
   } finally {
     isTranslating.value = false
   }
@@ -68,62 +131,70 @@ function convert() {
   }
 
   let output = text.value
-  
-  if (mode.value === 'cyrillicToLatin') {
-    // Special rules for 'Е' and 'е' at the beginning of words
-    output = output.replace(/\bЕ/g, 'Ye').replace(/\bе/g, 'ye');
-    
-    let resultText = ''
+  if (mode.value === 'latinToCyrillic') {
+    output = output.replace(/Shch/g, 'Щ').replace(/shch/g, 'щ')
+      .replace(/Ch/g, 'Ч').replace(/ch/g, 'ч')
+      .replace(/Sh/g, 'Ш').replace(/sh/g, 'ш')
+      .replace(/Yo/g, 'Ё').replace(/yo/g, 'ё')
+      .replace(/Yu/g, 'Ю').replace(/yu/g, 'ю')
+      .replace(/Ya/g, 'Я').replace(/ya/g, 'я')
+      .replace(/Ts/g, 'Ц').replace(/ts/g, 'ц')
+      .replace(/O['`ʻ’]/g, 'Ў').replace(/o['`ʻ’]/g, 'ў')
+      .replace(/G['`ʻ’]/g, 'Ғ').replace(/g['`ʻ’]/g, 'ғ')
+
+    let res = ''
     for (let i = 0; i < output.length; i++) {
-      resultText += cyrillicToLatinMap[output[i]] !== undefined ? cyrillicToLatinMap[output[i]] : output[i]
+      const char = output[i]
+      res += latinToCyrillicMap[char] !== undefined ? latinToCyrillicMap[char] : char
     }
-    result.value = resultText
-  } else {
-    // Replace multi-character combinations first
-    const multiChars = Object.keys(latinToCyrillicMap).filter(k => k.length > 1).sort((a, b) => b.length - a.length)
-    
-    for (const lat of multiChars) {
-      const regex = new RegExp(lat.replace(/'/g, "\\'"), 'g')
-      output = output.replace(regex, latinToCyrillicMap[lat])
-    }
-    
-    let resultText = ''
+    result.value = res
+  } else if (mode.value === 'cyrillicToLatin') {
+    let res = ''
     for (let i = 0; i < output.length; i++) {
-      resultText += latinToCyrillicMap[output[i]] !== undefined ? latinToCyrillicMap[output[i]] : output[i]
+      const char = output[i]
+      res += cyrillicToLatinMap[char] !== undefined ? cyrillicToLatinMap[char] : char
     }
-    result.value = resultText
+    result.value = res
   }
 }
 
 function toggleMode() {
-  mode.value = mode.value === 'cyrillicToLatin' ? 'latinToCyrillic' : 'cyrillicToLatin'
-  const temp = text.value
+  if (mode.value === 'latinToCyrillic') {
+    mode.value = 'cyrillicToLatin'
+  } else if (mode.value === 'cyrillicToLatin') {
+    mode.value = 'latinToCyrillic'
+  } else {
+    const temp = fromLang.value
+    fromLang.value = toLang.value
+    toLang.value = temp
+  }
+  const tempText = text.value
   text.value = result.value
-  result.value = ''
-  if (text.value) convert()
+  result.value = tempText
+  convert()
 }
 
-async function copyResult() {
+function copyResult() {
   if (!result.value) return
-  try {
-    await navigator.clipboard.writeText(result.value)
-    copied.value = true
-    setTimeout(() => copied.value = false, 2000)
-  } catch (err) {}
+  navigator.clipboard.writeText(result.value)
+  copied.value = true
+  setTimeout(() => {
+    copied.value = false
+  }, 2000)
 }
 </script>
 
 <template>
-  <ToolShell icon="🔄" title="Kirill & Lotin / Tarjimon" description="Matnlarni alifbolar orasida tezda o'giring" hint="Boshqa tillar (Nemis, Fransuz, Ingliz, Rus) va murakkab tarjimalar uchun AI Yordamchidan so'rang!">
+  <ToolShell icon="🔄" :title="tx.title" :description="tx.desc" :hint="tx.hint">
     <template #header><AppHeader /></template>
 
     <div class="space-y-4">
-      <div class="flex items-center justify-between mb-2 px-1">
+      <div class="flex items-center justify-between mb-2 px-1 flex-wrap gap-2">
         <div class="flex items-center gap-3">
           <select v-if="mode === 'translate'" v-model="fromLang" @change="convert" class="input w-auto text-sm">
             <option v-for="lang in languages" :key="lang.code" :value="lang.code">{{ lang.name }}</option>
           </select>
-          <span v-else class="font-bold text-sm" :class="mode === 'latinToCyrillic' ? 'text-brand-600 dark:text-brand-400' : 'text-slate-500'">Lotin</span>
+          <span v-else class="font-bold text-sm" :class="mode === 'latinToCyrillic' ? 'text-brand-600 dark:text-brand-400' : 'text-slate-500'">{{ tx.latin }}</span>
 
           <button @click="toggleMode" class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
             <ArrowLeftRight class="w-4 h-4 text-slate-700 dark:text-slate-300" />
@@ -132,10 +203,10 @@ async function copyResult() {
           <select v-if="mode === 'translate'" v-model="toLang" @change="convert" class="input w-auto text-sm">
             <option v-for="lang in languages" :key="lang.code" :value="lang.code">{{ lang.name }}</option>
           </select>
-          <span v-else class="font-bold text-sm" :class="mode === 'cyrillicToLatin' ? 'text-brand-600 dark:text-brand-400' : 'text-slate-500'">Kirill (Rus/O'zb)</span>
+          <span v-else class="font-bold text-sm" :class="mode === 'cyrillicToLatin' ? 'text-brand-600 dark:text-brand-400' : 'text-slate-500'">{{ tx.cyrillic }}</span>
         </div>
-        <button @click="mode = 'translate'; text = ''; result = '';" v-if="mode !== 'translate'" class="btn-secondary text-sm">Boshqa tillarga tarjima</button>
-        <button @click="mode = 'latinToCyrillic'; text = ''; result = '';" v-else class="btn-secondary text-sm">Lotin & Kirillga qaytish</button>
+        <button @click="mode = 'translate'; text = ''; result = '';" v-if="mode !== 'translate'" class="btn-secondary text-sm">{{ tx.btnToTranslate }}</button>
+        <button @click="mode = 'latinToCyrillic'; text = ''; result = '';" v-else class="btn-secondary text-sm">{{ tx.btnToTranslit }}</button>
       </div>
 
       <div>
@@ -143,7 +214,7 @@ async function copyResult() {
           v-model="text"
           @input="convert"
           class="input min-h-[120px] resize-y text-base"
-          :placeholder="mode === 'latinToCyrillic' ? 'Bu yerga lotincha yozing...' : (mode === 'cyrillicToLatin' ? 'Бу ерга кирилча ёзинг...' : 'Tarjima qilish uchun matn kiriting...')"
+          :placeholder="mode === 'latinToCyrillic' ? tx.placeholderLatin : (mode === 'cyrillicToLatin' ? tx.placeholderCyrillic : tx.placeholderTranslate)"
         ></textarea>
       </div>
 
@@ -152,7 +223,7 @@ async function copyResult() {
           v-model="result"
           readonly
           class="input min-h-[120px] resize-y bg-slate-50 dark:bg-slate-800 text-base border-dashed"
-          placeholder="Natija bu yerda chiqadi..."
+          :placeholder="tx.placeholderResult"
         ></textarea>
         <button
           v-if="result"
@@ -163,8 +234,6 @@ async function copyResult() {
           <Copy v-else class="w-4 h-4" />
         </button>
       </div>
-      
-
     </div>
   </ToolShell>
 </template>

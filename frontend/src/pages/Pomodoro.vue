@@ -3,15 +3,62 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import ToolShell from '../components/ToolShell.vue'
 import AppHeader from '../components/AppHeader.vue'
 import { useAuthStore } from '../store/auth'
-import { useI18n } from '../i18n'
+import { useToolText } from '../utils/toolText'
 
 const auth = useAuthStore()
-const { t } = useI18n()
+
+const tx = useToolText({
+  uz: {
+    title: "Pomodoro Taymer",
+    desc: "Diqqatni bir joyga jamlab samarali ishlash usuli",
+    hint: "25 daqiqa to'liq diqqat bilan ishlang, so'ng 5 daqiqa dam oling",
+    work: "👨‍💻 Ish (25m)",
+    shortBreak: "☕ Qisqa tanaffus (5m)",
+    longBreak: "🌴 Uzun tanaffus (15m)",
+    focus: "Fokuslaning",
+    ready: "Tayyor",
+    placeholder: "Qaysi vazifa ustida ishlayapsiz? (Masalan: Matematika 3-mashq)",
+    start: "▶️ Boshlash",
+    pause: "⏸️ Pauza",
+    reset: "🔄 Qayta o'rnatish",
+    completed: "🎯 Bajarilgan Pomodorolar:",
+  },
+  ru: {
+    title: "Помодоро Таймер",
+    desc: "Метод концентрации внимания для эффективной работы",
+    hint: "25 минут сфокусированной работы, затем 5 минут отдыха",
+    work: "👨‍💻 Работа (25м)",
+    shortBreak: "☕ Короткий перерыв (5м)",
+    longBreak: "🌴 Длинный перерыв (15м)",
+    focus: "Фокусируйтесь",
+    ready: "Готов",
+    placeholder: "Над какой задачей вы работаете? (Например: Задача 3)",
+    start: "▶️ Старт",
+    pause: "⏸️ Пауза",
+    reset: "🔄 Сбросить",
+    completed: "🎯 Завершено Помодоро:",
+  },
+  en: {
+    title: "Pomodoro Timer",
+    desc: "Focus technique for effective and distraction-free work",
+    hint: "Work with full focus for 25 minutes, then take a 5-minute break",
+    work: "👨‍💻 Work (25m)",
+    shortBreak: "☕ Short break (5m)",
+    longBreak: "🌴 Long break (15m)",
+    focus: "Stay focused",
+    ready: "Ready",
+    placeholder: "What are you working on? (e.g.: Chapter 3 review)",
+    start: "▶️ Start",
+    pause: "⏸️ Pause",
+    reset: "🔄 Reset",
+    completed: "🎯 Completed Pomodoros:",
+  },
+})
 
 const modes = computed(() => [
-  { id: 'work', label: `👨‍💻 ${t('Ish (25m)')}`, minutes: 25 },
-  { id: 'short', label: `☕ ${t('Qisqa tanaffus (5m)')}`, minutes: 5 },
-  { id: 'long', label: `🌴 ${t('Uzun tanaffus (15m)')}`, minutes: 15 },
+  { id: 'work', label: tx.value.work, minutes: 25 },
+  { id: 'short', label: tx.value.shortBreak, minutes: 5 },
+  { id: 'long', label: tx.value.longBreak, minutes: 15 },
 ])
 
 const storageKey = computed(() => {
@@ -50,13 +97,12 @@ function saveState() {
     timeLeft: timeLeft.value,
     isRunning: isRunning.value,
     taskTitle: taskTitle.value,
-    completedCount: completedCount.value,
+    completedCount: completedCount.value
   }
   localStorage.setItem(storageKey.value, JSON.stringify(state))
 }
 
 function loadState() {
-  stopTimer()
   const savedState = localStorage.getItem(storageKey.value)
   if (savedState) {
     try {
@@ -152,9 +198,9 @@ onUnmounted(() => {
 <template>
   <ToolShell
     icon="🍅"
-    :title="t('Pomodoro Taymer')"
-    :description="t('Diqqatni bir joyga jamlab samarali ishlash usuli')"
-    :hint="t('25 daqiqa to\'liq diqqat bilan ishlang, so\'ng 5 daqiqa dam oling')"
+    :title="tx.title"
+    :description="tx.desc"
+    :hint="tx.hint"
   >
     <template #header>
       <AppHeader />
@@ -199,7 +245,7 @@ onUnmounted(() => {
             {{ minutesFormatted }}:{{ secondsFormatted }}
           </span>
           <span class="text-xs text-slate-400 mt-1 uppercase font-semibold tracking-wider">
-            {{ isRunning ? t('Fokuslaning') : t('Tayyor') }}
+            {{ isRunning ? tx.focus : tx.ready }}
           </span>
         </div>
       </div>
@@ -210,7 +256,7 @@ onUnmounted(() => {
           v-model="taskTitle"
           type="text"
           class="input text-center text-sm"
-          :placeholder="t('Qaysi vazifa ustida ishlayapsiz? (Masalan: Matematika 3-mashq)')"
+          :placeholder="tx.placeholder"
         />
       </div>
 
@@ -221,27 +267,27 @@ onUnmounted(() => {
           class="btn-primary !px-8 !py-3 text-base shadow-soft animate-popIn"
           @click="startTimer"
         >
-          ▶️ {{ t('Boshlash') }}
+          {{ tx.start }}
         </button>
         <button
           v-else
           class="px-8 py-3 rounded-xl bg-amber-500 text-white font-semibold shadow-soft hover:bg-amber-600 transition"
           @click="stopTimer"
         >
-          ⏸️ {{ t('Pauza') }}
+          {{ tx.pause }}
         </button>
         <button
           class="btn-secondary !px-4 !py-3 text-sm"
           @click="resetTimer"
         >
-          🔄 {{ t('Qayta o\'rnatish') }}
+          {{ tx.reset }}
         </button>
       </div>
 
       <!-- Session Stats -->
       <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-center gap-6 text-sm">
         <div class="flex items-center gap-2">
-          <span>🎯 {{ t('Bajarilgan Pomodorolar:') }}</span>
+          <span>{{ tx.completed }}</span>
           <span class="font-bold text-brand-600 dark:text-brand-400 text-lg">{{ completedCount }}</span>
         </div>
       </div>

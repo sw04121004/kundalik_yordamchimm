@@ -2,9 +2,43 @@
 import { ref, onUnmounted } from 'vue'
 import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
-import { useI18n } from '../../i18n'
+import { useToolText } from '../../utils/toolText'
 
-const { t } = useI18n()
+const tx = useToolText({
+  uz: {
+    title: "Vaqt trekeri",
+    desc: "Kunlik vazifalarga ketgan vaqtni o'lchash va nazorat qilish",
+    hint: "Vazifa nomini yozing va taymerni ishga tushiring.",
+    placeholder: "Qaysi vazifa ustida ishlayapsiz?",
+    unnamed: "Nomsiz vazifa",
+    start: "▶ Boshlash",
+    stop: "⏸ To'xtatish",
+    clear: "Tozalash",
+    todayRecords: "Bugungi qaydlar",
+  },
+  ru: {
+    title: "Трекер времени",
+    desc: "Измерение и контроль времени, затраченного на задачи",
+    hint: "Введите название задачи и запустите таймер.",
+    placeholder: "Над какой задачей вы работаете?",
+    unnamed: "Без названия",
+    start: "▶ Старт",
+    stop: "⏸ Стоп",
+    clear: "Сбросить",
+    todayRecords: "Записи за сегодня",
+  },
+  en: {
+    title: "Time Tracker",
+    desc: "Track and manage time spent on daily tasks",
+    hint: "Type task title and start the timer.",
+    placeholder: "What are you working on?",
+    unnamed: "Untitled task",
+    start: "▶ Start",
+    stop: "⏸ Stop",
+    clear: "Clear",
+    todayRecords: "Today's logs",
+  },
+})
 
 const isRunning = ref(false)
 const seconds = ref(0)
@@ -18,7 +52,7 @@ function toggleTimer() {
     isRunning.value = false
     if (seconds.value > 0) {
       history.value.unshift({
-        title: taskName.value.trim() || 'Nomsiz vazifa',
+        title: taskName.value.trim() || tx.value.unnamed,
         time: formatTime(seconds.value),
         date: new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })
       })
@@ -48,7 +82,7 @@ onUnmounted(() => clearInterval(timer))
 </script>
 
 <template>
-  <ToolShell icon="⏱️" title="Vaqt trekeri" description="Kunlik vazifalarga ketgan vaqtni o'lchash va nazorat qilish" hint="Vazifa nomini yozing va taymerni ishga tushiring.">
+  <ToolShell icon="⏱️" :title="tx.title" :description="tx.desc" :hint="tx.hint">
     <template #header><AppHeader /></template>
 
     <div class="space-y-6 text-center">
@@ -57,7 +91,7 @@ onUnmounted(() => clearInterval(timer))
       </div>
 
       <div class="max-w-md mx-auto">
-        <input v-model="taskName" type="text" placeholder="Qaysi vazifa ustida ishlayapsiz?" class="input text-center" :disabled="isRunning" />
+        <input v-model="taskName" type="text" :placeholder="tx.placeholder" class="input text-center" :disabled="isRunning" />
       </div>
 
       <div class="flex justify-center gap-3">
@@ -66,15 +100,15 @@ onUnmounted(() => clearInterval(timer))
           :class="isRunning ? '!from-amber-500 !to-amber-600' : ''"
           @click="toggleTimer"
         >
-          {{ isRunning ? '⏸ To\'xtatish' : '▶ Boshlash' }}
+          {{ isRunning ? tx.stop : tx.start }}
         </button>
         <button class="btn-secondary !px-5" @click="resetTimer">
-          {{ t('common.clear') }}
+          {{ tx.clear }}
         </button>
       </div>
 
       <div v-if="history.length" class="text-left pt-6 border-t border-slate-100 dark:border-slate-800">
-        <h3 class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Bugungi qaydlar</h3>
+        <h3 class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{{ tx.todayRecords }}</h3>
         <div class="space-y-2">
           <div v-for="(h, idx) in history" :key="idx" class="flex justify-between items-center p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
             <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ h.title }}</span>

@@ -2,6 +2,43 @@
 import { ref } from 'vue'
 import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
+import { useToolText } from '../../utils/toolText'
+
+const tx = useToolText({
+  uz: {
+    title: "Rasmni siqish",
+    desc: "Rasm sifatini deyarli yo'qotmagan holda uning hajmini bir necha barobar kichraytiring",
+    hint: "Rasmni yuklang va sifat darajasini o'zgartiring.",
+    chooseFile: "Rasm tanlang",
+    quality: "Sifat darajasi:",
+    saving: "Tejam:",
+    originalSize: "Asl hajmi",
+    newSize: "Yangi hajmi",
+    download: "Yuklab olish",
+  },
+  ru: {
+    title: "Сжатие изображений",
+    desc: "Уменьшение размера файла изображения без заметной потери качества",
+    hint: "Загрузите изображение и выберите уровень качества.",
+    chooseFile: "Выберите изображение",
+    quality: "Качество:",
+    saving: "Экономия:",
+    originalSize: "Исходный размер",
+    newSize: "Новый размер",
+    download: "Скачать",
+  },
+  en: {
+    title: "Image Compressor",
+    desc: "Significantly reduce image file size while keeping visual quality",
+    hint: "Upload an image and adjust the quality slider.",
+    chooseFile: "Choose image",
+    quality: "Quality level:",
+    saving: "Saved:",
+    originalSize: "Original size",
+    newSize: "New size",
+    download: "Download",
+  },
+})
 
 const imageSrc = ref(null)
 const quality = ref(60)
@@ -54,21 +91,21 @@ function formatBytes(bytes) {
 </script>
 
 <template>
-  <ToolShell icon="🗜️" title="Rasmni siqish" description="Rasm sifatini deyarli yo'qotmagan holda uning hajmini bir necha barobar kichraytiring" hint="Rasmni yuklang va sifat darajasini o'zgartiring.">
+  <ToolShell icon="🗜️" :title="tx.title" :description="tx.desc" :hint="tx.hint">
     <template #header><AppHeader /></template>
 
     <div class="space-y-5">
       <div>
-        <label class="label">Rasm tanlang</label>
+        <label class="label">{{ tx.chooseFile }}</label>
         <input type="file" accept="image/*" class="input !py-2" @change="handleFile" />
       </div>
 
       <div v-if="imageSrc" class="space-y-4">
         <div>
           <div class="flex justify-between text-sm font-semibold mb-1">
-            <span>Sifat darajasi: {{ quality }}%</span>
+            <span>{{ tx.quality }} {{ quality }}%</span>
             <span class="text-brand-600 dark:text-brand-400 font-bold">
-              {{ originalSize ? `Tejam: -${Math.round((1 - compressedSize / originalSize) * 100)}%` : '' }}
+              {{ originalSize ? `${tx.saving} -${Math.round((1 - compressedSize / originalSize) * 100)}%` : '' }}
             </span>
           </div>
           <input v-model.number="quality" type="range" min="10" max="90" step="5" class="w-full accent-brand-600" @input="compress" />
@@ -76,18 +113,18 @@ function formatBytes(bytes) {
 
         <div class="grid grid-cols-2 gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 text-center">
           <div>
-            <p class="text-xs text-slate-400">Asl hajmi</p>
+            <p class="text-xs text-slate-400">{{ tx.originalSize }}</p>
             <p class="font-bold text-slate-700 dark:text-slate-200">{{ formatBytes(originalSize) }}</p>
           </div>
           <div>
-            <p class="text-xs text-slate-400">Yangi hajmi</p>
+            <p class="text-xs text-slate-400">{{ tx.newSize }}</p>
             <p class="font-bold text-green-600 dark:text-green-400">{{ formatBytes(compressedSize) }}</p>
           </div>
         </div>
 
         <div v-if="outputUrl" class="text-center pt-2">
           <a :href="outputUrl" :download="`siqilgan-${fileName}`" class="btn-primary !px-8 !py-2.5 inline-block w-full">
-            Yuklab olish
+            {{ tx.download }}
           </a>
         </div>
       </div>
