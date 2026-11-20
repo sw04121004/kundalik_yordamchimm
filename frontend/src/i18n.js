@@ -814,6 +814,22 @@ const uz = {
   "ai.purpose.programming": "Kod AI",
   "ai.purpose.ideas": "G'oya AI",
   "ai.purpose.cv": "CV / Ish AI",
+  "Matndagi so'z, belgi va qatorlar sonini bilib oling": "Matndagi so'z, belgi va qatorlar sonini bilib oling",
+  "So'z va belgi sanagich": "So'z va belgi sanagich",
+  "So'm, dollar, yevro va boshqa valyutalar (taxminiy kurs)": "So'm, dollar, yevro va boshqa valyutalar (taxminiy kurs)",
+  "O'rtacha qiymat hisoblagich": "O'rtacha qiymat hisoblagich",
+  "Sonlar ro'yxatining o'rtachasini toping": "Sonlar ro'yxatining o'rtachasini toping",
+  "Matn yoki havola (link) kiriting, «Yaratish»ni bosing — QR-kod darhol paydo bo'ladi, uni yuklab olishingiz mumkin.": "Matn yoki havola (link) kiriting, «Yaratish»ni bosing — QR-kod darhol paydo bo'ladi, uni yuklab olishingiz mumkin.",
+  "Qo'shish, ayirish, ko'paytirish, bo'lish": "Qo'shish, ayirish, ko'paytirish, bo'lish",
+  "Rasm o'lchamini o'zgartirish": "Rasm o'lchamini o'zgartirish",
+  "Ortiqcha bo'shliq va qatorlarni tozalang": "Ortiqcha bo'shliq va qatorlarni tozalang",
+  "Katta/kichik harf o'zgartirish": "Katta/kichik harf o'zgartirish",
+  "Og'irlik konvertori": "Og'irlik konvertori",
+  "Sanaga kun qo'shish yoki ayirish": "Sanaga kun qo'shish yoki ayirish",
+  "Bo'y va vaznga qarab BMI'ni aniqlang": "Bo'y va vaznga qarab BMI'ni aniqlang",
+  "Matnni turli registrga o'zgartiring": "Matnni turli registrga o'zgartiring",
+  "Rasm o'lchami, formati va hajmini o'zgartiring": "Rasm o'lchami, formati va hajmini o'zgartiring",
+
 }
 
 // ─── Rus tili (Русский) ───────────────────────────────────────────────────────
@@ -1620,6 +1636,22 @@ const ru = {
   "ai.purpose.programming": "Код AI",
   "ai.purpose.ideas": "Идеи AI",
   "ai.purpose.cv": "Резюме / Работа AI",
+  "Matndagi so'z, belgi va qatorlar sonini bilib oling": "Количество слов, символов и строк в тексте",
+  "So'z va belgi sanagich": "Счётчик слов и символов",
+  "So'm, dollar, yevro va boshqa valyutalar (taxminiy kurs)": "Сум, доллар, евро и другие валюты (примерный курс)",
+  "O'rtacha qiymat hisoblagich": "Калькулятор среднего значения",
+  "Sonlar ro'yxatining o'rtachasini toping": "Найдите среднее значение списка чисел",
+  "Matn yoki havola (link) kiriting, «Yaratish»ni bosing — QR-kod darhol paydo bo'ladi, uni yuklab olishingiz mumkin.": "Введите текст или ссылку, нажмите «Создать» — QR-код появится мгновенно.",
+  "Qo'shish, ayirish, ko'paytirish, bo'lish": "Сложение, вычитание, умножение, деление",
+  "Rasm o'lchamini o'zgartirish": "Изменение размера фото",
+  "Ortiqcha bo'shliq va qatorlarni tozalang": "Удаление лишних пробелов и пустых строк",
+  "Katta/kichik harf o'zgartirish": "Смена регистра букв",
+  "Og'irlik konvertori": "Конвертер веса",
+  "Sanaga kun qo'shish yoki ayirish": "Прибавление или вычитание дней к дате",
+  "Bo'y va vaznga qarab BMI'ni aniqlang": "Определите ИМТ по росту и весу",
+  "Matnni turli registrga o'zgartiring": "Преобразуйте текст в разный регистр",
+  "Rasm o'lchami, formati va hajmini o'zgartiring": "Изменяйте размер, формат и объем изображений",
+
 }
 
 // ─── Ingliz tili (English) ───────────────────────────────────────────────────
