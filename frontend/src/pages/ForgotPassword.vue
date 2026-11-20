@@ -87,12 +87,12 @@ async function confirmReset() {
       <form v-else class="space-y-4" @submit.prevent="confirmReset">
         <div>
           <label class="label" for="reset-code">{{ t('forgot.code') }}</label>
-          <input id="reset-code" v-model="form.code" class="input" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required />
+          <input id="reset-code" v-model="form.code" class="input" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required @input="error = ''" />
         </div>
         <div>
           <label class="label" for="reset-password">{{ t('forgot.newPassword') }}</label>
           <div class="relative">
-            <input id="reset-password" v-model="form.password" :type="showPassword ? 'text' : 'password'" class="input pr-11" minlength="8" autocomplete="new-password" required />
+            <input id="reset-password" v-model="form.password" :type="showPassword ? 'text' : 'password'" class="input pr-11" minlength="8" autocomplete="new-password" required @input="error = ''" />
             <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500" :aria-label="showPassword ? t('profile.password.hide') : t('profile.password.show')" @click="showPassword = !showPassword">
               <Eye v-if="!showPassword" class="w-5 h-5" />
               <EyeOff v-else class="w-5 h-5" />
@@ -102,7 +102,7 @@ async function confirmReset() {
         <div>
           <label class="label" for="reset-password-confirm">{{ t('forgot.confirmPassword') }}</label>
           <div class="relative">
-            <input id="reset-password-confirm" v-model="form.password2" :type="showPassword2 ? 'text' : 'password'" class="input pr-11" minlength="8" autocomplete="new-password" required />
+            <input id="reset-password-confirm" v-model="form.password2" :type="showPassword2 ? 'text' : 'password'" class="input pr-11" minlength="8" autocomplete="new-password" required @input="error = ''" />
             <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500" :aria-label="showPassword2 ? t('profile.password.hide') : t('profile.password.show')" @click="showPassword2 = !showPassword2">
               <Eye v-if="!showPassword2" class="w-5 h-5" />
               <EyeOff v-else class="w-5 h-5" />
