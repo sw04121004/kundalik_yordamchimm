@@ -14,14 +14,49 @@ const router = useRouter()
 const { t } = useI18n()
 
 const STARTER_PROMPTS = {
-  kitchen: ["Uyda bor mahsulotlarimdan ovqat topib ber", "Bugungi kechki ovqat uchun menyu tuz"],
-  study: ["Bu mavzuni oddiy qilib tushuntir", "Imtihon uchun test tuzib ber"],
-  document: ["Bu hujjatni qisqacha tushuntir", "Rasmiy matn qilib yozib ber"],
-  finance: ["Bugungi xarajatlarimni tahlil qil", "Byudjet rejasini tuz"],
-  programming: ["Bu koddagi xatoni top", "Kodimni tushuntirib ber"],
-  translation: ["Bu matnni ingliz tiliga tarjima qil"],
-  home: ["Bugun uyda nimalar qilishim kerak?"],
-  general: ["Menga yordam bering", "Qanday imkoniyatlaringiz bor?"]
+  uz: {
+    kitchen: ["Uyda bor mahsulotlarimdan ovqat topib ber", "Bugungi kechki ovqat uchun menyu tuz"],
+    study: ["Bu mavzuni oddiy qilib tushuntir", "Imtihon uchun test tuzib ber"],
+    document: ["Bu hujjatni qisqacha tushuntir", "Rasmiy matn qilib yozib ber"],
+    finance: ["Bugungi xarajatlarimni tahlil qil", "Byudjet rejasini tuz"],
+    programming: ["Bu koddagi xatoni top", "Kodimni tushuntirib ber"],
+    translation: ["Bu matnni ingliz tiliga tarjima qil"],
+    home: ["Bugun uyda nimalar qilishim kerak?"],
+    general: ["Menga yordam bering", "Qanday imkoniyatlaringiz bor?"]
+  },
+  ru: {
+    kitchen: ["Подскажи рецепт из продуктов, которые есть дома", "Составь меню на сегодняшний ужин"],
+    study: ["Объясни эту тему простыми словами", "Составь тест для подготовки к экзамену"],
+    document: ["Кратко перескажи этот документ", "Помоги составить официальный текст"],
+    finance: ["Проанализируй мои сегодняшние расходы", "Составь план бюджета"],
+    programming: ["Найди ошибку в этом коде", "Объясни, как работает этот код"],
+    translation: ["Переведи этот текст на английский язык"],
+    home: ["Что мне сегодня нужно сделать по дому?"],
+    general: ["Помоги мне, пожалуйста", "Какие у тебя есть возможности?"]
+  },
+  en: {
+    kitchen: ["Suggest a meal from ingredients I have at home", "Create a dinner menu for tonight"],
+    study: ["Explain this topic in simple terms", "Create a practice test for my exam"],
+    document: ["Summarize this document briefly", "Help me draft a formal letter"],
+    finance: ["Analyze my expenses for today", "Create a monthly budget plan"],
+    programming: ["Find the bug in this code", "Explain how this code works"],
+    translation: ["Translate this text into English"],
+    home: ["What household chores should I prioritize today?"],
+    general: ["How can you help me today?", "What are your main capabilities?"]
+  }
+}
+
+function getStarterPrompts(purpose) {
+  const lang = ['uz', 'ru', 'en'].includes(language.value) ? language.value : 'uz'
+  const pool = STARTER_PROMPTS[lang] || STARTER_PROMPTS.uz
+  return pool[purpose] || pool.general
+}
+
+function displayConversationTitle(title) {
+  if (!title || title.trim() === 'Yangi suhbat' || title.trim() === 'Новый чат' || title.trim() === 'New chat') {
+    return t('ai.defaultTitle')
+  }
+  return title
 }
 
 function renderMarkdown(text) {
@@ -247,7 +282,7 @@ function autoResize(el) {
               :class="aiStore.current?.id === conv.id ? 'opacity-100' : 'opacity-0'"></div>
             <span class="text-base shrink-0 mt-0.5">{{ purposeMeta(conv.purpose).icon }}</span>
             <div class="flex-1 min-w-0">
-              <p class="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">{{ conv.title }}</p>
+              <p class="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">{{ displayConversationTitle(conv.title) }}</p>
               <p v-if="conv.last_message" class="text-xs text-slate-400 truncate mt-0.5">{{ conv.last_message }}</p>
             </div>
             <button
@@ -277,7 +312,7 @@ function autoResize(el) {
                 @click="openConversation(conv.id)"
               >
                 <span class="text-base shrink-0">{{ purposeMeta(conv.purpose).icon }}</span>
-                <p class="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">{{ conv.title }}</p>
+                <p class="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">{{ displayConversationTitle(conv.title) }}</p>
               </div>
             </div>
           </div>
@@ -324,7 +359,7 @@ function autoResize(el) {
           <div class="flex items-center gap-3 px-4 sm:px-5 py-3 border-b border-slate-100 dark:border-white/5">
             <div class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xl shrink-0">{{ purposeMeta(aiStore.current.purpose).icon }}</div>
             <div class="min-w-0">
-              <p class="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{{ aiStore.current.title }}</p>
+              <p class="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{{ displayConversationTitle(aiStore.current.title) }}</p>
               <p class="text-xs text-slate-500 dark:text-slate-400">{{ t(`ai.purpose.${aiStore.current.purpose}`) || purposeMeta(aiStore.current.purpose).label }}</p>
             </div>
           </div>
@@ -342,7 +377,7 @@ function autoResize(el) {
               <p class="text-center text-slate-400 text-sm mb-6">{{ t('ai.choose') }}</p>
               <div class="flex flex-wrap justify-center gap-2.5">
                 <button
-                  v-for="(prompt, i) in (STARTER_PROMPTS[aiStore.current.purpose] || STARTER_PROMPTS['general'])"
+                  v-for="(prompt, i) in getStarterPrompts(aiStore.current.purpose)"
                   :key="i"
                   @click="draft = prompt; send()"
                   class="inline-flex items-center text-left px-4 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md hover:shadow-brand-500/15 active:scale-95 border border-brand-200/50 dark:border-brand-500/30 bg-gradient-to-br from-white dark:from-[#26342e] to-brand-50/50 dark:to-brand-900/20 text-brand-700 dark:text-brand-300 hover:border-brand-300 dark:hover:border-brand-500/50 hover:-translate-y-0.5 focus:outline-none"
