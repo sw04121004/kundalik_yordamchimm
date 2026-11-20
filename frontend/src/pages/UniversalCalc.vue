@@ -2,10 +2,78 @@
 import { ref, computed } from 'vue'
 import ToolShell from '../components/ToolShell.vue'
 import AppHeader from '../components/AppHeader.vue'
+import { useToolText } from '../utils/toolText'
+import { useI18n } from '../i18n'
+
+const { t } = useI18n()
+
+const tx = useToolText({
+  uz: {
+    title: "Hisoblab ber (Aqlli Universal Hisoblagich)",
+    desc: "Matnli, foizli va murakkab formulalarni bir zumda hisoblang",
+    hint: "Masalan: 150000 + 15% (QQS) yoki sqrt(144) + 5^2 kabi formulalarni yozing",
+    inputLabel: "Matnli formula yoki misolni kiriting",
+    placeholder: "Masalan: (250000 * 3) + 12%",
+    presetsLabel: "Tezkor namunalar",
+    presetVat: "+12% QQS",
+    presetDiscount: "-20% Chegirma",
+    presetTrig: "Trigonometriya",
+    result: "Natija",
+    copy: "📋 Nusxalash",
+    copied: "✓ Nusxalandi",
+    recent: "⏱️ So'nggi hisoblar",
+    errParenExtra: "Noto'g'ri joylashgan qavs: ')' ortiqcha",
+    errParenBalance: "Qavslar muvozanati buzilgan: '(' yoki ')' yetishmayapti",
+    errInvalidChar: "Noto'g'ri belgi kiritildi",
+    errCannotCalc: "Hisoblab bo'lmadi",
+    errSyntax: "Hisoblashda sintaktik xatolik",
+  },
+  ru: {
+    title: "Умный калькулятор (Универсальный)",
+    desc: "Мгновенный расчёт текстовых, процентных и сложных формул",
+    hint: "Например: 150000 + 15% (НДС) или sqrt(144) + 5^2",
+    inputLabel: "Введите текстовую формулу или выражение",
+    placeholder: "Например: (250000 * 3) + 12%",
+    presetsLabel: "Быстрые примеры",
+    presetVat: "+12% НДС",
+    presetDiscount: "-20% Скидка",
+    presetTrig: "Тригонометрия",
+    result: "Результат",
+    copy: "📋 Копировать",
+    copied: "✓ Скопировано",
+    recent: "⏱️ Недавние вычисления",
+    errParenExtra: "Лишняя скобка ')'",
+    errParenBalance: "Нарушен баланс скобок: отсутствует '(' или ')'",
+    errInvalidChar: "Введен недопустимый символ",
+    errCannotCalc: "Не удалось вычислить",
+    errSyntax: "Синтаксическая ошибка в выражении",
+  },
+  en: {
+    title: "Smart Calculator (Universal)",
+    desc: "Calculate text, percentage, and complex formulas instantly",
+    hint: "For example: 150000 + 15% (VAT) or sqrt(144) + 5^2",
+    inputLabel: "Enter text formula or expression",
+    placeholder: "For example: (250000 * 3) + 12%",
+    presetsLabel: "Quick examples",
+    presetVat: "+12% VAT",
+    presetDiscount: "-20% Discount",
+    presetTrig: "Trigonometry",
+    result: "Result",
+    copy: "📋 Copy",
+    copied: "✓ Copied",
+    recent: "⏱️ Recent calculations",
+    errParenExtra: "Extra parenthesis ')'",
+    errParenBalance: "Mismatched parentheses: missing '(' or ')'",
+    errInvalidChar: "Invalid character entered",
+    errCannotCalc: "Could not calculate",
+    errSyntax: "Syntax error in expression",
+  },
+})
 
 const expression = ref('')
 const history = ref([])
 const errorMsg = ref('')
+const copied = ref(false)
 
 function safeEvaluate(expr) {
   if (!expr || !expr.trim()) return null
@@ -27,26 +95,26 @@ function safeEvaluate(expr) {
     if (cleaned[i] === '(') balance++;
     else if (cleaned[i] === ')') balance--;
     if (balance < 0) {
-      throw new Error("Noto'g'ri joylashgan qavs: ')' ortiqcha")
+      throw new Error(tx.value.errParenExtra)
     }
   }
   if (balance !== 0) {
-    throw new Error("Qavslar muvozanati buzilgan: '(' yoki ')' yetishmayapti")
+    throw new Error(tx.value.errParenBalance)
   }
 
   if (/[^0-9\.\+\-\*\/\(\)\sMath\.\,sqrt|sin|cos|abs|log]/.test(cleaned.replace(/Math\.(sqrt|sin|cos|abs|log10|PI)/g, ''))) {
-    throw new Error("Noto'g'ri belgi kiritildi")
+    throw new Error(tx.value.errInvalidChar)
   }
 
   try {
     const fn = new Function(`return ${cleaned}`)
     const res = fn()
     if (typeof res !== 'number' || isNaN(res) || !isFinite(res)) {
-      throw new Error("Hisoblab bo'lmadi")
+      throw new Error(tx.value.errCannotCalc)
     }
     return Number(res.toFixed(6))
   } catch (e) {
-    throw new Error("Hisoblashda sintaktik xatolik: " + e.message)
+    throw new Error(tx.value.errSyntax + ": " + e.message)
   }
 }
 
@@ -56,14 +124,14 @@ const result = computed(() => {
   try {
     return safeEvaluate(expression.value)
   } catch (err) {
-    errorMsg.value = err.message || "Hisoblashda xatolik"
+    errorMsg.value = err.message || tx.value.errCannotCalc
     return null
   }
 })
 
 function formatNum(num) {
   if (num === null || num === undefined) return ''
-  return new Intl.NumberFormat('uz-UZ').format(num)
+  return new Intl.NumberFormat().format(num)
 }
 
 function calculate() {
@@ -87,15 +155,17 @@ function reuse(item) {
 
 function copyResult(res) {
   navigator.clipboard.writeText(res.toString())
+  copied.value = true
+  setTimeout(() => { copied.value = false }, 2000)
 }
 </script>
 
 <template>
   <ToolShell
     icon="🧠"
-    title="Hisoblab ber (Aqlli Universal Hisoblagich)"
-    description="Matnli, foizli va murakkab formulalarni bir zumda hisoblang"
-    hint="Masalan: 150000 + 15% (QQS) yoki sqrt(144) + 5^2 kabi formulalarni yozing"
+    :title="tx.title"
+    :description="tx.desc"
+    :hint="tx.hint"
   >
     <template #header>
       <AppHeader />
@@ -104,14 +174,14 @@ function copyResult(res) {
     <div class="space-y-6">
       <!-- Input & Result Display -->
       <div>
-        <label class="label">Matnli formula yoki misolni kiriting</label>
+        <label class="label">{{ tx.inputLabel }}</label>
         <div class="relative">
           <input
             v-model="expression"
             type="text"
             autocomplete="off"
             class="input text-lg font-mono tracking-wide pr-12"
-            placeholder="Masalan: (250000 * 3) + 12%"
+            :placeholder="tx.placeholder"
             @keyup.enter="calculate"
           />
           <button
@@ -126,19 +196,19 @@ function copyResult(res) {
 
       <!-- Quick Presets -->
       <div>
-        <label class="label text-xs">Tezkor namunalar</label>
+        <label class="label text-xs">{{ tx.presetsLabel }}</label>
         <div class="flex flex-wrap gap-2">
           <button
             class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-brand-50 hover:text-brand-600 transition"
             @click="applyPreset('500000 + 12%')"
           >
-            +12% QQS
+            {{ tx.presetVat }}
           </button>
           <button
             class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-brand-50 hover:text-brand-600 transition"
             @click="applyPreset('1200000 - 20%')"
           >
-            -20% Chegirma
+            {{ tx.presetDiscount }}
           </button>
           <button
             class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-brand-50 hover:text-brand-600 transition"
@@ -150,7 +220,7 @@ function copyResult(res) {
             class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-brand-50 hover:text-brand-600 transition"
             @click="applyPreset('sin(30) + cos(60)')"
           >
-            Trigonometriya
+            {{ tx.presetTrig }}
           </button>
         </div>
       </div>
@@ -158,12 +228,12 @@ function copyResult(res) {
       <!-- Calculated Result Display -->
       <div v-if="result !== null" class="p-5 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-soft animate-resultPop">
         <div class="flex items-center justify-between">
-          <span class="text-xs uppercase tracking-wider opacity-80">Natija</span>
+          <span class="text-xs uppercase tracking-wider opacity-80">{{ tx.result }}</span>
           <button
             class="text-xs bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded-lg transition"
             @click="copyResult(result)"
           >
-            📋 Nusxalash
+            {{ copied ? tx.copied : tx.copy }}
           </button>
         </div>
         <div class="text-3xl font-extrabold mt-1 font-mono">
@@ -181,7 +251,7 @@ function copyResult(res) {
 
       <!-- History -->
       <div v-if="history.length" class="pt-4 border-t border-slate-100 dark:border-slate-800">
-        <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">⏱️ So'nggi hisoblar</h3>
+        <h3 class="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">{{ tx.recent }}</h3>
         <div class="space-y-2">
           <div
             v-for="item in history"

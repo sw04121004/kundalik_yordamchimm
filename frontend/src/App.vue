@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useAuthStore } from './store/auth'
 import { useThemeStore } from './store/theme'
 import { usePlannerStore } from './store/planner'
@@ -10,17 +10,29 @@ const theme = useThemeStore()
 const planner = usePlannerStore()
 const { t } = useI18n()
 const globalError = ref('')
-const showGlobalError = () => { globalError.value = "Kutilmagan xatolik yuz berdi. Sahifani yangilab yoki birozdan so'ng qayta urinib ko'ring." }
+const showGlobalError = (event) => {
+  globalError.value = event?.detail?.message || t('common.unexpectedError')
+}
+
+// Foydalanuvchi tizimga kirishi bilanoq avtomatik rejalarni yuklash va eslatmalarni boshlash
+watch(
+  () => auth.isAuthenticated,
+  (isAuth) => {
+    if (isAuth) {
+      auth.fetchMe()
+      planner.fetchTasks().then(() => {
+        planner.startNotifications()
+      })
+    } else {
+      planner.stopNotifications()
+    }
+  },
+  { immediate: true }
+)
 
 onMounted(() => {
   window.addEventListener('app-unexpected-error', showGlobalError)
   theme.init()
-  if (auth.isAuthenticated) {
-    auth.fetchMe()
-    planner.fetchTasks().then(() => {
-      planner.startNotifications()
-    })
-  }
 })
 
 onUnmounted(() => window.removeEventListener('app-unexpected-error', showGlobalError))
@@ -30,7 +42,7 @@ onUnmounted(() => window.removeEventListener('app-unexpected-error', showGlobalE
   <div v-if="globalError" class="fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-[calc(100%-2rem)] max-w-lg rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800 shadow-lg dark:border-red-900/60 dark:bg-red-950/90 dark:text-red-200" role="alert">
     <div class="flex items-start justify-between gap-3">
       <span>{{ globalError }}</span>
-      <button type="button" class="shrink-0 rounded px-1 text-lg leading-5" aria-label="Xabarni yopish" @click="globalError = ''">×</button>
+      <button type="button" class="shrink-0 rounded px-1 text-lg leading-5" :aria-label="t('common.closeAlert')" @click="globalError = ''">×</button>
     </div>
   </div>
 

@@ -2,6 +2,112 @@
 import { ref, computed } from 'vue'
 import ToolShell from '../components/ToolShell.vue'
 import AppHeader from '../components/AppHeader.vue'
+import { useToolText } from '../utils/toolText'
+import { useI18n } from '../i18n'
+
+const { t } = useI18n()
+
+const tx = useToolText({
+  uz: {
+    title: "7-11 Sinf Kalkulyatori",
+    desc: "Algebra, Geometriya va Fizika formulalarini tezkor yechish",
+    hint: "Kvadrat tenglama, Pifagor teoremasi yoki geometrik shakllar yuzasini hisoblang",
+    tabQuad: "Kvadrat tenglama",
+    tabPythagoras: "Pifagor teoremasi",
+    tabGeometry: "Geometriya",
+    tabLinear: "Chiziqli tenglama",
+    quadA: "a koeffitsiyent",
+    quadB: "b koeffitsiyent",
+    quadC: "c koeffitsiyent",
+    stepSolution: "Bosqichma-bosqich yechim",
+    errZeroA: "a koeffitsiyenti 0 bo'lmasligi kerak",
+    noRoots: "Diskriminant D < 0. Haqiqiy ildizlar yo'q.",
+    oneRoot: "D = 0. Bitta ildiz:",
+    roots: "Ildizlar:",
+    findHypo: "Gipotenuza (c) ni topish",
+    findLegA: "Katet (a) ni topish",
+    legA: "a (katet)",
+    legB: "b (katet)",
+    hypoC: "c (gipotenuza)",
+    shapeCircle: "Doira / Aylana",
+    shapeTriangle: "Uchburchak",
+    shapeSphere: "Shar (Sfera)",
+    radius: "Radius (r)",
+    base: "Asosi (a)",
+    height: "Balandlik (h)",
+    area: "Yuzi (S):",
+    length: "Uzunligi (L):",
+    volume: "Hajmi (V):",
+    result: "Natija",
+    check: "Tekshirish:",
+  },
+  ru: {
+    title: "Школьный калькулятор (7-11 класс)",
+    desc: "Быстрое решение формул алгебры, геометрии и физики",
+    hint: "Решайте квадратные уравнения, теорему Пифагора или площади фигур",
+    tabQuad: "Квадратное уравнение",
+    tabPythagoras: "Теорема Пифагора",
+    tabGeometry: "Геометрия",
+    tabLinear: "Линейное уравнение",
+    quadA: "Коэффициент a",
+    quadB: "Коэффициент b",
+    quadC: "Коэффициент c",
+    stepSolution: "Пошаговое решение",
+    errZeroA: "Коэффициент a не должен быть равен 0",
+    noRoots: "Дискриминант D < 0. Действительных корней нет.",
+    oneRoot: "D = 0. Один корень:",
+    roots: "Корни:",
+    findHypo: "Найти гипотенузу (c)",
+    findLegA: "Найти катет (a)",
+    legA: "a (катет)",
+    legB: "b (катет)",
+    hypoC: "c (гипотенуза)",
+    shapeCircle: "Круг / Окружность",
+    shapeTriangle: "Треугольник",
+    shapeSphere: "Сфера (Шар)",
+    radius: "Радиус (r)",
+    base: "Основание (a)",
+    height: "Высота (h)",
+    area: "Площадь (S):",
+    length: "Длина окружности (L):",
+    volume: "Объём (V):",
+    result: "Результат",
+    check: "Проверка:",
+  },
+  en: {
+    title: "School Math Calculator (Grades 7-11)",
+    desc: "Quick solving of algebra, geometry, and physics formulas",
+    hint: "Solve quadratic equations, Pythagorean theorem, or geometric areas",
+    tabQuad: "Quadratic equation",
+    tabPythagoras: "Pythagorean theorem",
+    tabGeometry: "Geometry",
+    tabLinear: "Linear equation",
+    quadA: "Coefficient a",
+    quadB: "Coefficient b",
+    quadC: "Coefficient c",
+    stepSolution: "Step-by-step solution",
+    errZeroA: "Coefficient a cannot be 0",
+    noRoots: "Discriminant D < 0. No real roots.",
+    oneRoot: "D = 0. One root:",
+    roots: "Roots:",
+    findHypo: "Find hypotenuse (c)",
+    findLegA: "Find leg (a)",
+    legA: "a (leg)",
+    legB: "b (leg)",
+    hypoC: "c (hypotenuse)",
+    shapeCircle: "Circle",
+    shapeTriangle: "Triangle",
+    shapeSphere: "Sphere",
+    radius: "Radius (r)",
+    base: "Base (a)",
+    height: "Height (h)",
+    area: "Area (S):",
+    length: "Circumference (L):",
+    volume: "Volume (V):",
+    result: "Result",
+    check: "Check:",
+  },
+})
 
 const activeTab = ref('quad') // quad, pythagoras, geometry, linear
 
@@ -16,19 +122,19 @@ const quadResult = computed(() => {
   const c = Number(quadC.value)
 
   if (isNaN(a) || isNaN(b) || isNaN(c) || a === 0) {
-    return { valid: false, msg: "a koeffitsiyenti 0 bo'lmasligi kerak" }
+    return { valid: false, msg: tx.value.errZeroA }
   }
 
   const d = b * b - 4 * a * c
   if (d < 0) {
-    return { valid: true, d, count: 0, msg: "Diskriminant D < 0. Haqiqiy ildizlar yo'q." }
+    return { valid: true, d, count: 0, msg: tx.value.noRoots }
   } else if (d === 0) {
     const x = -b / (2 * a)
-    return { valid: true, d, count: 1, x1: x, x2: x, msg: `D = 0. Bitta ildiz: x = ${x}` }
+    return { valid: true, d, count: 1, x1: x, x2: x, msg: `${tx.value.oneRoot} x = ${x}` }
   } else {
     const x1 = (-b + Math.sqrt(d)) / (2 * a)
     const x2 = (-b - Math.sqrt(d)) / (2 * a)
-    return { valid: true, d, count: 2, x1, x2, msg: `D = ${d}. Ildizlar: x₁ = ${x1}, x₂ = ${x2}` }
+    return { valid: true, d, count: 2, x1, x2, msg: `D = ${d}. ${tx.value.roots} x₁ = ${x1}, x₂ = ${x2}` }
   }
 })
 
@@ -103,9 +209,9 @@ const linResult = computed(() => {
 <template>
   <ToolShell
     icon="📏"
-    title="7-11 Sinf Kalkulyatori"
-    description="Algebra, Geometriya va Fizika formulalarini tezkor yechish"
-    hint="Kvadrat tenglama, Pifagor teoremasi yoki geometrik shakllar yuzasini hisoblang"
+    :title="tx.title"
+    :description="tx.desc"
+    :hint="tx.hint"
   >
     <template #header>
       <AppHeader />
@@ -119,28 +225,28 @@ const linResult = computed(() => {
           :class="activeTab === 'quad' ? 'bg-brand-500 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
           @click="activeTab = 'quad'"
         >
-          Kvadrat tenglama
+          {{ tx.tabQuad }}
         </button>
         <button
           class="px-4 py-2 rounded-xl text-sm font-semibold transition"
           :class="activeTab === 'pythagoras' ? 'bg-brand-500 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
           @click="activeTab = 'pythagoras'"
         >
-          Pifagor teoremasi
+          {{ tx.tabPythagoras }}
         </button>
         <button
           class="px-4 py-2 rounded-xl text-sm font-semibold transition"
           :class="activeTab === 'geometry' ? 'bg-brand-500 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
           @click="activeTab = 'geometry'"
         >
-          Geometriya
+          {{ tx.tabGeometry }}
         </button>
         <button
           class="px-4 py-2 rounded-xl text-sm font-semibold transition"
           :class="activeTab === 'linear' ? 'bg-brand-500 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
           @click="activeTab = 'linear'"
         >
-          Chiziqli tenglama
+          {{ tx.tabLinear }}
         </button>
       </div>
 
@@ -149,21 +255,21 @@ const linResult = computed(() => {
         <p class="text-sm text-slate-500 dark:text-slate-400 font-mono">Formulasi: ax² + bx + c = 0</p>
         <div class="grid grid-cols-3 gap-3">
           <div>
-            <label class="label text-xs">a koeffitsiyent</label>
+            <label class="label text-xs">{{ tx.quadA }}</label>
             <input v-model="quadA" type="number" class="input font-mono" />
           </div>
           <div>
-            <label class="label text-xs">b koeffitsiyent</label>
+            <label class="label text-xs">{{ tx.quadB }}</label>
             <input v-model="quadB" type="number" class="input font-mono" />
           </div>
           <div>
-            <label class="label text-xs">c koeffitsiyent</label>
+            <label class="label text-xs">{{ tx.quadC }}</label>
             <input v-model="quadC" type="number" class="input font-mono" />
           </div>
         </div>
 
         <div v-if="quadResult.valid" class="p-5 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-white space-y-2">
-          <div class="text-xs uppercase opacity-80">Bosqichma-bosqich yechim</div>
+          <div class="text-xs uppercase opacity-80">{{ tx.stepSolution }}</div>
           <div class="text-lg font-mono font-bold">D = b² - 4ac = {{ quadResult.d }}</div>
           <div class="text-base">{{ quadResult.msg }}</div>
           <div v-if="quadResult.count > 0" class="pt-2 border-t border-white/20 font-mono text-sm">
@@ -183,30 +289,30 @@ const linResult = computed(() => {
         <p class="text-sm text-slate-500 dark:text-slate-400 font-mono">Formulasi: a² + b² = c²</p>
         <div class="flex gap-3">
           <label class="inline-flex items-center gap-1.5 text-sm cursor-pointer">
-            <input v-model="pythMode" type="radio" value="c" /> Gipotenuza (c) ni topish
+            <input v-model="pythMode" type="radio" value="c" /> {{ tx.findHypo }}
           </label>
           <label class="inline-flex items-center gap-1.5 text-sm cursor-pointer">
-            <input v-model="pythMode" type="radio" value="a" /> Katet (a) ni topish
+            <input v-model="pythMode" type="radio" value="a" /> {{ tx.findLegA }}
           </label>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div v-if="pythMode !== 'a'">
-            <label class="label text-xs">a (katet)</label>
+            <label class="label text-xs">{{ tx.legA }}</label>
             <input v-model="pythA" type="number" min="0" class="input" />
           </div>
           <div v-if="pythMode !== 'b'">
-            <label class="label text-xs">b (katet)</label>
+            <label class="label text-xs">{{ tx.legB }}</label>
             <input v-model="pythB" type="number" min="0" class="input" />
           </div>
           <div v-if="pythMode !== 'c'">
-            <label class="label text-xs">c (gipotenuza)</label>
+            <label class="label text-xs">{{ tx.hypoC }}</label>
             <input v-model="pythC" type="number" min="0" class="input" />
           </div>
         </div>
 
         <div v-if="pythResult !== null" class="p-5 rounded-2xl bg-brand-500 text-white">
-          <span class="text-xs opacity-80 uppercase">Natija</span>
+          <span class="text-xs opacity-80 uppercase">{{ tx.result }}</span>
           <div class="text-2xl font-extrabold font-mono mt-1">
             {{ pythMode.toUpperCase() }} = {{ pythResult.toFixed(3) }}
           </div>
@@ -221,49 +327,49 @@ const linResult = computed(() => {
             :class="geomShape === 'circle' ? 'bg-brand-500 text-white' : 'bg-slate-100 dark:bg-slate-800'"
             @click="geomShape = 'circle'"
           >
-            Doira / Aylana
+            {{ tx.shapeCircle }}
           </button>
           <button
             class="px-3 py-1.5 rounded-lg text-xs font-semibold"
             :class="geomShape === 'triangle' ? 'bg-brand-500 text-white' : 'bg-slate-100 dark:bg-slate-800'"
             @click="geomShape = 'triangle'"
           >
-            Uchburchak
+            {{ tx.shapeTriangle }}
           </button>
           <button
             class="px-3 py-1.5 rounded-lg text-xs font-semibold"
             :class="geomShape === 'sphere' ? 'bg-brand-500 text-white' : 'bg-slate-100 dark:bg-slate-800'"
             @click="geomShape = 'sphere'"
           >
-            Shar (Sfera)
+            {{ tx.shapeSphere }}
           </button>
         </div>
 
         <div v-if="geomShape === 'circle'" class="space-y-3">
-          <label class="label">Radius (r)</label>
+          <label class="label">{{ tx.radius }}</label>
           <input v-model="circleR" type="number" min="0" class="input" />
         </div>
 
         <div v-if="geomShape === 'triangle'" class="grid grid-cols-2 gap-3">
           <div>
-            <label class="label">Asosi (a)</label>
+            <label class="label">{{ tx.base }}</label>
             <input v-model="triBase" type="number" min="0" class="input" />
           </div>
           <div>
-            <label class="label">Balandlik (h)</label>
+            <label class="label">{{ tx.height }}</label>
             <input v-model="triHeight" type="number" min="0" class="input" />
           </div>
         </div>
 
         <div v-if="geomShape === 'sphere'" class="space-y-3">
-          <label class="label">Radius (r)</label>
+          <label class="label">{{ tx.radius }}</label>
           <input v-model="sphereR" type="number" min="0" class="input" />
         </div>
 
         <div v-if="geomResult" class="p-5 rounded-2xl bg-brand-500 text-white space-y-1">
-          <div v-if="geomResult.area">Yuzi (S): <b>{{ geomResult.area }}</b></div>
-          <div v-if="geomResult.len">Uzunligi (L): <b>{{ geomResult.len }}</b></div>
-          <div v-if="geomResult.volume">Hajmi (V): <b>{{ geomResult.volume }}</b></div>
+          <div v-if="geomResult.area">{{ tx.area }} <b>{{ geomResult.area }}</b></div>
+          <div v-if="geomResult.len">{{ tx.length }} <b>{{ geomResult.len }}</b></div>
+          <div v-if="geomResult.volume">{{ tx.volume }} <b>{{ geomResult.volume }}</b></div>
         </div>
       </div>
 
@@ -286,9 +392,9 @@ const linResult = computed(() => {
         </div>
 
         <div v-if="linResult !== null" class="p-5 rounded-2xl bg-brand-500 text-white">
-          <span class="text-xs opacity-80 uppercase">Natija</span>
+          <span class="text-xs opacity-80 uppercase">{{ tx.result }}</span>
           <div class="text-2xl font-extrabold font-mono mt-1">x = {{ linResult }}</div>
-          <div class="text-xs opacity-80 mt-1">Tekshirish: {{ linA }} * ({{ linResult }}) + {{ linB }} = {{ linC }}</div>
+          <div class="text-xs opacity-80 mt-1">{{ tx.check }} {{ linA }} * ({{ linResult }}) + {{ linB }} = {{ linC }}</div>
         </div>
       </div>
     </div>

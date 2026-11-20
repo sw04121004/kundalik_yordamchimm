@@ -1,12 +1,12 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ToolShell from '../components/ToolShell.vue'
 import AppHeader from '../components/AppHeader.vue'
 import FormAlert from '../components/FormAlert.vue'
 import { useAuthStore } from '../store/auth'
 import { useAiStore } from '../store/ai'
-import { useI18n } from '../i18n'
+import { useI18n, language } from '../i18n'
 
 const router = useRouter()
 const route = useRoute()
@@ -14,13 +14,34 @@ const auth = useAuthStore()
 const aiStore = useAiStore()
 const { t } = useI18n()
 
-const stains = [
-  { id: 'coffee', name: 'Qahva / Choy ☕', solution: "Iliq suvga ozgina idish yuvish vositasi va sirka (vinegar) solib, dog' ustiga surting. 10 minutdan so'ng yuving." },
-  { id: 'grease', name: "Yog' / Ovqat 🍔", solution: "Dog' ustiga darhol kraxmal yoki soda seping (yog'ni shimib oladi). 15 daqiqadan so'ng sovunli issiq suvda yuving." },
-  { id: 'ink', name: 'Siyoh / Ruchka 🖊️', solution: "Spirt (antiseptik) yoki lak tozalagich bilan paxtani ho'llab, dog'ni yengil arting." },
-  { id: 'blood', name: 'Qon 🩸', solution: "FAQAT sovuq suvda yuving! Issiq suv qonni matoga yopishtirib qo'yadi. Vodorod peroksid ham yordam beradi." },
-  { id: 'wine', name: 'Sharbat / Vino 🍷', solution: "Ustiga tuz seping. So'ng gazlangan mineral suv yoki mineral ichimlik bilan arting va yuving." }
-]
+const STAINS_DICT = {
+  uz: [
+    { id: 'coffee', name: 'Qahva / Choy ☕', solution: "Iliq suvga ozgina idish yuvish vositasi va sirka (vinegar) solib, dog' ustiga surting. 10 minutdan so'ng yuving." },
+    { id: 'grease', name: "Yog' / Ovqat 🍔", solution: "Dog' ustiga darhol kraxmal yoki soda seping (yog'ni shimib oladi). 15 daqiqadan so'ng sovunli issiq suvda yuving." },
+    { id: 'ink', name: 'Siyoh / Ruchka 🖊️', solution: "Spirt (antiseptik) yoki lak tozalagich bilan paxtani ho'llab, dog'ni yengil arting." },
+    { id: 'blood', name: 'Qon 🩸', solution: "FAQAT sovuq suvda yuving! Issiq suv qonni matoga yopishtirib qo'yadi. Vodorod peroksid ham yordam beradi." },
+    { id: 'wine', name: 'Sharbat / Vino 🍷', solution: "Ustiga tuz seping. So'ng gazlangan mineral suv yoki mineral ichimlik bilan arting va yuving." }
+  ],
+  ru: [
+    { id: 'coffee', name: 'Кофе / Чай ☕', solution: "Смешайте тёплую воду с небольшим количеством средства для посуды и уксуса, нанесите на пятно. Смойте через 10 минут." },
+    { id: 'grease', name: "Жир / Еда 🍔", solution: "Сразу посыпьте пятно содой или крахмалом (они впитают жир). Через 15 минут постирайте в тёплой мыльной воде." },
+    { id: 'ink', name: 'Чернила / Ручка 🖊️', solution: "Смочите ватный диск спиртом или средством для снятия лака и аккуратно протрите пятно." },
+    { id: 'blood', name: 'Кровь 🩸', solution: "Стирайте ТОЛЬКО в холодной воде! Горячая вода закрепляет кровь в ткани. Также помогает перекись водорода." },
+    { id: 'wine', name: 'Сок / Вино 🍷', solution: "Посыпьте солью, затем протрите газированной минеральной водой и промойте." }
+  ],
+  en: [
+    { id: 'coffee', name: 'Coffee / Tea ☕', solution: "Apply warm water with a bit of dish soap and vinegar to the stain. Wash off after 10 minutes." },
+    { id: 'grease', name: "Grease / Food 🍔", solution: "Immediately sprinkle baking soda or starch onto the stain. Wash with warm soapy water after 15 minutes." },
+    { id: 'ink', name: 'Ink / Pen 🖊️', solution: "Dab the stain gently with a cotton pad soaked in rubbing alcohol or nail polish remover." },
+    { id: 'blood', name: 'Blood 🩸', solution: "Wash ONLY with cold water! Hot water sets the blood into fabric permanently. Hydrogen peroxide also helps." },
+    { id: 'wine', name: 'Juice / Wine 🍷', solution: "Sprinkle salt over the spill, then blot with sparkling water and rinse." }
+  ]
+}
+
+const stains = computed(() => {
+  const lang = ['uz', 'ru', 'en'].includes(language.value) ? language.value : 'uz'
+  return STAINS_DICT[lang] || STAINS_DICT.uz
+})
 
 const selectedStain = ref('coffee')
 
@@ -33,7 +54,7 @@ async function askHomeAI() {
   aiStore.error = ''
   const res = await aiStore.startConversation('home')
   if (res.success && aiStore.current) {
-    await aiStore.sendMessage(aiStore.current.id, "Uyni toza saqlash, maishiy texnika parvarishi va mebellarni tozalash bo'yicha maslahatlar bering.")
+    await aiStore.sendMessage(aiStore.current.id, t('home.prompt'))
     router.push({ name: 'ai-assistant' })
   }
 }
@@ -79,8 +100,8 @@ async function askHomeAI() {
       <!-- AI Home Assistant shortcut -->
       <div class="p-5 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-white flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h4 class="font-bold text-base">Uy bo'yicha savolingiz bormi?</h4>
-          <p class="text-xs text-brand-100 mt-1">Santexnika, elektr, mebel va maishiy texnikalarni ta'mirlash bo'yicha AI'dan so'rang.</p>
+          <h4 class="font-bold text-base">{{ t('home.haveQuestion') }}</h4>
+          <p class="text-xs text-brand-100 mt-1">{{ t('home.questionDesc') }}</p>
         </div>
         <button class="btn-secondary text-sm shrink-0" @click="askHomeAI">
           {{ t('home.askAi') }}

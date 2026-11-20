@@ -227,6 +227,9 @@ export const usePlannerStore = defineStore('planner', {
       const auth = useAuthStore()
       const userId = auth.user?.id
 
+      // Har bir eslatma tekshiruvida proсрочка (overdue) sonini ham yangilab turish
+      this.checkOverdueSummary()
+
       for (const task of this.tasks) {
         if (task.is_done) continue
         const triggerMs = getTaskTriggerTimestamp(task)
@@ -268,14 +271,34 @@ export const usePlannerStore = defineStore('planner', {
       stopTitleBlink()
     },
 
+    stopNotifications() {
+      this.notificationsStarted = false
+      if (reminderInterval) {
+        clearInterval(reminderInterval)
+        reminderInterval = null
+      }
+      this.activeReminder = null
+      this.overdueSummaryCount = 0
+      stopTitleBlink()
+    },
+
     startNotifications() {
       if (this.notificationsStarted) return
       this.notificationsStarted = true
 
-      // Har 15 soniyada tekshirish
+      // Har 15 soniyada eslatmalarni tekshirish, har 60 soniyada vazifalarni yangilash
+      let pollCounter = 0
       if (!reminderInterval) {
         reminderInterval = setInterval(() => {
           this.checkReminders()
+          pollCounter++
+          if (pollCounter >= 4) { // 4 * 15s = 60s
+            pollCounter = 0
+            const auth = useAuthStore()
+            if (auth.isAuthenticated) {
+              this.fetchTasks()
+            }
+          }
         }, 15000)
       }
 
@@ -283,7 +306,12 @@ export const usePlannerStore = defineStore('planner', {
       if (typeof window !== 'undefined') {
         window.addEventListener('visibilitychange', () => {
           if (document.visibilityState === 'visible') {
-            this.checkReminders()
+            const auth = useAuthStore()
+            if (auth.isAuthenticated) {
+              this.fetchTasks().then(() => this.checkReminders())
+            } else {
+              this.checkReminders()
+            }
           }
         })
         window.addEventListener('focus', () => {

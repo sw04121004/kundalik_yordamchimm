@@ -6,7 +6,7 @@ import DOMPurify from 'dompurify'
 import { Bot } from 'lucide-vue-next'
 import AppHeader from '../components/AppHeader.vue'
 import { useAiStore, PURPOSES, purposeMeta } from '../store/ai'
-import { useI18n } from '../i18n'
+import { useI18n, language } from '../i18n'
 
 const aiStore = useAiStore()
 const route = useRoute()
@@ -173,7 +173,7 @@ function toggleRecord() {
   try {
     speechRecognition.start()
   } catch {
-    voiceError.value = 'Mikrofonni ishga tushirib bo‘lmadi. Qayta urinib ko‘ring.'
+    voiceError.value = t('ai.voice.error')
     stopRecording()
   }
 }

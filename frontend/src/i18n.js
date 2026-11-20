@@ -30,6 +30,8 @@ const uz = {
   "common.currency": "so'm",
   "common.favAdd": "Sevimlilarga qo'shish",
   "common.favRemove": "Sevimlilardan olib tashlash",
+  "common.unexpectedError": "Kutilmagan xatolik yuz berdi. Sahifani yangilab yoki birozdan so'ng qayta urinib ko'ring.",
+  "common.closeAlert": "Xabarni yopish",
 
   // Navigatsiya / AppHeader
   "nav.services": "Xizmatlar",
@@ -286,6 +288,9 @@ const uz = {
   "home.stainsTitle": "Dog'larni ketkazish bo'yicha tezkor qo'llanma",
   "home.solution": "Yechim:",
   "home.askAi": "AI Yordamchini ochish →",
+  "home.haveQuestion": "Uy bo'yicha savolingiz bormi?",
+  "home.questionDesc": "Santexnika, elektr, mebel va maishiy texnikalarni ta'mirlash bo'yicha AI'dan so'rang.",
+  "home.prompt": "Uyni toza saqlash, maishiy texnika parvarishi va mebellarni tozalash bo'yicha maslahatlar bering.",
 
   // 404 (NotFound)
   "notfound.title": "Sahifa topilmadi",
@@ -852,6 +857,8 @@ const ru = {
   "common.currency": "сум",
   "common.favAdd": "Добавить в избранное",
   "common.favRemove": "Удалить из избранного",
+  "common.unexpectedError": "Произошла непредвиденная ошибка. Обновите страницу или повторите попытку позже.",
+  "common.closeAlert": "Закрыть сообщение",
 
   // Navigatsiya
   "nav.services": "Услуги",
@@ -1108,6 +1115,9 @@ const ru = {
   "home.stainsTitle": "Справочник по выведению пятен",
   "home.solution": "Решение:",
   "home.askAi": "Открыть Домашний AI →",
+  "home.haveQuestion": "Есть вопросы по дому?",
+  "home.questionDesc": "Спросите AI о сантехнике, электрике, мебели и ремонте бытовой техники.",
+  "home.prompt": "Дайте советы по уборке дома, уходу за бытовой техникой и чистке мебели.",
 
   // 404
   "notfound.title": "Страница не найдена",
@@ -1674,6 +1684,8 @@ const en = {
   "common.currency": "UZS",
   "common.favAdd": "Add to favorites",
   "common.favRemove": "Remove from favorites",
+  "common.unexpectedError": "An unexpected error occurred. Refresh the page or try again later.",
+  "common.closeAlert": "Close alert",
 
   // Navigation
   "nav.services": "Services",
@@ -1930,6 +1942,9 @@ const en = {
   "home.stainsTitle": "Quick stain removal guide",
   "home.solution": "Solution:",
   "home.askAi": "Open Home AI →",
+  "home.haveQuestion": "Have household questions?",
+  "home.questionDesc": "Ask AI about plumbing, electrical, furniture, and home appliance care.",
+  "home.prompt": "Give practical tips on home cleaning, appliance care, and furniture maintenance.",
 
   // 404
   "notfound.title": "Page not found",
