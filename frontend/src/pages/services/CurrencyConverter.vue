@@ -3,7 +3,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
 import { useServicesStore } from '../../store/services'
-import { useI18n } from '../../i18n'
+import { useI18n, language } from '../../i18n'
 import { RefreshCw } from 'lucide-vue-next'
 import { fetchOfficialCurrencyRates } from '../../api/currencyRates'
 
@@ -17,6 +17,12 @@ const value = ref('')
 const from = ref('USD')
 const to = ref('UZS')
 let refreshTimer
+
+function getCurrencyName(item) {
+  if (!item) return ''
+  const lang = language.value
+  return item[`name_${lang}`] || item.name || item.code
+}
 
 async function fetchRates() {
   loadingRates.value = true
@@ -89,7 +95,7 @@ function swap() {
         <div>
           <label class="label">{{ t('tool.valyuta-konvertori.from') }}</label>
           <select v-model="from" class="input" :disabled="!rates.length">
-            <option v-for="item in rates" :key="item.code" :value="item.code">{{ item.name }} ({{ item.code }})</option>
+            <option v-for="item in rates" :key="item.code" :value="item.code">{{ getCurrencyName(item) }} ({{ item.code }})</option>
           </select>
         </div>
         <button class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-brand-600 flex items-center justify-center shrink-0 mb-0.5" @click="swap" :title="t('tool.valyuta-konvertori.swap')" :disabled="!rates.length">
@@ -98,7 +104,7 @@ function swap() {
         <div>
           <label class="label">{{ t('tool.valyuta-konvertori.to') }}</label>
           <select v-model="to" class="input" :disabled="!rates.length">
-            <option v-for="item in rates" :key="item.code" :value="item.code">{{ item.name }} ({{ item.code }})</option>
+            <option v-for="item in rates" :key="item.code" :value="item.code">{{ getCurrencyName(item) }} ({{ item.code }})</option>
           </select>
         </div>
       </div>

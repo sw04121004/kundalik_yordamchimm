@@ -17,7 +17,7 @@ const accountButtonRef = ref(null)
 async function handleLogout() {
   menuOpen.value = false
   await auth.logout()
-  router.push({ name: 'landing' })
+  router.push({ name: 'login' })
 }
 
 function handleOutsideClick(event) {

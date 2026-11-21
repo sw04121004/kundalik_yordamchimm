@@ -4,9 +4,15 @@ import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
 import { fetchOfficialCurrencyRates } from '../../api/currencyRates'
 import { useToolText } from '../../utils/toolText'
-import { useI18n } from '../../i18n'
+import { useI18n, language } from '../../i18n'
 
 const { t } = useI18n()
+
+function getCurrencyName(item) {
+  if (!item) return ''
+  const lang = language.value
+  return item[`name_${lang}`] || item.name || item.code
+}
 
 const tx = useToolText({
   uz: {
@@ -104,7 +110,7 @@ onUnmounted(() => window.clearInterval(refreshTimer))
         <div class="flex-1 min-w-44">
           <label class="label">{{ tx.baseCurrency }}</label>
           <select v-model="selectedCode" class="input" :disabled="!rates.length">
-            <option v-for="item in rates" :key="item.code" :value="item.code">{{ item.code }} — {{ item.name }}</option>
+            <option v-for="item in rates" :key="item.code" :value="item.code">{{ item.code }} — {{ getCurrencyName(item) }}</option>
           </select>
         </div>
       </div>
@@ -124,7 +130,7 @@ onUnmounted(() => window.clearInterval(refreshTimer))
       <div v-if="rates.length" class="divide-y divide-slate-100 dark:divide-slate-800">
         <div v-for="item in rates" :key="item.code" class="py-3 flex items-center justify-between gap-3">
           <div class="min-w-0">
-            <p class="font-bold text-slate-800 dark:text-slate-100 text-sm">{{ item.code }} <span class="text-xs font-normal text-slate-400">({{ item.name }})</span></p>
+            <p class="font-bold text-slate-800 dark:text-slate-100 text-sm">{{ item.code }} <span class="text-xs font-normal text-slate-400">({{ getCurrencyName(item) }})</span></p>
             <p class="text-xs text-slate-500">1 {{ item.code }} = {{ format(item.rate, 4) }} {{ tx.currencySum }}</p>
           </div>
           <div class="text-right shrink-0">

@@ -4,21 +4,63 @@ import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
 import FormAlert from '../../components/FormAlert.vue'
 import { useServicesStore } from '../../store/services'
-import { useI18n } from '../../i18n'
+import { useI18n, language } from '../../i18n'
 
 const { t } = useI18n()
 const servicesStore = useServicesStore()
 onMounted(() => servicesStore.logUsage('ogirlik-konvertori'))
 
 // base unit: grams
-const units = {
-  mg: { label: 'Milligramm (mg)', factor: 0.001 },
-  g: { label: 'Gramm (g)', factor: 1 },
-  kg: { label: 'Kilogramm (kg)', factor: 1000 },
-  ton: { label: 'Tonna (t)', factor: 1000000 },
-  lb: { label: 'Funt (lb)', factor: 453.59237 },
-  oz: { label: 'Untsiya (oz)', factor: 28.349523125 },
+const UNITS_DATA = {
+  mg: {
+    factor: 0.001,
+    uz: 'Milligramm (mg)',
+    ru: 'Миллиграмм (мг)',
+    en: 'Milligram (mg)',
+  },
+  g: {
+    factor: 1,
+    uz: 'Gramm (g)',
+    ru: 'Грамм (г)',
+    en: 'Gram (g)',
+  },
+  kg: {
+    factor: 1000,
+    uz: 'Kilogramm (kg)',
+    ru: 'Килограмм (кг)',
+    en: 'Kilogram (kg)',
+  },
+  ton: {
+    factor: 1000000,
+    uz: 'Tonna (t)',
+    ru: 'Тонна (т)',
+    en: 'Ton (t)',
+  },
+  lb: {
+    factor: 453.59237,
+    uz: 'Funt (lb)',
+    ru: 'Фунт (lb)',
+    en: 'Pound (lb)',
+  },
+  oz: {
+    factor: 28.349523125,
+    uz: 'Untsiya (oz)',
+    ru: 'Унция (oz)',
+    en: 'Ounce (oz)',
+  },
 }
+
+const units = computed(() => {
+  const lang = ['uz', 'ru', 'en'].includes(language.value) ? language.value : 'uz'
+  const res = {}
+  for (const [key, item] of Object.entries(UNITS_DATA)) {
+    res[key] = {
+      label: item[lang] || item.uz,
+      factor: item.factor,
+    }
+  }
+  return res
+})
 
 const value = ref('')
 const from = ref('kg')
@@ -33,8 +75,8 @@ const result = computed(() => {
     error.value = t('tool.ogirlik-konvertori.error')
     return null
   }
-  const grams = num * units[from.value].factor
-  const converted = grams / units[to.value].factor
+  const grams = num * units.value[from.value].factor
+  const converted = grams / units.value[to.value].factor
   return Math.round(converted * 1e6) / 1e6
 })
 
@@ -82,9 +124,9 @@ function swap() {
 
       <transition name="page-fade">
         <div v-if="result !== null" class="mt-5 rounded-xl bg-gradient-to-br from-brand-50 to-brand-100/60 dark:from-slate-700 dark:to-slate-700/60 border border-brand-100 dark:border-slate-600 px-5 py-4 animate-resultPop">
-          <p class="text-xs font-medium text-brand-600 uppercase tracking-wide">{{ t('common.result') }}</p>
-          <p class="text-2xl font-extrabold text-brand-800 mt-1 break-words">
-            {{ value }} {{ units[from].label.split(' ')[0] }} = {{ result }} {{ units[to].label.split(' ')[0] }}
+          <p class="text-xs font-medium text-brand-600 dark:text-brand-300 uppercase tracking-wide">{{ t('common.result') }}</p>
+          <p class="text-2xl font-extrabold text-brand-800 dark:text-brand-200 mt-1 break-words">
+            {{ value }} {{ units[from]?.label.split(' ')[0] }} = {{ result }} {{ units[to]?.label.split(' ')[0] }}
           </p>
         </div>
       </transition>

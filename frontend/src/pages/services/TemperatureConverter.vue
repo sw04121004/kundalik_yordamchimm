@@ -4,17 +4,38 @@ import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
 import FormAlert from '../../components/FormAlert.vue'
 import { useServicesStore } from '../../store/services'
-import { useI18n } from '../../i18n'
+import { useI18n, language } from '../../i18n'
 
 const { t } = useI18n()
 const servicesStore = useServicesStore()
 onMounted(() => servicesStore.logUsage('harorat-konvertori'))
 
-const units = {
-  c: 'Selsiy (°C)',
-  f: 'Farengeyt (°F)',
-  k: 'Kelvin (K)',
+const UNITS_DATA = {
+  c: {
+    uz: 'Selsiy (°C)',
+    ru: 'Цельсий (°C)',
+    en: 'Celsius (°C)',
+  },
+  f: {
+    uz: 'Farengeyt (°F)',
+    ru: 'Фаренгейт (°F)',
+    en: 'Fahrenheit (°F)',
+  },
+  k: {
+    uz: 'Kelvin (K)',
+    ru: 'Кельвин (K)',
+    en: 'Kelvin (K)',
+  },
 }
+
+const units = computed(() => {
+  const lang = ['uz', 'ru', 'en'].includes(language.value) ? language.value : 'uz'
+  const res = {}
+  for (const [key, item] of Object.entries(UNITS_DATA)) {
+    res[key] = item[lang] || item.uz
+  }
+  return res
+})
 
 const value = ref('')
 const from = ref('c')

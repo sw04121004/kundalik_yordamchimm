@@ -61,7 +61,6 @@ function calculate() {
   result.value = null
 
   if (!startDate.value && !endDate.value) return
-  if (!startDate.value || !endDate.value) return
 
   if (!startDate.value || !endDate.value) {
     error.value = t('tool.sana-farqi.errInvalid')

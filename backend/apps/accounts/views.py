@@ -308,7 +308,9 @@ class PasswordResetRequestView(APIView):
                 logger.error("Password reset email delivery failed.", exc_info=True)
                 reset.used_at = timezone.now()
                 reset.save(update_fields=["used_at"])
-                return Response({"detail": generic_detail}, status=202)
+                # If email sending fails, treat it as a successful request to avoid leaking configuration details.
+                # Mark the reset code as used to prevent reuse, then return the standard success response.
+                return Response({"detail": _EMAIL_SENT_DETAIL[lang]}, status=202)
 
         return Response({"detail": generic_detail}, status=202)
 

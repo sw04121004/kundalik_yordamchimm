@@ -4,22 +4,69 @@ import ToolShell from '../../components/ToolShell.vue'
 import AppHeader from '../../components/AppHeader.vue'
 import FormAlert from '../../components/FormAlert.vue'
 import { useServicesStore } from '../../store/services'
-import { useI18n } from '../../i18n'
+import { useI18n, language } from '../../i18n'
 
 const { t } = useI18n()
 const servicesStore = useServicesStore()
 onMounted(() => servicesStore.logUsage('uzunlik-konvertori'))
 
 // base unit: meters
-const units = {
-  mm: { label: 'Millimetr (mm)', factor: 0.001 },
-  cm: { label: 'Santimetr (sm)', factor: 0.01 },
-  m: { label: 'Metr (m)', factor: 1 },
-  km: { label: 'Kilometr (km)', factor: 1000 },
-  inch: { label: 'Dyuym (inch)', factor: 0.0254 },
-  ft: { label: 'Fut (ft)', factor: 0.3048 },
-  mile: { label: 'Milya (mile)', factor: 1609.344 },
+const UNITS_DATA = {
+  mm: {
+    factor: 0.001,
+    uz: 'Millimetr (mm)',
+    ru: 'Миллиметр (мм)',
+    en: 'Millimeter (mm)',
+  },
+  cm: {
+    factor: 0.01,
+    uz: 'Santimetr (sm)',
+    ru: 'Сантиметр (см)',
+    en: 'Centimeter (cm)',
+  },
+  m: {
+    factor: 1,
+    uz: 'Metr (m)',
+    ru: 'Метр (м)',
+    en: 'Meter (m)',
+  },
+  km: {
+    factor: 1000,
+    uz: 'Kilometr (km)',
+    ru: 'Километр (км)',
+    en: 'Kilometer (km)',
+  },
+  inch: {
+    factor: 0.0254,
+    uz: 'Dyuym (inch)',
+    ru: 'Дюйм (дюйм)',
+    en: 'Inch (in)',
+  },
+  ft: {
+    factor: 0.3048,
+    uz: 'Fut (ft)',
+    ru: 'Фут (фут)',
+    en: 'Foot (ft)',
+  },
+  mile: {
+    factor: 1609.344,
+    uz: 'Milya (mile)',
+    ru: 'Миля (миля)',
+    en: 'Mile (mi)',
+  },
 }
+
+const units = computed(() => {
+  const lang = ['uz', 'ru', 'en'].includes(language.value) ? language.value : 'uz'
+  const res = {}
+  for (const [key, item] of Object.entries(UNITS_DATA)) {
+    res[key] = {
+      label: item[lang] || item.uz,
+      factor: item.factor,
+    }
+  }
+  return res
+})
 
 const value = ref('')
 const from = ref('m')
@@ -34,8 +81,8 @@ const result = computed(() => {
     error.value = t('tool.uzunlik-konvertori.error')
     return null
   }
-  const meters = num * units[from.value].factor
-  const converted = meters / units[to.value].factor
+  const meters = num * units.value[from.value].factor
+  const converted = meters / units.value[to.value].factor
   return Math.round(converted * 1e6) / 1e6
 })
 
@@ -83,9 +130,9 @@ function swap() {
 
       <transition name="page-fade">
         <div v-if="result !== null" class="mt-5 rounded-xl bg-gradient-to-br from-brand-50 to-brand-100/60 dark:from-slate-700 dark:to-slate-700/60 border border-brand-100 dark:border-slate-600 px-5 py-4 animate-resultPop">
-          <p class="text-xs font-medium text-brand-600 uppercase tracking-wide">{{ t('common.result') }}</p>
-          <p class="text-2xl font-extrabold text-brand-800 mt-1 break-words">
-            {{ value }} {{ units[from].label.split(' ')[0] }} = {{ result }} {{ units[to].label.split(' ')[0] }}
+          <p class="text-xs font-medium text-brand-600 dark:text-brand-300 uppercase tracking-wide">{{ t('common.result') }}</p>
+          <p class="text-2xl font-extrabold text-brand-800 dark:text-brand-200 mt-1 break-words">
+            {{ value }} {{ units[from]?.label.split(' ')[0] }} = {{ result }} {{ units[to]?.label.split(' ')[0] }}
           </p>
         </div>
       </transition>

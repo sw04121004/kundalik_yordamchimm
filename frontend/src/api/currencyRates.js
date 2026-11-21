@@ -16,6 +16,9 @@ export async function fetchOfficialCurrencyRates() {
     return {
       code: row.Ccy,
       name: row.CcyNm_UZ || row.CcyNm_EN || row.Ccy,
+      name_uz: row.CcyNm_UZ || row.Ccy,
+      name_ru: row.CcyNm_RU || row.CcyNm_UZ || row.Ccy,
+      name_en: row.CcyNm_EN || row.CcyNm_UZ || row.Ccy,
       rate: rate / nominal,
       date: row.Date,
       change: Number(String(row.Diff || 0).replace(',', '.')) / nominal,
@@ -24,7 +27,16 @@ export async function fetchOfficialCurrencyRates() {
 
   if (!rates.length) throw new Error('Kurslar formatini o‘qib bo‘lmadi.')
   return [
-    { code: 'UZS', name: 'O‘zbekiston so‘mi', rate: 1, date: rows[0].Date, change: 0 },
+    {
+      code: 'UZS',
+      name: 'O‘zbekiston so‘mi',
+      name_uz: 'O‘zbekiston so‘mi',
+      name_ru: 'Узбекский сум',
+      name_en: 'Uzbekistan Sum',
+      rate: 1,
+      date: rows[0].Date,
+      change: 0,
+    },
     ...rates,
   ]
 }
